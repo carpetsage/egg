@@ -9,6 +9,7 @@
 
 import type { CraftingPriceParams, Inventory } from 'lib';
 import { getArtifactTierPropsFromId, singleCraftCost } from 'lib';
+import { ts } from '@/utils';
 // Type-only, so this stays a one-way runtime dependency: optimizer-tree
 // imports craftCostOf from here.
 import type { CraftChainMetrics, RecipeTreeNode } from './optimizer-tree';
@@ -80,7 +81,7 @@ export function computeCraftUnitPrices(
 // Golden eggs are whole in game; fractional crafts are the only reason these
 // aren't integers, and a rounded number is what a player can act on.
 export function formatGoldenEggs(cost: number): string {
-  return Math.round(cost).toLocaleString('en-US');
+  return ts(Math.round(cost));
 }
 
 // A node can occur many times in the rendered tree (duplicates carry the same

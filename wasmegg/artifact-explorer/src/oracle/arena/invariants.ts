@@ -40,6 +40,7 @@ import {
 } from './harness';
 import type { ArenaInstance } from './instances';
 import { evaluateAllocationJoint } from '../evaluate';
+import { mulberry32 } from '../generate';
 
 // Float LP work drifts by a few ulps; below this a difference is arithmetic,
 // not behaviour. 1e-9 nats is ~1e-9 relative.
@@ -54,6 +55,10 @@ const ORDER_NATS = 1e-6;
 // a joint LP solve at each point, so this is the number that decides whether
 // the tier is minutes or hours.
 const KOPT4_MAX_CANDIDATES = 32;
+// How many copies of one option a single k-opt move may add or drop. Beyond a
+// couple the move stops being local, and the loops below are already the
+// tier's cost driver.
+const KOPT_MAX_DELTA = 2;
 
 const lg = (p: number): number => (p > 0 ? Math.log(p) : -Infinity);
 
@@ -104,6 +109,24 @@ export interface CheckContext {
 
 const solve = (c: CheckContext, over: SolveOverrides = {}): Solved => run(c.planner, c.inst, over);
 
+// Record a violation whose size is the log gap between two probabilities.
+//
+// The argument order is the one `dropped`/`improved`/`gap` already take — `from`
+// is what the check compared against, `to` is what the perturbed solve returned
+// — so the signed `nats` the scorecard ranks on and the `(${gap(from, to)})`
+// these details print are the same pair by construction. Written out at each
+// site, the two drifted apart silently whenever a new check got the order
+// backwards.
+function report(c: CheckContext, invariant: string, from: number, to: number, detail: string) {
+  c.out.push({ invariant, instance: c.inst.label, detail, nats: lg(to) - lg(from) });
+}
+
+// Record a violation with no comparison behind it: the contract, feasibility and
+// budget-exhaustion checks fail on a fact, not on a gap.
+function reportFlat(c: CheckContext, invariant: string, detail: string) {
+  c.out.push({ invariant, instance: c.inst.label, detail });
+}
+
 // ---------------------------------------------------------------------------
 // A. Monotonicity. Growing the feasible set cannot lower the optimum.
 // ---------------------------------------------------------------------------
@@ -116,12 +139,13 @@ function monotone(id: string, c: CheckContext, axis: { label: string; over: Solv
   for (const step of axis) {
     const p = solve(c, step.over).joint;
     if (prev >= 0 && dropped(prev, p)) {
-      c.out.push({
-        invariant: id,
-        instance: c.inst.label,
-        detail: `${step.label} gives ${pct(p)} but the more constrained ${prevLabel} gives ${pct(prev)} (${gap(prev, p)})`,
-        nats: lg(p) - lg(prev),
-      });
+      report(
+        c,
+        id,
+        prev,
+        p,
+        `${step.label} gives ${pct(p)} but the more constrained ${prevLabel} gives ${pct(prev)} (${gap(prev, p)})`
+      );
     }
     prev = p;
     prevLabel = step.label;
@@ -205,12 +229,13 @@ export function checkA3Menu(c: CheckContext) {
     };
     const sub = solve(c, { config }).joint;
     if (improved(full, sub)) {
-      c.out.push({
-        invariant: 'A3-menu',
-        instance: c.inst.label,
-        detail: `hiding ${ei.MissionInfo.Spaceship[ship]} gives ${pct(sub)}, better than the full menu's ${pct(full)} (${gap(full, sub)})`,
-        nats: lg(sub) - lg(full),
-      });
+      report(
+        c,
+        'A3-menu',
+        full,
+        sub,
+        `hiding ${ei.MissionInfo.Spaceship[ship]} gives ${pct(sub)}, better than the full menu's ${pct(full)} (${gap(full, sub)})`
+      );
     }
   }
 }
@@ -264,12 +289,13 @@ export function checkA4Inventory(c: CheckContext) {
   for (const step of axis) {
     const p = solve(c, step.over).joint;
     if (dropped(bare.joint, p)) {
-      c.out.push({
-        invariant: 'A4-inventory',
-        instance: c.inst.label,
-        detail: `${step.label} gives ${pct(p)}, worse than owning nothing at ${pct(bare.joint)} (${gap(bare.joint, p)})`,
-        nats: lg(p) - lg(bare.joint),
-      });
+      report(
+        c,
+        'A4-inventory',
+        bare.joint,
+        p,
+        `${step.label} gives ${pct(p)}, worse than owning nothing at ${pct(bare.joint)} (${gap(bare.joint, p)})`
+      );
     }
   }
 }
@@ -322,12 +348,13 @@ export function checkA8Targets(c: CheckContext) {
     // Dropping a target removes a factor <= 1 from the product and frees
     // budget, so it can only help.
     if (dropped(full, p)) {
-      c.out.push({
-        invariant: 'A8-targets',
-        instance: c.inst.label,
-        detail: `dropping ${c.inst.targets[i]} gives ${pct(p)}, worse than keeping it at ${pct(full)} (${gap(full, p)})`,
-        nats: lg(p) - lg(full),
-      });
+      report(
+        c,
+        'A8-targets',
+        full,
+        p,
+        `dropping ${c.inst.targets[i]} gives ${pct(p)}, worse than keeping it at ${pct(full)} (${gap(full, p)})`
+      );
     }
   }
 }
@@ -336,8 +363,8 @@ export function checkA8Targets(c: CheckContext) {
 // B. Invariance. Relabelings and rescalings must not move the answer.
 // ---------------------------------------------------------------------------
 
-// Local seeded PRNG (mulberry32, the same generator `../generate.ts` uses for
-// instance construction), not `Math.random`.
+// Seeded PRNG, not `Math.random` — `mulberry32`, the same generator
+// `../generate.ts` builds the instances with.
 //
 // Not for randomness quality — a Fisher-Yates shuffle of a menu does not need a
 // good generator. For reproducibility, which the arena depends on twice over:
@@ -353,16 +380,7 @@ export function checkA8Targets(c: CheckContext) {
 //
 // Seeded from the instance seed and the shuffle index, so the whole sweep is a
 // pure function of `ARENA_SEED_BASE`.
-function rngFor(seed: number): () => number {
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6d2b79f5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
+const rngFor = mulberry32;
 
 export function checkB1OptionOrder(c: CheckContext, seeds = 3) {
   const base = solve(c).joint;
@@ -379,12 +397,13 @@ export function checkB1OptionOrder(c: CheckContext, seeds = 3) {
       },
     }).joint;
     if (differs(base, p, EXACT_NATS)) {
-      c.out.push({
-        invariant: 'B1-option-order',
-        instance: c.inst.label,
-        detail: `shuffle ${s} gives ${pct(p)} vs ${pct(base)} in the enumerated order (${gap(base, p)})`,
-        nats: lg(p) - lg(base),
-      });
+      report(
+        c,
+        'B1-option-order',
+        base,
+        p,
+        `shuffle ${s} gives ${pct(p)} vs ${pct(base)} in the enumerated order (${gap(base, p)})`
+      );
     }
   }
 }
@@ -394,12 +413,13 @@ export function checkB2TargetOrder(c: CheckContext) {
   const base = solve(c).joint;
   const reversed = solve(c, { targets: [...c.inst.targets].reverse() }).joint;
   if (differs(base, reversed, EXACT_NATS)) {
-    c.out.push({
-      invariant: 'B2-target-order',
-      instance: c.inst.label,
-      detail: `reversing the target list gives ${pct(reversed)} vs ${pct(base)} (${gap(base, reversed)})`,
-      nats: lg(reversed) - lg(base),
-    });
+    report(
+      c,
+      'B2-target-order',
+      base,
+      reversed,
+      `reversing the target list gives ${pct(reversed)} vs ${pct(base)} (${gap(base, reversed)})`
+    );
   }
 }
 
@@ -443,12 +463,13 @@ export function checkB3FuelScale(c: CheckContext) {
         })),
     }).joint;
     if (differs(base, p, REBUILT_NATS)) {
-      c.out.push({
-        invariant: 'B3-fuel-scale',
-        instance: c.inst.label,
-        detail: `scaling every fuel cost and the tank by ${k} gives ${pct(p)} vs ${pct(base)} (${gap(base, p)})`,
-        nats: lg(p) - lg(base),
-      });
+      report(
+        c,
+        'B3-fuel-scale',
+        base,
+        p,
+        `scaling every fuel cost and the tank by ${k} gives ${pct(p)} vs ${pct(base)} (${gap(base, p)})`
+      );
     }
   }
 }
@@ -472,12 +493,13 @@ export function checkB5Determinism(c: CheckContext, repeats = 3) {
   for (let k = 1; k < repeats; k++) {
     const again = solve(c, { fresh: true });
     if (signature(again) !== sig || again.joint !== first.joint) {
-      c.out.push({
-        invariant: 'B5-determinism',
-        instance: c.inst.label,
-        detail: `repeat ${k} returned a different plan (${pct(again.joint)} vs ${pct(first.joint)})`,
-        nats: lg(again.joint) - lg(first.joint),
-      });
+      report(
+        c,
+        'B5-determinism',
+        first.joint,
+        again.joint,
+        `repeat ${k} returned a different plan (${pct(again.joint)} vs ${pct(first.joint)})`
+      );
       return;
     }
   }
@@ -493,12 +515,13 @@ export function checkB6DuplicateOption(c: CheckContext) {
     transformOptions: options => [...options, { ...target, id: `${target.id}::dup` }],
   });
   if (differs(base.joint, duplicated.joint, REBUILT_NATS)) {
-    c.out.push({
-      invariant: 'B6-duplicate',
-      instance: c.inst.label,
-      detail: `duplicating ${target.ship.name} -> ${target.target ?? 'untargeted'} gives ${pct(duplicated.joint)} vs ${pct(base.joint)} (${gap(base.joint, duplicated.joint)})`,
-      nats: lg(duplicated.joint) - lg(base.joint),
-    });
+    report(
+      c,
+      'B6-duplicate',
+      base.joint,
+      duplicated.joint,
+      `duplicating ${target.ship.name} -> ${target.target ?? 'untargeted'} gives ${pct(duplicated.joint)} vs ${pct(base.joint)} (${gap(base.joint, duplicated.joint)})`
+    );
   }
 }
 
@@ -512,7 +535,7 @@ export function checkB6DuplicateOption(c: CheckContext) {
 export function checkC0Contract(c: CheckContext) {
   const s = solve(c);
   for (const b of s.breaches) {
-    c.out.push({ invariant: 'C0-contract', instance: c.inst.label, detail: b.detail });
+    reportFlat(c, 'C0-contract', b.detail);
   }
 }
 
@@ -520,21 +543,20 @@ export function checkC1Feasibility(c: CheckContext) {
   const s = solve(c);
   const b = budgetsOf(s.problem, s.allocation);
   if (!fuelWithinCapacity(b.fuel, s.problem.fuelCapacity)) {
-    c.out.push({
-      invariant: 'C1-feasibility',
-      instance: c.inst.label,
-      detail: `plan burns ${b.fuel.toExponential(4)} fuel against a ${s.problem.fuelCapacity.toExponential(4)} tank`,
-    });
+    reportFlat(
+      c,
+      'C1-feasibility',
+      `plan burns ${b.fuel.toExponential(4)} fuel against a ${s.problem.fuelCapacity.toExponential(4)} tank`
+    );
   }
   if (b.pack !== 'packs') {
-    c.out.push({
-      invariant: 'C1-feasibility',
-      instance: c.inst.label,
-      detail:
-        b.pack === 'undecided'
-          ? `packing undecided within the node budget (${b.totalTime.toFixed(0)}s over ${s.problem.slots} slots of ${s.problem.timeCapacity}s)`
-          : `plan does not pack into ${s.problem.slots} slots of ${s.problem.timeCapacity}s (${b.totalTime.toFixed(0)}s total)`,
-    });
+    reportFlat(
+      c,
+      'C1-feasibility',
+      b.pack === 'undecided'
+        ? `packing undecided within the node budget (${b.totalTime.toFixed(0)}s over ${s.problem.slots} slots of ${s.problem.timeCapacity}s)`
+        : `plan does not pack into ${s.problem.slots} slots of ${s.problem.timeCapacity}s (${b.totalTime.toFixed(0)}s total)`
+    );
   }
 }
 
@@ -544,12 +566,13 @@ export function checkC2Honesty(c: CheckContext) {
   const claimed = s.result.reported.jointProbability;
   const expected = s.joint;
   if (differs(claimed, expected, REBUILT_NATS)) {
-    c.out.push({
-      invariant: 'C2-honesty',
-      instance: c.inst.label,
-      detail: `reported ${pct(claimed)} but an independent re-evaluation of the same allocation gives ${pct(expected)} (${gap(expected, claimed)})`,
-      nats: lg(claimed) - lg(expected),
-    });
+    report(
+      c,
+      'C2-honesty',
+      expected,
+      claimed,
+      `reported ${pct(claimed)} but an independent re-evaluation of the same allocation gives ${pct(expected)} (${gap(expected, claimed)})`
+    );
   }
 }
 
@@ -560,12 +583,13 @@ export function checkC3JointIsProduct(c: CheckContext) {
   if (r.perTarget.length !== s.problem.targets.length) return; // C0 reported it
   const product = r.perTarget.reduce((a, p) => a * p, 1);
   if (differs(product, r.jointProbability, EXACT_NATS)) {
-    c.out.push({
-      invariant: 'C3-joint-product',
-      instance: c.inst.label,
-      detail: `reported jointProbability ${pct(r.jointProbability)} but the reported per-target factors multiply to ${pct(product)}`,
-      nats: lg(product) - lg(r.jointProbability),
-    });
+    report(
+      c,
+      'C3-joint-product',
+      r.jointProbability,
+      product,
+      `reported jointProbability ${pct(r.jointProbability)} but the reported per-target factors multiply to ${pct(product)}`
+    );
   }
 }
 
@@ -595,21 +619,23 @@ export function checkM1M2SoloDominance(c: CheckContext) {
     product *= solo;
     const fromJoint = joint.judged.perTarget[i].bestProbability;
     if (dropped(fromJoint, solo)) {
-      c.out.push({
-        invariant: 'M2-projection',
-        instance: c.inst.label,
-        detail: `solo solve for ${t} reaches ${pct(solo)}, but the joint plan already reaches ${pct(fromJoint)} on it (${gap(fromJoint, solo)})`,
-        nats: lg(solo) - lg(fromJoint),
-      });
+      report(
+        c,
+        'M2-projection',
+        fromJoint,
+        solo,
+        `solo solve for ${t} reaches ${pct(solo)}, but the joint plan already reaches ${pct(fromJoint)} on it (${gap(fromJoint, solo)})`
+      );
     }
   }
   if (improved(product, joint.joint)) {
-    c.out.push({
-      invariant: 'M1-solo-product',
-      instance: c.inst.label,
-      detail: `joint ${pct(joint.joint)} exceeds the product of solo optima ${pct(product)} (${gap(product, joint.joint)})`,
-      nats: lg(joint.joint) - lg(product),
-    });
+    report(
+      c,
+      'M1-solo-product',
+      product,
+      joint.joint,
+      `joint ${pct(joint.joint)} exceeds the product of solo optima ${pct(product)} (${gap(product, joint.joint)})`
+    );
   }
 }
 
@@ -679,14 +705,14 @@ export function checkM3UnionLowerBound(c: CheckContext) {
     if (!feasible(joint.problem, union)) continue; // the bound only applies when it lands feasible
     const p = evaluateAllocationJoint(oracleInst, union).jointProbability;
     if (improved(joint.joint, p)) {
-      c.out.push({
-        invariant: 'M3-union',
-        instance: c.inst.label,
-        detail:
-          `union of per-target plans at split [${w.map(x => x.toFixed(2)).join(',')}] reaches ${pct(p)}, ` +
-          `beating the joint solve's ${pct(joint.joint)} (${gap(joint.joint, p)})`,
-        nats: lg(p) - lg(joint.joint),
-      });
+      report(
+        c,
+        'M3-union',
+        joint.joint,
+        p,
+        `union of per-target plans at split [${w.map(x => x.toFixed(2)).join(',')}] reaches ${pct(p)}, ` +
+          `beating the joint solve's ${pct(joint.joint)} (${gap(joint.joint, p)})`
+      );
     }
   }
 }
@@ -698,7 +724,7 @@ export function checkM3UnionLowerBound(c: CheckContext) {
 // Shared engine for D1/D2. `arity` is how many option lines a single move may
 // touch: 2 is the classic exchange, 4 reaches the two-simultaneous-exchange
 // moves that sit behind a downhill valley.
-function kOpt(id: string, c: CheckContext, arity: 2 | 4, maxDelta: number, thresholdNats: number, maxEvals: number) {
+function kOpt(id: string, c: CheckContext, arity: 2 | 4, thresholdNats: number, maxEvals: number) {
   const s = solve(c);
   const alloc = s.allocation;
   const oracleInst = oracleInstanceOf(s.problem);
@@ -763,10 +789,10 @@ function kOpt(id: string, c: CheckContext, arity: 2 | 4, maxDelta: number, thres
   // on its own, and the nests below run to billions of iterations on a wide
   // instance, each one still paying for `alloc.slice()`.
   pairs: for (const i of held) {
-    for (let k = 1; k <= Math.min(alloc[i], maxDelta); k++) {
+    for (let k = 1; k <= Math.min(alloc[i], KOPT_MAX_DELTA); k++) {
       for (const j of addable) {
         if (i === j) continue;
-        for (let m = 1; m <= maxDelta; m++) {
+        for (let m = 1; m <= KOPT_MAX_DELTA; m++) {
           const a = alloc.slice();
           a[i] -= k;
           a[j] += m;
@@ -790,8 +816,8 @@ function kOpt(id: string, c: CheckContext, arity: 2 | 4, maxDelta: number, thres
         for (const j1 of addable) {
           for (const j2 of addable) {
             if (j1 === j2) continue;
-            for (let k1 = 1; k1 <= Math.min(alloc[i1], maxDelta); k1++) {
-              for (let k2 = 1; k2 <= Math.min(alloc[i2], maxDelta); k2++) {
+            for (let k1 = 1; k1 <= Math.min(alloc[i1], KOPT_MAX_DELTA); k1++) {
+              for (let k2 = 1; k2 <= Math.min(alloc[i2], KOPT_MAX_DELTA); k2++) {
                 const a = alloc.slice();
                 a[i1] -= k1;
                 a[i2] -= k2;
@@ -814,30 +840,25 @@ function kOpt(id: string, c: CheckContext, arity: 2 | 4, maxDelta: number, thres
   }
 
   if (best.detail) {
-    c.out.push({
-      invariant: id,
-      instance: c.inst.label,
-      detail: `${best.detail} improves ${pct(base)} to ${pct(best.p)} (${gap(base, best.p)})`,
-      nats: lg(best.p) - lg(base),
-    });
+    report(c, id, base, best.p, `${best.detail} improves ${pct(base)} to ${pct(best.p)} (${gap(base, best.p)})`);
   } else if (exhausted) {
     // Not a violation, but the absence of one is now uninformative: say so
     // rather than let a truncated search read as a clean bill of health.
-    c.out.push({
-      invariant: `${id}-inconclusive`,
-      instance: c.inst.label,
-      detail: `search hit its ${maxEvals}-evaluation budget with ${held.length} held lines and ${addable.length} candidates; no improving move found, but the neighbourhood was not exhausted`,
-    });
+    reportFlat(
+      c,
+      `${id}-inconclusive`,
+      `search hit its ${maxEvals}-evaluation budget with ${held.length} held lines and ${addable.length} candidates; no improving move found, but the neighbourhood was not exhausted`
+    );
   }
 }
 
 export function checkD1LocalOptimality(c: CheckContext) {
   // 1e-3 nats ~ 0.1% relative, the old threshold.
-  kOpt('D1-2opt', c, 2, 2, 1e-3, 20_000);
+  kOpt('D1-2opt', c, 2, 1e-3, 20_000);
 }
 
 export function checkD2DeepLocalOptimality(c: CheckContext) {
-  kOpt('D2-4opt', c, 4, 2, 5e-3, 25_000);
+  kOpt('D2-4opt', c, 4, 5e-3, 25_000);
 }
 
 // ---------------------------------------------------------------------------

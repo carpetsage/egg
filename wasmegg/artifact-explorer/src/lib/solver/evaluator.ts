@@ -10,8 +10,6 @@
 import type { Model } from './model';
 import { simplexMax } from './simplex';
 
-export type { Group, Model } from './model';
-
 export interface EvalResult {
   logJoint: number; // sum_T log(1 - exp(-s_T)) in nats; -Infinity when any s_T <= 0
   scores: number[]; // s_T per target (may be +Infinity for a prob-1 craft)
@@ -28,14 +26,14 @@ export function logHit(s: number): number {
 
 // g'(s); grows like 1/s as s -> 0, capped to keep linearizations finite.
 const GPRIME_CAP = 1e12;
-export function gPrime(s: number): number {
+function gPrime(s: number): number {
   return s <= 0 ? GPRIME_CAP : Math.min(1 / Math.expm1(s), GPRIME_CAP);
 }
 
 const GOLDEN = (Math.sqrt(5) - 1) / 2;
 
 // argmax of a unimodal (concave) f over [0, 1].
-export function goldenSectionArgmax(f: (x: number) => number, iters: number): number {
+function goldenSectionArgmax(f: (x: number) => number, iters: number): number {
   let a = 0;
   let b = 1;
   let c = b - GOLDEN * (b - a);
@@ -209,7 +207,7 @@ export const EXACT_PRECISION: EvalPrecision = { gapTol: 1e-12, maxIters: 2000 };
 // number `reported` carries and the one C2/C3 check.
 export const STEERING_PRECISION: EvalPrecision = { gapTol: 1e-7, maxIters: 600 };
 
-export interface Inventory {
+interface Inventory {
   b: number[]; // per consumed item
   lambdas: number[]; // direct legendary rate per target
 }
@@ -240,7 +238,7 @@ export function evaluateCounts(
 }
 
 // Value of a given inventory.
-export function evaluateAt(
+function evaluateAt(
   model: Model,
   b: number[],
   lambdas: readonly number[],

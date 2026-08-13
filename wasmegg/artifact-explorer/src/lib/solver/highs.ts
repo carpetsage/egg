@@ -38,25 +38,24 @@ let cached: Promise<MilpSolve> | null = null;
 export function loadHighs(): Promise<MilpSolve> {
   cached ??= highsLoader({ locateFile: () => wasmLocation })
     .then((highs): MilpSolve => {
-      const attempt = (model: MilpModel, limits: Parameters<MilpSolve>[1], presolve: 'on' | 'off') =>
-        readSolution(
-          model,
-          highs.solve(writeLp(model), {
-            ...SOLVER_OPTIONS,
-            presolve,
-            mip_max_nodes: limits.maxNodes,
-            mip_rel_gap: limits.relGap,
-          } as Parameters<typeof highs.solve>[1])
-        );
-
       return (model, limits) => {
-        const configured = SOLVER_OPTIONS.presolve === 'off' ? 'off' : 'on';
         try {
-          return attempt(model, limits, configured);
+          return readSolution(
+            model,
+            highs.solve(writeLp(model), {
+              ...SOLVER_OPTIONS,
+              mip_max_nodes: limits.maxNodes,
+              mip_rel_gap: limits.relGap,
+            } as Parameters<typeof highs.solve>[1])
+          );
         } catch {
-          // WHY PRESOLVE IS OFF IN `SOLVER_OPTIONS`, so this branch is normally
-          // unreachable — it is the fallback for a build or a caller that turns
-          // presolve back on.
+          // `unknown` is a status the caller already handles — `solveWith` keeps
+          // the best plan it has judged so far — whereas an exception here
+          // propagates out of `optimizeFull` and surfaces as an app that cannot
+          // produce a plan at all.
+          //
+          // WHY PRESOLVE IS OFF IN `SOLVER_OPTIONS`, which is what makes this
+          // catch a backstop rather than a routine path.
           //
           // Presolve is a performance bet, and on this workload it loses. Over
           // twelve arena instances through `optimizeFull`, timed both with the
@@ -148,23 +147,11 @@ export function loadHighs(): Promise<MilpSolve> {
           // expose — 'off' | 'choose' | 'on' — 'choose' still throws here
           // (measured, above). 'off' is the only remedy available.
           //
-          // Presolve only reformulates; it cannot change the feasible set. So
-          // falling back without it can turn a failure into an answer but never
-          // a wrong answer into a right-looking one — and the answer is checked
-          // by `certifies` and priced by the evaluator regardless.
-          if (configured === 'off') {
-            // Already the configured path, so there is no second thing to try.
-            return { status: 'unknown', objective: 0, columnValues: new Float64Array(model.columnCount) };
-          }
-          try {
-            return attempt(model, limits, 'off');
-          } catch {
-            // Both attempts failed. `unknown` is a status the caller already
-            // handles — `solveWith` keeps the best plan it has judged so far —
-            // whereas an exception here propagates out of `optimizeFull` and
-            // surfaces as an app that cannot produce a plan at all.
-            return { status: 'unknown', objective: 0, columnValues: new Float64Array(model.columnCount) };
-          }
+          // Presolve only reformulates; it cannot change the feasible set, so
+          // running without it can turn a failure into an answer but never a
+          // wrong answer into a right-looking one — and the answer is checked by
+          // `certifies` and priced by the evaluator regardless.
+          return { status: 'unknown', objective: 0, columnValues: new Float64Array(model.columnCount) };
         }
       };
     })
@@ -193,7 +180,7 @@ function term(coefficient: number, column: number): string {
 // and readers have historically had opinions about very long lines.
 const TERMS_PER_LINE = 8;
 
-export function writeLp(model: MilpModel): string {
+function writeLp(model: MilpModel): string {
   const out: string[] = ['Maximize'];
 
   const objective: string[] = [];
@@ -256,7 +243,7 @@ export function writeLp(model: MilpModel): string {
 
 // Structurally what the `highs` package returns. Named here rather than
 // imported because the package's own solution types are module-private.
-export interface RawHighsSolution {
+interface RawHighsSolution {
   Status: string;
   ObjectiveValue: number;
   // `Index` is declared but never read — see `readSolution` and SPEC.md
@@ -267,7 +254,7 @@ export interface RawHighsSolution {
   Columns: Record<string, { Primal?: number; Index?: number }>;
 }
 
-export function readSolution(model: MilpModel, solution: RawHighsSolution): MilpSolution {
+function readSolution(model: MilpModel, solution: RawHighsSolution): MilpSolution {
   // Keyed by *name*, deliberately — see SPEC.md section 8. A column absent
   // from the LP file (no objective, no bound, no coefficient anywhere) is
   // absent from the solution too, and its zero is already in place.

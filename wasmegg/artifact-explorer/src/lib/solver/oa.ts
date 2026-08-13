@@ -201,11 +201,22 @@ function certifies(model: Model, layout: Layout, columnValues: Float64Array, cou
   return true;
 }
 
-function emit(problem: PlanProblem, model: Model, counts: readonly number[]): PlanResult {
+// The self-report is opt-in because it is not free: it re-scores the plan at
+// `EXACT_PRECISION`, the most expensive setting the evaluator has, and the app
+// never reads it — `optimizer-core.ts` takes the allocation and derives every
+// displayed number itself from the exact objective. Only the arena wants it, to
+// grade the claim against its own scoring (C2/C3), so only the arena asks.
+export interface SolveOptions {
+  report?: boolean;
+}
+
+function emit(problem: PlanProblem, model: Model, counts: readonly number[], report: boolean): PlanResult {
   const allocation = new Array<number>(problem.options.length).fill(0);
   for (let g = 0; g < model.groups.length; g++) {
     if (counts[g] > 0) allocation[model.groups[g].members[0]] += counts[g];
   }
+  if (!report) return { allocation };
+
   const finalEval = evaluateCounts(model, counts, EXACT_PRECISION);
   const scored = finalEval.scores.map(s => (s > 0 ? -Math.expm1(-s) : 0));
   // The model sorts its targets; the seam promises `perTarget` parallel to the
@@ -231,7 +242,7 @@ function emit(problem: PlanProblem, model: Model, counts: readonly number[]): Pl
 // Returns null when some target cannot be scored at all: then the joint
 // probability is zero for every allocation and no plan beats the empty one.
 function scales(model: Model, qs: readonly number[], solve: MilpSolve, limits: MilpLimits): number[] | null {
-  const layout = layoutOf(model, false);
+  const layout = layoutOf(model, 'scale');
   const scaleLp = scaleLps(model, qs);
   const theta: number[] = [];
   for (let t = 0; t < model.targets.length; t++) {
@@ -244,15 +255,20 @@ function scales(model: Model, qs: readonly number[], solve: MilpSolve, limits: M
   return theta;
 }
 
-export function solveWith(problem: PlanProblem, solve: MilpSolve, tuning: Tuning = DEFAULT_TUNING): PlanResult {
+export function solveWith(
+  problem: PlanProblem,
+  solve: MilpSolve,
+  tuning: Tuning = DEFAULT_TUNING,
+  { report = false }: SolveOptions = {}
+): PlanResult {
   const model = buildModel(problem);
   const empty = new Array<number>(model.groups.length).fill(0);
-  if (model.groups.length === 0 || model.targets.length === 0) return emit(problem, model, empty);
+  if (model.groups.length === 0 || model.targets.length === 0) return emit(problem, model, empty, report);
 
   const qs = effectiveQs(model);
   const limits: MilpLimits = { maxNodes: tuning.maxNodes, relGap: MIP_REL_GAP };
   const theta = scales(model, qs, solve, limits);
-  if (!theta) return emit(problem, model, empty);
+  if (!theta) return emit(problem, model, empty, report);
 
   const cuts: Tangent[] = [];
   for (let t = 0; t < model.targets.length; t++) {
@@ -260,9 +276,9 @@ export function solveWith(problem: PlanProblem, solve: MilpSolve, tuning: Tuning
   }
 
   const solution = solve(buildOaMilp(model, qs, theta, cuts), limits);
-  if (solution.status === 'infeasible' || solution.status === 'unknown') return emit(problem, model, empty);
+  if (solution.status === 'infeasible' || solution.status === 'unknown') return emit(problem, model, empty, report);
 
-  const layout = layoutOf(model, true);
+  const layout = layoutOf(model, 'oa');
   const counts = decodeCounts(model, layout, solution.columnValues);
   const judged = evaluateCounts(model, counts, STEERING_PRECISION);
   // An uncertified incumbent is dropped, not patched, and so is one the empty
@@ -273,5 +289,5 @@ export function solveWith(problem: PlanProblem, solve: MilpSolve, tuning: Tuning
     certifies(model, layout, solution.columnValues, counts) &&
     judged.logJoint > evaluateCounts(model, empty, STEERING_PRECISION).logJoint;
 
-  return emit(problem, model, keep ? counts : empty);
+  return emit(problem, model, keep ? counts : empty, report);
 }

@@ -244,19 +244,6 @@ export const JOINT_TANGENTS: readonly Tangent[] = JOINT_TANGENT_BREAKPOINTS.map(
 // Anyone building epigraph rows must subtract nTargets * this from the result.
 export const EPIGRAPH_SHIFT = 50;
 
-export function exactLogHitProbability(s: number): number {
-  return s > 0 ? Math.log(-Math.expm1(-s)) : -Infinity;
-}
-
-export function tangentLogHitProbability(s: number): number {
-  let best = Infinity;
-  for (const t of JOINT_TANGENTS) {
-    const v = t.alpha + t.beta * s;
-    if (v < best) best = v;
-  }
-  return best;
-}
-
 export interface JointAlphaResult {
   craftByTarget: Map<string, number>; // absent for a leaf target, mirroring compileInnerLp
   primalByNode: Map<string, number>;
@@ -267,11 +254,6 @@ export interface JointInnerLp {
   readonly constraintNodes: readonly string[]; // conservation rows only, in b's row order
   readonly varIndex: ReadonlyMap<string, number>;
   readonly targets: readonly string[];
-
-  // b is the inventory RHS (constraintNodes order), lambda the per-target
-  // direct-legendary offset (targets order). Returns the tangent OVER-estimate
-  // of sum_T g(Q_T*craft_T + lambda_T), for ranking only.
-  solveScore(b: Float64Array, lambda: Float64Array): number;
 
   solve(inventory: Map<string, number>, lambda: Map<string, number>): JointAlphaResult;
 }
@@ -378,13 +360,6 @@ export function compileJointInnerLp(
     constraintNodes,
     varIndex,
     targets,
-
-    solveScore(b: Float64Array, lambda: Float64Array): number {
-      for (let i = 0; i < nCons; i++) bScratch[i] = b[i] ?? 0;
-      fillEpigraphB(lambda);
-      const r = solveLp(c, A, bScratch);
-      return r.status === 'optimal' ? r.objective - nt * EPIGRAPH_SHIFT : -Infinity;
-    },
 
     solve(inventory: Map<string, number>, lambdaMap: Map<string, number>): JointAlphaResult {
       for (let i = 0; i < nCons; i++) {

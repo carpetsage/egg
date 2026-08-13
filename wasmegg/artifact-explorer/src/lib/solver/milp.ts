@@ -50,7 +50,15 @@ export interface Layout {
   columnCount: number;
 }
 
-export function layoutOf(model: Model, withZ: boolean): Layout {
+// The two models built here, named rather than spelled as flags. 'scale' is the
+// continuous per-target relaxation, 'oa' the integer outer-approximation MILP —
+// and the difference is not two independent switches: only the OA variant has
+// the epigraph columns, and only the OA variant branches on mission counts. One
+// discriminant makes the invalid pairings unstateable.
+export type Variant = 'scale' | 'oa';
+
+export function layoutOf(model: Model, variant: Variant): Layout {
+  const withZ = variant === 'oa';
   const slots = model.slots;
   const groups = model.groups.length;
   const crafts = model.craftables.length;
@@ -223,14 +231,10 @@ interface Core {
 
 // Columns and the rows every variant shares: conservation, score definitions,
 // the fuel budget, the three slot budgets, and the slot-ordering symmetry break.
-function buildCore(
-  model: Model,
-  qs: readonly number[],
-  theta: readonly number[],
-  integral: boolean,
-  withZ: boolean
-): Core {
-  const layout = layoutOf(model, withZ);
+function buildCore(model: Model, qs: readonly number[], theta: readonly number[], variant: Variant): Core {
+  const withZ = variant === 'oa';
+  const integral = withZ;
+  const layout = layoutOf(model, variant);
   const columnLower = new Float64Array(layout.columnCount);
   const columnUpper = new Float64Array(layout.columnCount).fill(INF);
   const columnIsInteger = new Uint8Array(layout.columnCount);
@@ -341,15 +345,20 @@ function buildCore(
   return { layout, rows, columnLower, columnUpper, columnIsInteger };
 }
 
-function finish(core: Core, objective: Float64Array): MilpModel {
-  return {
+// Closes a core over its frozen matrix, returning "the same model with this
+// objective". The freeze copies the whole matrix into typed arrays, so it
+// happens once per core and not once per model built from it — `scaleLps`
+// builds one model per target off a single core.
+function finisher(core: Core): (objective: Float64Array) => MilpModel {
+  const frozen = core.rows.freeze();
+  return objective => ({
     columnCount: core.layout.columnCount,
     columnLower: core.columnLower,
     columnUpper: core.columnUpper,
     columnIsInteger: core.columnIsInteger,
     objective,
-    ...core.rows.freeze(),
-  };
+    ...frozen,
+  });
 }
 
 // Weight on the scale LP's single objective column. Not 1 — see SPEC.md
@@ -369,11 +378,12 @@ const SCALE_LP_OBJECTIVE = 1e9;
 // built once and every LP is finished from it.
 export function scaleLps(model: Model, qs: readonly number[]): (t: number) => MilpModel {
   const ones = new Array<number>(model.targets.length).fill(1);
-  const core = buildCore(model, qs, ones, false, false);
+  const core = buildCore(model, qs, ones, 'scale');
+  const build = finisher(core);
   return t => {
     const objective = new Float64Array(core.layout.columnCount);
     objective[core.layout.sBase + t] = SCALE_LP_OBJECTIVE;
-    return finish(core, objective);
+    return build(objective);
   };
 }
 
@@ -390,7 +400,7 @@ export function buildOaMilp(
   theta: readonly number[],
   cuts: readonly Tangent[]
 ): MilpModel {
-  const core = buildCore(model, qs, theta, true, true);
+  const core = buildCore(model, qs, theta, 'oa');
   const { layout, rows } = core;
 
   for (const cut of cuts) {
@@ -407,7 +417,7 @@ export function buildOaMilp(
 
   const objective = new Float64Array(layout.columnCount);
   for (let t = 0; t < layout.targets; t++) objective[layout.zBase + t] = 1;
-  return finish(core, objective);
+  return finisher(core)(objective);
 }
 
 // Missions per group, summed back over the slots. HiGHS returns integers as

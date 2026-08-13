@@ -23,7 +23,7 @@
 // and is exactly why the app goes through `loadHighs()` itself instead.
 
 import { loadHighs } from '@/lib/solver/highs';
-import { solveWith } from '@/lib/solver/oa';
+import { DEFAULT_TUNING, solveWith } from '@/lib/solver/oa';
 import type { ArenaSolver, PlanProblem, PlanResult } from '../../contract';
 
 const solve = await loadHighs();
@@ -31,5 +31,7 @@ const solve = await loadHighs();
 export const highs: ArenaSolver = {
   id: 'highs',
   description: 'MILP over slots and crafts, outer-approximated objective, solved by HiGHS (WebAssembly)',
-  plan: (problem: PlanProblem): PlanResult => solveWith(problem, solve),
+  // `report: true` opts into the C2/C3 honesty checks. The app leaves it off —
+  // it derives its own numbers — so the self-report is paid for here only.
+  plan: (problem: PlanProblem): PlanResult => solveWith(problem, solve, DEFAULT_TUNING, { report: true }),
 };

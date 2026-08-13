@@ -49,7 +49,6 @@ export interface Model {
   craftPrices: number[];
   craftBudgetCapacity: number;
   groups: Group[];
-  groupOfOption: number[]; // original option index -> group index, -1 if dropped
 }
 
 type Entry = [string, number];
@@ -354,12 +353,10 @@ export function buildModel(problem: PlanProblem): Model {
   // Merge exact duplicates into one group; see SPEC.md section 1 (B1, B6).
   candidates.sort((a, b) => cmpKey(a, b) || a.index - b.index);
   const groups: Group[] = [];
-  const groupOfOption = new Array<number>(problem.options.length).fill(-1);
   for (let i = 0; i < candidates.length; i++) {
     const cand = candidates[i];
     if (i > 0 && cmpKey(candidates[i - 1], cand) === 0) {
       groups[groups.length - 1].members.push(cand.index);
-      groupOfOption[cand.index] = groups.length - 1;
       continue;
     }
     const yieldByItem = new Array<number>(items.length).fill(0);
@@ -377,7 +374,6 @@ export function buildModel(problem: PlanProblem): Model {
       cap: cand.cap,
       members: [cand.index],
     });
-    groupOfOption[cand.index] = groups.length - 1;
   }
   for (const grp of groups) grp.members.sort((a, b) => a - b);
 
@@ -397,6 +393,5 @@ export function buildModel(problem: PlanProblem): Model {
     craftPrices,
     craftBudgetCapacity,
     groups,
-    groupOfOption,
   };
 }

@@ -325,8 +325,9 @@ faster.
 
 Every budget here is a **count**, never a number of seconds — not in the app and
 not in the arena. A wall-clock limit would make the returned plan a function of
-how loaded the machine was, which breaks determinism outright and would make the
-sidebar's search-effort control a knob that silently lies. For the same reason
+how loaded the machine was, which breaks determinism outright: the same inputs
+would give a user two different plans on two runs, and the arena could not grade
+a candidate it cannot reproduce. For the same reason
 `SOLVER_OPTIONS` pins `threads: 1`, `parallel: 'off'` and `random_seed: 0`: a
 parallel MIP search is not reproducible. There is no `Math.random`, no
 `Date.now` and no environment read anywhere in this directory.

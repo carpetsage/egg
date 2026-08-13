@@ -22,6 +22,18 @@ import { packFeasible } from './pack-feasibility';
 
 const SLOTS = 3;
 
+// Seeded so a differential failure below names a multiset that can be replayed.
+// Kept local rather than taken from `../generate`: like the goalpost it guards,
+// this file depends on nothing that a candidate could change underneath it.
+function lcg(seed: number) {
+  let a = seed;
+  const rnd = () => {
+    a = (a * 1103515245 + 12345) & 0x7fffffff;
+    return a / 0x7fffffff;
+  };
+  return { rnd, ri: (lo: number, hi: number) => lo + Math.floor(rnd() * (hi - lo + 1)) };
+}
+
 // The definition, not another heuristic: assign every individual mission to some
 // slot, exhaustively. Exponential, so it is only ever used on tiny multisets.
 function brutePacks(durations: number[], counts: number[], capacity: number, slots: number): boolean {
@@ -237,12 +249,7 @@ describe('per-slot integrality, where the volume bound is blind', () => {
 // rather than from the volume or half-capacity bounds.
 describe('agrees with brute force on tight instances', () => {
   it('matches on 20k multisets that survive every prefilter', () => {
-    let a = 777;
-    const rnd = () => {
-      a = (a * 1103515245 + 12345) & 0x7fffffff;
-      return a / 0x7fffffff;
-    };
-    const ri = (lo: number, hi: number) => lo + Math.floor(rnd() * (hi - lo + 1));
+    const { rnd, ri } = lcg(777);
 
     let tested = 0;
     let infeasible = 0;
@@ -304,12 +311,7 @@ describe('agrees with brute force on tight instances', () => {
 // assumed by the perturbation.
 describe('agrees with brute force on near-exact instances built from a known packing', () => {
   it('matches on 5k near-exact multisets, feasible by construction and perturbed toward infeasible', () => {
-    let a = 424242;
-    const rnd = () => {
-      a = (a * 1103515245 + 12345) & 0x7fffffff;
-      return a / 0x7fffffff;
-    };
-    const ri = (lo: number, hi: number) => lo + Math.floor(rnd() * (hi - lo + 1));
+    const { rnd, ri } = lcg(424242);
 
     let tested = 0;
     let undecided = 0;

@@ -212,10 +212,12 @@ result but the last describes settings the user has already moved past. A
 superseded (or torn-down) request resolves with `null`, which callers read as
 "no result is coming, leave state alone".
 
-The request also carries the planner's two search budgets, so the worker never
-has to know where a setting came from. They are node- and round-based rather than
-a wall clock on purpose: the same request has to produce the same plan however
-loaded the machine is, which a time limit cannot promise.
+The request carries the problem and nothing else. The planner's search budget is
+not a setting that travels with it: `DEFAULT_TUNING` in `solver/oa.ts` fixes the
+node count and the tangent grid at compile time. That budget is node-based
+rather than a wall clock on purpose — the same request has to produce the same
+plan however loaded the machine is, which a time limit cannot promise, and the
+arena requires one allocation per problem to grade at all.
 
 Presentation-only fields (`expectedDrops`, `fuelByEgg`, sorted `choiceHistory`)
 are filled in by `finalizeSolutions` on the main thread, so the worker path and

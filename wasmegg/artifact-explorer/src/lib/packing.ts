@@ -7,7 +7,10 @@
 // meaningful while the two implementations are separate. Sharing one packer
 // would make it circular and silently stop validating anything.
 
-const NUM_SLOTS = 3;
+// Three mission slots, as the game gives. Exported because it is a property of
+// the game rather than of this packer, and the plan assembly in
+// `optimizer-core.ts` sizes its slot summaries by the same number.
+export const NUM_SLOTS = 3;
 const EPS = 1e-9;
 
 /**

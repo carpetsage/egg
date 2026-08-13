@@ -6,7 +6,7 @@ import { describe, it, expect } from 'vitest';
 import { ei, Inventory } from 'lib';
 import { buildRecipeDag } from '@/lib';
 import { loadHighs } from './solver/highs';
-import { solveWith } from './solver/oa';
+import { DEFAULT_TUNING, solveWith } from './solver/oa';
 import type { PlanProblem } from './solver/types';
 import { makeNode, makeOpt } from './spec-helpers';
 import type { RecipeDAG } from './types';
@@ -81,8 +81,8 @@ function problemOf(targets: string[]): PlanProblem {
 describe('the model is a function of the target set, not its order', () => {
   it('reports per-target factors in the order the caller asked for', async () => {
     const solve = await loadHighs();
-    const forward = solveWith(problemOf(['A1', 'A2']), solve);
-    const reversed = solveWith(problemOf(['A2', 'A1']), solve);
+    const forward = solveWith(problemOf(['A1', 'A2']), solve, DEFAULT_TUNING, { report: true });
+    const reversed = solveWith(problemOf(['A2', 'A1']), solve, DEFAULT_TUNING, { report: true });
 
     // Same plan, same joint — the relabeling moved nothing.
     expect(reversed.allocation).toEqual(forward.allocation);

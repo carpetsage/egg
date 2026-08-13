@@ -9,22 +9,19 @@
 // and ARENA.md for what "proved" means.
 //
 // What lives here is everything either side of the search: `buildEvalContext`
-// compiles the tangent-epigraph LP and the yield structure the objective is
-// defined over, and `assembleFullSolution` turns an allocation into the numbers
-// the UI renders, via the exact objective and the craft-split refinement. The
-// MILP never grades itself — nothing it reports about its own plan reaches the
-// screen.
+// compiles the inner craft LP the objective is defined over, and
+// `assembleFullSolution` turns an allocation into the numbers the UI renders,
+// via the exact objective and the craft-split refinement. The MILP never grades
+// itself — nothing it reports about its own plan reaches the screen.
 
 import type { CraftBudget, LaunchOption, LaunchSolution, OptimizerSolution, RecipeDAG, SlotSummary } from './types';
 import { ei } from 'lib';
 import { alphaToProb, compileJointInnerLp, JointInnerLp, refineJointCraftSplit } from './value-function';
-import { packWitness } from './packing';
+import { NUM_SLOTS, packWitness } from './packing';
 import { loadHighs } from './solver/highs';
 import { solveWith } from './solver/oa';
 import type { PlanProblem } from './solver/types';
 
-// Three mission slots, as the game gives.
-export const NUM_SLOTS = 3;
 // Anything under this is zero: durations, fuel, score differences.
 const ZERO_TOL = 1e-9;
 
@@ -44,17 +41,10 @@ export interface OptimizeArgs {
   craftBudget?: CraftBudget;
 }
 
-type EvalFn = (multipliers: ReadonlyArray<readonly [number, number]>) => number;
-
 interface EvalContext {
   options: LaunchOption[];
-  recipeDag: RecipeDAG;
-  targets: string[];
-  baseYield: Map<string, number>;
   QByTarget: Map<string, number>;
   innerLp: JointInnerLp;
-  evalScoreAt: EvalFn; // returns the tangent-approximated F, not a probability
-  baseScore: number;
   craftBudget?: CraftBudget;
 }
 
@@ -62,101 +52,17 @@ function buildEvalContext(
   options: LaunchOption[],
   recipeDag: RecipeDAG,
   desiredArtifactNodeIds: string[],
-  baseYield: Map<string, number>,
   craftBudget?: CraftBudget
 ): EvalContext {
-  const targets = desiredArtifactNodeIds;
   const QByTarget = new Map<string, number>();
-  for (const t of targets) {
+  for (const t of desiredArtifactNodeIds) {
     const pCraft = recipeDag.get(t)?.legendaryCraftProbability ?? 0;
     QByTarget.set(t, pCraft <= 0 ? 0 : pCraft >= 1 ? 1e6 : -Math.log(1 - pCraft));
   }
 
-  const innerLp = compileJointInnerLp(recipeDag, targets, QByTarget, craftBudget);
+  const innerLp = compileJointInnerLp(recipeDag, desiredArtifactNodeIds, QByTarget, craftBudget);
 
-  // Preindexed to constraint rows: yields to nodes without a conservation row
-  // cannot affect the score.
-  const nRows = innerLp.constraintNodes.length;
-  const rowIdxByNode = new Map<string, number>();
-  for (let i = 0; i < nRows; i++) {
-    rowIdxByNode.set(innerLp.constraintNodes[i], i);
-  }
-  const bBase = new Float64Array(nRows);
-  for (const [k, v] of baseYield) {
-    const row = rowIdxByNode.get(k);
-    if (row !== undefined && v > 0) {
-      bBase[row] = v;
-    }
-  }
-
-  const optYieldRows: Int32Array[] = new Array(options.length);
-  const optYieldRates: Float64Array[] = new Array(options.length);
-  // Per-target legendary rate, in `targets` order; never pooled into a scalar.
-  const optLegRates: Float64Array[] = new Array(options.length);
-  for (let i = 0; i < options.length; i++) {
-    const rows: number[] = [];
-    const rates: number[] = [];
-    for (const [n, r] of options[i].yieldVector) {
-      const row = rowIdxByNode.get(n);
-      if (row !== undefined) {
-        rows.push(row);
-        rates.push(r);
-      }
-    }
-    optYieldRows[i] = new Int32Array(rows);
-    optYieldRates[i] = new Float64Array(rates);
-    const legRates = new Float64Array(targets.length);
-    for (let ti = 0; ti < targets.length; ti++) {
-      legRates[ti] = options[i].legendaryYieldVector.get(targets[ti]) ?? 0;
-    }
-    optLegRates[i] = legRates;
-  }
-
-  const bEval = new Float64Array(nRows);
-  const lambdaEval = new Float64Array(targets.length);
-
-  const MAX_EVAL_CACHE = 200_000;
-  const evalCache = new Map<string, number>();
-  const keyPairs: [number, number][] = [];
-
-  const evalScoreAt: EvalFn = multipliers => {
-    // The sort is load-bearing: callers pass the same allocation in different
-    // orders, and an unsorted key would miss the cache on every one of them.
-    keyPairs.length = 0;
-    for (const [idx, k] of multipliers) {
-      if (k <= 0) continue;
-      keyPairs.push([idx, k]);
-    }
-    keyPairs.sort((a, b) => a[0] - b[0]);
-    let key = '';
-    for (const [idx, k] of keyPairs) {
-      key += idx + ':' + k + ',';
-    }
-    const cached = evalCache.get(key);
-    if (cached !== undefined) return cached;
-
-    bEval.set(bBase);
-    lambdaEval.fill(0);
-    for (const [idx, k] of keyPairs) {
-      const rows = optYieldRows[idx];
-      const rates = optYieldRates[idx];
-      for (let j = 0; j < rows.length; j++) {
-        bEval[rows[j]] += k * rates[j];
-      }
-      const legRates = optLegRates[idx];
-      for (let ti = 0; ti < legRates.length; ti++) {
-        lambdaEval[ti] += k * legRates[ti];
-      }
-    }
-    const score = innerLp.solveScore(bEval, lambdaEval);
-    if (evalCache.size >= MAX_EVAL_CACHE) evalCache.clear();
-    evalCache.set(key, score);
-    return score;
-  };
-
-  const baseScore = innerLp.solveScore(bBase, new Float64Array(targets.length));
-
-  return { options, recipeDag, targets, baseYield, QByTarget, innerLp, evalScoreAt, baseScore, craftBudget };
+  return { options, QByTarget, innerLp, craftBudget };
 }
 
 // Per-slot occupancy of a chosen allocation.
@@ -247,7 +153,7 @@ export async function optimizeFull(args: OptimizeArgs): Promise<OptimizerSolutio
       (maximumCost === undefined || o.cost <= maximumCost)
   );
 
-  const ctx = buildEvalContext(feasibleOptions, recipeDag, desiredArtifactNodeIds, baseYield, craftBudget);
+  const ctx = buildEvalContext(feasibleOptions, recipeDag, desiredArtifactNodeIds, craftBudget);
 
   const problem: PlanProblem = {
     options: feasibleOptions,
