@@ -9,34 +9,12 @@ import { describe, it, expect } from 'vitest';
 import { ei, Inventory } from 'lib';
 import { optimizeFull } from './optimizer-core';
 import { computeBaseYield } from './index';
-import { makeNode, makeOpt } from './spec-helpers';
+import { lt1, lt2, lt4, makeNode, makeOpt, totemDag } from './spec-helpers';
 import type { RecipeDAG } from './types';
 
 const Name = ei.ArtifactSpec.Name;
 const Level = ei.ArtifactSpec.Level;
 const Rarity = ei.ArtifactSpec.Rarity;
-
-// Real totem ids, because computeBaseYield resolves each node through
-// getArtifactTierPropsFromId to look the stock up in the inventory.
-const lt1 = 'lunar-totem-1';
-const lt2 = 'lunar-totem-2';
-const lt3 = 'lunar-totem-3';
-const lt4 = 'lunar-totem-4';
-
-function totemDag(): RecipeDAG {
-  return new Map([
-    [
-      lt4,
-      makeNode(lt4, false, [
-        [lt3, 2],
-        [lt2, 1],
-      ]),
-    ],
-    [lt3, makeNode(lt3, false, [[lt1, 3]])],
-    [lt2, makeNode(lt2, false, [[lt1, 2]])],
-    [lt1, makeNode(lt1, true)],
-  ]);
-}
 
 // 4 common + 1 legendary T1, 2 rare T2, 3 common T4.
 function totemInventory(): Inventory {

@@ -23,7 +23,7 @@
 import type { MilpLimits, MilpSolve, PlanProblem, PlanResult } from './types';
 import { EXACT_PRECISION, STEERING_PRECISION, evaluateCounts } from './evaluator';
 import { buildModel, type Model } from './model';
-import { buildOaMilp, decodeCounts, effectiveQs, layoutOf, nCol, scaleLps, type Layout, type Tangent } from './milp';
+import { buildOaMilp, decodeCounts, effectiveQs, layoutOf, nCol, scaleLps, type Layout } from './milp';
 
 // The one lever on cost, and it is deterministic. The obvious alternative — a
 // wall-clock budget — is deliberately absent: the arena requires one allocation
@@ -61,12 +61,24 @@ function logGrid(floor: number, count: number): number[] {
   return Array.from({ length: count }, (_, i) => 10 ** ((decades * i) / (count - 1)));
 }
 
+// Worst-case gap between g and its tangent envelope on such a grid, in nats.
+// Exported so the claim in the comment below is a computation a spec can check
+// rather than a number transcribed by hand from a campaign that has since been
+// re-tuned.
+export function envelopeErrorNats(floor: number, count: number): number {
+  const decadesPerCut = Math.abs(Math.log10(floor)) / (count - 1);
+  return (decadesPerCut * Math.LN10) ** 2 / 8;
+}
+
 // HOW MANY CUTS. Tangent-envelope error for a log-spaced grid is (d ln10)^2 / 8
 // nats at d decades per cut, independent of theta (the scale cancels: the slope
 // is theta g'(theta sigma), which is ~1/sigma) and agreeing with measurement to
-// 0.02%. At 100 points over five decades that is 1.7e-3 nats across the observed
-// band, 61x tighter than the 15-point grid this replaced, and the slopes still
-// run only 1 to 1e5 — so the count costs rows and leaves conditioning alone.
+// 0.02%. `SIGMA_CUTS` points over the `SIGMA_FLOOR` decades is what that law is
+// evaluated on, so the two constants below are the whole input: at 50 points
+// over two decades it is 1.1e-3 nats across the observed band, and the slopes
+// run only 1 to 1e2 — so the count costs rows and leaves conditioning alone.
+// Move either constant and this figure moves with it; `envelopeErrorNats` below
+// is the law itself, so the number is derived rather than transcribed.
 //
 // HOW MANY NODES, AND WHY ONE PASS: measured, over three 40-instance campaigns
 // against five other arms. The tables, the retired arms, and what the deleted
@@ -234,12 +246,7 @@ export function solveWith(
   const theta = scales(model, qs, solve, limits);
   if (!theta) return emit(problem, model, empty, report);
 
-  const cuts: Tangent[] = [];
-  for (let t = 0; t < model.targets.length; t++) {
-    for (const at of tuning.grid) cuts.push({ target: t, at });
-  }
-
-  const solution = solve(buildOaMilp(model, qs, theta, cuts), limits);
+  const solution = solve(buildOaMilp(model, qs, theta, tuning.grid), limits);
   if (solution.status === 'infeasible' || solution.status === 'unknown') return emit(problem, model, empty, report);
 
   const layout = layoutOf(model, 'oa');

@@ -73,7 +73,11 @@ export function computeCraftUnitPrices(
     if (node.isLeaf) continue;
     const params = craftingPriceParamsOf(nodeId);
     if (!params) continue;
-    prices.set(nodeId, singleCraftCost(params, previousCraftsOf(playerInventory, nodeId)));
+    // Literally the reported bill's own pricing at one craft, rather than a
+    // second spelling of it: the two agreeing is the whole promise this module
+    // makes, and it should not rest on both call sites happening to say
+    // `singleCraftCost`.
+    prices.set(nodeId, fractionalCraftCost(params, previousCraftsOf(playerInventory, nodeId), 1));
   }
   return prices;
 }

@@ -15,20 +15,10 @@ import { describe, it, expect } from 'vitest';
 import { ei } from 'lib';
 import { optimizeFull } from './optimizer-core';
 import { computeCraftChainTree } from './optimizer-tree';
-import { makeNode, makeOpt } from './spec-helpers';
+import { craftDag, makeNode, makeOpt } from './spec-helpers';
 import type { RecipeDAG } from './types';
 
 const Name = ei.ArtifactSpec.Name;
-
-// Root 'A' (craftable) needing one leaf ingredient 'B'. With pCraft > 0,
-// missions yielding B produce positive score, so the optimizer has a reason
-// to launch.
-function craftDag(pCraft = 0.1): RecipeDAG {
-  return new Map([
-    ['A', makeNode('A', false, [['B', 1]], pCraft)],
-    ['B', makeNode('B', true)],
-  ]);
-}
 
 describe('optimizeFull', () => {
   it('handles an empty option list', async () => {

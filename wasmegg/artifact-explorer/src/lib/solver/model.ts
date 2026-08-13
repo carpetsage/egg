@@ -186,8 +186,9 @@ export function buildModel(problem: PlanProblem): Model {
   // Reordering the caller's list used to permute the entire matrix, not just the
   // target columns: the downward closure below visits targets in order, so
   // `craftables` changed, `items` changed with it, and every conservation row and
-  // craft column moved. The MILP is solved under a node budget of 5, so the
-  // branch-and-bound is truncated long before it proves anything, and which
+  // craft column moved. The MILP is solved under a finite node budget
+  // (`DEFAULT_TUNING.maxNodes`), so the branch-and-bound is truncated long
+  // before it proves anything on any instance worth solving, and which
   // incumbent it happens to hold when it stops depends on that column order. The
   // result was a solver that returned a different — and sometimes worse — plan
   // for a relabeling of the same problem. That is the arena's B2-target-order,
@@ -238,18 +239,20 @@ export function buildModel(problem: PlanProblem): Model {
     }
   }
 
-  const consRows = items.map(item => {
-    const row = new Array<number>(craftables.length).fill(0);
-    for (const id of craftables) {
-      const j = craftIndex.get(id)!;
-      for (const child of dag.get(id)!.children) {
-        if (child.nodeId === item) row[j] += child.quantity;
-      }
+  // Built by walking the craftables once and posting each child into the row
+  // `itemIndex` already names, rather than re-walking every craftable per item
+  // and comparing ids — the latter is cubic in the DAG's size for no gain.
+  const consRows = items.map(() => new Array<number>(craftables.length).fill(0));
+  for (const id of craftables) {
+    const j = craftIndex.get(id)!;
+    for (const child of dag.get(id)!.children) {
+      consRows[itemIndex.get(child.nodeId)!][j] += child.quantity;
     }
+  }
+  for (const [item, i] of itemIndex) {
     const producer = craftIndex.get(item);
-    if (producer !== undefined) row[producer] -= 1;
-    return row;
-  });
+    if (producer !== undefined) consRows[i][producer] -= 1;
+  }
 
   const craftChildren = craftables.map(id =>
     dag

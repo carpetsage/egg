@@ -12,15 +12,7 @@
 import { describe, it, expect } from 'vitest';
 import { optimizeFull } from './optimizer-core';
 import { compileInnerLp } from './value-function';
-import { makeNode, makeOpt } from './spec-helpers';
-import type { RecipeDAG } from './types';
-
-function craftDag(pCraft = 0.1): RecipeDAG {
-  return new Map([
-    ['A', makeNode('A', false, [['B', 1]], pCraft)],
-    ['B', makeNode('B', true)],
-  ]);
-}
+import { craftDag, makeOpt } from './spec-helpers';
 
 describe('the product objective reduces to the linear score at n=1', () => {
   // Checked against independently computed answers, not a second code path.

@@ -14,35 +14,14 @@ import {
   sumCraftChainCost,
 } from './optimizer-cost';
 import { computeCraftChainTree } from './optimizer-tree';
-import { makeNode, makeSolution } from './spec-helpers';
+import { lt1, lt2, lt3, lt4, makeNode, makeSolution, totemDag } from './spec-helpers';
 import type { RecipeDAG } from './types';
 
 const Name = ei.ArtifactSpec.Name;
 const Level = ei.ArtifactSpec.Level;
 
-const lt1 = 'lunar-totem-1';
-const lt2 = 'lunar-totem-2';
-const lt3 = 'lunar-totem-3';
-const lt4 = 'lunar-totem-4';
-
 function paramsOf(nodeId: string) {
   return getArtifactTierPropsFromId(nodeId).recipe!.crafting_price;
-}
-
-// lt4 = 2x lt3 + 1x lt2, lt3 = 3x lt1, lt2 = 2x lt1; lt1 only drops.
-function totemDag(): RecipeDAG {
-  return new Map([
-    [
-      lt4,
-      makeNode(lt4, false, [
-        [lt3, 2],
-        [lt2, 1],
-      ]),
-    ],
-    [lt3, makeNode(lt3, false, [[lt1, 3]])],
-    [lt2, makeNode(lt2, false, [[lt1, 2]])],
-    [lt1, makeNode(lt1, true)],
-  ]);
 }
 
 // artifactStatus.count is what Inventory reads as `crafted`.

@@ -461,33 +461,31 @@ export default defineComponent({
       e.preventDefault();
     }
 
-    // Shown value for the gem cost filter, in Egg, Inc. order-of-magnitude
-    // notation (e.g. 10S). Input is parsed back through the same notation.
-    const maxGemCostDisplay = computed(() => formatEIValue(missionFilters.value.maxGemCost, { trim: true }));
-
-    function onGemCostInput(event: Event) {
-      const raw = (event.target as HTMLInputElement).value.trim();
-      if (!raw) return;
-      const n = parseValueWithUnit(raw, false);
-      if (n === null || n < 0) return;
-      setMaxGemCost(n);
+    // The two cost caps are typed in Egg, Inc. order-of-magnitude notation
+    // (e.g. 10S) and parsed back through the same notation, so one handler
+    // serves both. Written as a factory rather than copied per field: the copy
+    // had already drifted, with only one of the two rejecting a non-finite
+    // parse — and `n < 0` alone lets Infinity through, which a long enough
+    // digit string followed by a unit does reach.
+    function costFieldHandler(set: (value: number) => void) {
+      return (event: Event) => {
+        const raw = (event.target as HTMLInputElement).value.trim();
+        if (!raw) return;
+        const n = parseValueWithUnit(raw, false);
+        if (n === null || !Number.isFinite(n) || n < 0) return;
+        set(n);
+      };
     }
 
-    // Same notation as the gem filter. While the cap is off this field shows
-    // the loaded save's balance, which the store keeps it synced to.
+    const maxGemCostDisplay = computed(() => formatEIValue(missionFilters.value.maxGemCost, { trim: true }));
+    const onGemCostInput = costFieldHandler(setMaxGemCost);
+
+    // While the golden egg cap is off this field shows the loaded save's
+    // balance, which the store keeps it synced to.
     const maxGoldenEggCostDisplay = computed(() =>
       formatEIValue(missionFilters.value.maxGoldenEggCost, { trim: true })
     );
-
-    function onGoldenEggCostInput(event: Event) {
-      const raw = (event.target as HTMLInputElement).value.trim();
-      if (!raw) return;
-      const n = parseValueWithUnit(raw, false);
-      // `n < 0` alone lets Infinity through, which a long enough digit string
-      // followed by a unit does reach.
-      if (n === null || !Number.isFinite(n) || n < 0) return;
-      setMaxGoldenEggCost(n);
-    }
+    const onGoldenEggCostInput = costFieldHandler(setMaxGoldenEggCost);
 
     return {
       waitTimeDraft,

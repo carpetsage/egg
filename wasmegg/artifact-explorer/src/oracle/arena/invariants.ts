@@ -51,6 +51,12 @@ const REBUILT_NATS = 1e-6;
 // Ordering checks. Anything smaller than this is not a real regression.
 const ORDER_NATS = 1e-6;
 
+// How many times a check that has to repeat itself does so. Both are a
+// tradeoff between sweep time and how much of a rare non-determinism or a rare
+// order sensitivity one instance gets to expose.
+const SHUFFLE_SEEDS = 3;
+const DETERMINISM_REPEATS = 3;
+
 // Add-side width for the 4-opt pass. The loop is O(held^2 * candidates^2) with
 // a joint LP solve at each point, so this is the number that decides whether
 // the tier is minutes or hours.
@@ -380,12 +386,10 @@ export function checkA8Targets(c: CheckContext) {
 //
 // Seeded from the instance seed and the shuffle index, so the whole sweep is a
 // pure function of `ARENA_SEED_BASE`.
-const rngFor = mulberry32;
-
-export function checkB1OptionOrder(c: CheckContext, seeds = 3) {
+export function checkB1OptionOrder(c: CheckContext) {
   const base = solve(c).joint;
-  for (let s = 1; s <= seeds; s++) {
-    const rng = rngFor(c.inst.seed * 31 + s);
+  for (let s = 1; s <= SHUFFLE_SEEDS; s++) {
+    const rng = mulberry32(c.inst.seed * 31 + s);
     const p = solve(c, {
       transformOptions: options => {
         const sh = options.slice();
@@ -485,12 +489,12 @@ export function checkB3FuelScale(c: CheckContext) {
 // structurally. Renumbering B5 -> B4 and B6 -> B5 would silently re-point every
 // one of those at a different check, which is a worse outcome than a gap in a
 // sequence. New invariances take the next free number (B7); B4 stays vacant.
-export function checkB5Determinism(c: CheckContext, repeats = 3) {
+export function checkB5Determinism(c: CheckContext) {
   // `fresh` on every call: a cached plan compared against itself would report
   // any planner deterministic, which is the one thing this check must not do.
   const first = solve(c, { fresh: true });
   const sig = signature(first);
-  for (let k = 1; k < repeats; k++) {
+  for (let k = 1; k < DETERMINISM_REPEATS; k++) {
     const again = solve(c, { fresh: true });
     if (signature(again) !== sig || again.joint !== first.joint) {
       report(

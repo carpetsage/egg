@@ -10,34 +10,12 @@ import {
   computeCraftChainTree,
   computeInventoryTree,
 } from './optimizer-tree';
-import { makeNode, makeSolution } from './spec-helpers';
+import { lt1, lt2, lt3, lt4, makeNode, makeSolution, totemDag } from './spec-helpers';
 import type { RecipeDAG } from './types';
 
 const Name = ei.ArtifactSpec.Name;
 const Level = ei.ArtifactSpec.Level;
 const Rarity = ei.ArtifactSpec.Rarity;
-
-const lt1 = 'lunar-totem-1';
-const lt2 = 'lunar-totem-2';
-const lt3 = 'lunar-totem-3';
-const lt4 = 'lunar-totem-4';
-
-// lt4 needs 2x lt3 + 1x lt2; both intermediates share the lt1 leaf, and lt3
-// wins its canonical occurrence by BFS order.
-function totemDag(): RecipeDAG {
-  return new Map([
-    [
-      lt4,
-      makeNode(lt4, false, [
-        [lt3, 2],
-        [lt2, 1],
-      ]),
-    ],
-    [lt3, makeNode(lt3, false, [[lt1, 3]])],
-    [lt2, makeNode(lt2, false, [[lt1, 2]])],
-    [lt1, makeNode(lt1, true)],
-  ]);
-}
 
 // 4 common + 1 legendary T1 totems, 2 rare T2 totems.
 function totemInventory(): Inventory {

@@ -8,7 +8,7 @@
 // a change to it is proved before it ships. See OPTIMIZER.md for the objective
 // and ARENA.md for what "proved" means.
 //
-// What lives here is everything either side of the search: `buildEvalContext`
+// What lives here is everything either side of the search: `optimizeFull`
 // compiles the inner craft LP the objective is defined over, and
 // `assembleFullSolution` turns an allocation into the numbers the UI renders,
 // via the exact objective and the craft-split refinement. The MILP never grades
@@ -42,31 +42,29 @@ export interface OptimizeArgs {
   craftBudget?: CraftBudget;
 }
 
-interface EvalContext {
+// Everything `assembleFullSolution` reads, in one place. It used to be half a
+// struct and half loose arguments, which meant two places to look for the state
+// one function needs.
+interface Assembly {
   options: LaunchOption[];
+  recipeDag: RecipeDAG;
+  targets: string[];
+  baseYield: Map<string, number>;
   QByTarget: Map<string, number>;
   innerLp: JointInnerLp;
   craftBudget?: CraftBudget;
 }
 
-function buildEvalContext(
-  options: LaunchOption[],
-  recipeDag: RecipeDAG,
-  desiredArtifactNodeIds: string[],
-  craftBudget?: CraftBudget
-): EvalContext {
+function qByTarget(recipeDag: RecipeDAG, targets: string[]): Map<string, number> {
   const QByTarget = new Map<string, number>();
-  for (const t of desiredArtifactNodeIds) {
+  for (const t of targets) {
     const pCraft = recipeDag.get(t)?.legendaryCraftProbability ?? 0;
     // Q = -log(1 - p) is +Infinity at certainty, which no LP matrix can carry.
     // Same proxy the MILP steers by, so the two matrices agree on what a certain
     // craft is worth; see SPEC.md section 4.
     QByTarget.set(t, pCraft <= 0 ? 0 : pCraft >= 1 ? Q_CERTAIN_PROXY : -Math.log(1 - pCraft));
   }
-
-  const innerLp = compileJointInnerLp(recipeDag, desiredArtifactNodeIds, QByTarget, craftBudget);
-
-  return { options, QByTarget, innerLp, craftBudget };
+  return QByTarget;
 }
 
 // Per-slot occupancy of a chosen allocation.
@@ -157,7 +155,16 @@ export async function optimizeFull(args: OptimizeArgs): Promise<OptimizerSolutio
       (maximumCost === undefined || o.cost <= maximumCost)
   );
 
-  const ctx = buildEvalContext(feasibleOptions, recipeDag, desiredArtifactNodeIds, craftBudget);
+  const QByTarget = qByTarget(recipeDag, desiredArtifactNodeIds);
+  const assembly: Assembly = {
+    options: feasibleOptions,
+    recipeDag,
+    targets: desiredArtifactNodeIds,
+    baseYield,
+    QByTarget,
+    innerLp: compileJointInnerLp(recipeDag, desiredArtifactNodeIds, QByTarget, craftBudget),
+    craftBudget,
+  };
 
   const problem: PlanProblem = {
     options: feasibleOptions,
@@ -178,28 +185,19 @@ export async function optimizeFull(args: OptimizeArgs): Promise<OptimizerSolutio
     if (allocation[i] > 0) alloc.set(i, allocation[i]);
   }
 
-  return assembleFullSolution(
-    ctx,
-    alloc,
-    slotsOfAllocation(feasibleOptions, alloc, S),
-    baseYield,
-    desiredArtifactNodeIds,
-    recipeDag
-  );
+  return assembleFullSolution(assembly, alloc, slotsOfAllocation(feasibleOptions, alloc, S));
 }
 
 function assembleFullSolution(
-  ctx: EvalContext,
+  a: Assembly,
   bestAlloc: Map<number, number>,
-  bestSlots: SlotSummary[],
-  baseYield: Map<string, number>,
-  desiredArtifactNodeIds: string[],
-  recipeDag: RecipeDAG
+  bestSlots: SlotSummary[]
 ): OptimizerSolution {
+  const { recipeDag, baseYield, targets } = a;
   const { finalYieldVector, totalLegendary, fuelUsed, fuelByEgg, choiceHistory } = assembleSolution(
     baseYield,
     bestAlloc,
-    ctx.options
+    a.options
   );
 
   // wall-clock is the busiest slot's makespan; running time its raw flight time
@@ -212,17 +210,17 @@ function assembleFullSolution(
 
   // The tangent-LP split is only a seed: reported numbers must come off the
   // exact objective, never the search's envelope. See OPTIMIZER.md.
-  const seedSolve = ctx.innerLp.solve(finalYieldVector, totalLegendary);
+  const seedSolve = a.innerLp.solve(finalYieldVector, totalLegendary);
   const finalSolve = refineJointCraftSplit(
     recipeDag,
-    desiredArtifactNodeIds,
-    ctx.QByTarget,
+    targets,
+    a.QByTarget,
     finalYieldVector,
     totalLegendary,
     seedSolve,
-    ctx.craftBudget
+    a.craftBudget
   );
-  const perTarget = desiredArtifactNodeIds.map(t => {
+  const perTarget = targets.map(t => {
     const craftCount =
       finalSolve.craftByTarget.get(t) ?? (recipeDag.get(t)?.isLeaf ? (finalYieldVector.get(t) ?? 0) : 0);
     const p = alphaToProb(craftCount, totalLegendary, [t], recipeDag);

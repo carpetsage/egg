@@ -184,8 +184,18 @@ function copyResult(result: PlanResult): PlanResult {
   };
 }
 
+// One instance per problem, not one per call. The judge caches its compiled LP
+// template — including the BigInt-rational copy the exact path builds — keyed on
+// the `OracleInstance` object identity, so handing it a fresh projection of the
+// same problem every time is a guaranteed cache miss and rebuilds the whole
+// conservation matrix per judgement. A sweep judges each problem many times over
+// (every perturbation in `invariants.ts` re-judges the base problem).
+const instanceCache = new WeakMap<PlanProblem, OracleInstance>();
+
 export function oracleInstanceOf(problem: PlanProblem): OracleInstance {
-  return {
+  let instance = instanceCache.get(problem);
+  if (instance) return instance;
+  instance = {
     label: 'arena',
     seed: 0,
     options: problem.options as LaunchOption[],
@@ -196,6 +206,8 @@ export function oracleInstanceOf(problem: PlanProblem): OracleInstance {
     baseYield: problem.baseYield as Map<string, number>,
     craftBudget: problem.craftBudget,
   };
+  instanceCache.set(problem, instance);
+  return instance;
 }
 
 // A candidate that returns something outside the contract is a finding, not a

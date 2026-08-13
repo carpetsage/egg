@@ -175,16 +175,23 @@ class Rows {
   end(lo: number, up: number): void {
     const row = this.current!;
     this.current = null;
-    const cols = [...row.keys()].filter(c => row.get(c) !== 0).sort((a, b) => a - b);
-    if (cols.length === 0) return;
 
+    // One pass over the entries: the coefficients are read out here and never
+    // looked up again, so the magnitude scan and the emit below both work off
+    // `entries` rather than going back to the `Map`.
+    const entries: [number, number][] = [];
     let smallest = Infinity;
     let largest = 0;
-    for (const c of cols) {
-      const magnitude = Math.abs(row.get(c)!);
-      smallest = Math.min(smallest, magnitude);
-      largest = Math.max(largest, magnitude);
+    for (const [column, coefficient] of row) {
+      if (coefficient === 0) continue;
+      entries.push([column, coefficient]);
+      const magnitude = Math.abs(coefficient);
+      if (magnitude < smallest) smallest = magnitude;
+      if (magnitude > largest) largest = magnitude;
     }
+    if (entries.length === 0) return;
+    entries.sort((a, b) => a[0] - b[0]);
+
     // Never scale down, and never past the top of the window: a row whose own
     // dynamic range is wider than the window cannot be made to fit, and the
     // least bad answer is to keep the large entries readable.
@@ -192,9 +199,9 @@ class Rows {
     const scale = smallest < SAFE_COEFFICIENT ? Math.max(1, Math.min(1 / smallest, headroom)) : 1;
 
     this.offsets.push(this.indices.length);
-    for (const c of cols) {
-      this.indices.push(c);
-      this.values.push(row.get(c)! * scale);
+    for (const [column, coefficient] of entries) {
+      this.indices.push(column);
+      this.values.push(coefficient * scale);
     }
     this.lower.push(scaleBound(lo, scale));
     this.upper.push(scaleBound(up, scale));
@@ -350,13 +357,20 @@ function buildCore(model: Model, qs: readonly number[], theta: readonly number[]
 // objective". The freeze copies the whole matrix into typed arrays, so it
 // happens once per core and not once per model built from it — `scaleLps`
 // builds one model per target off a single core.
+//
+// The fields are pulled into locals first so the returned closure captures only
+// them. Capturing `core` would keep its `Rows` alive — the triplet `number[]`s
+// that `freeze` has just copied into typed arrays — for as long as the finisher
+// lives, which for `scaleLps` is every scale solve.
 function finisher(core: Core): (objective: Float64Array) => MilpModel {
   const frozen = core.rows.freeze();
+  const { columnLower, columnUpper, columnIsInteger } = core;
+  const columnCount = core.layout.columnCount;
   return objective => ({
-    columnCount: core.layout.columnCount,
-    columnLower: core.columnLower,
-    columnUpper: core.columnUpper,
-    columnIsInteger: core.columnIsInteger,
+    columnCount,
+    columnLower,
+    columnUpper,
+    columnIsInteger,
     objective,
     ...frozen,
   });
@@ -388,32 +402,34 @@ export function scaleLps(model: Model, qs: readonly number[]): (t: number) => Mi
   };
 }
 
-// A tangent of g at s = theta_t * a, written in sigma:
+// One tangent of g per (target, grid point), at s = theta_t * a and written in
+// sigma:
 //   z_t <= g(theta a) + theta g'(theta a) (sigma_t - a)
-export interface Tangent {
-  target: number;
-  at: number; // the point, in sigma units
-}
-
+//
+// Every target gets the same `grid`. It was once a flat list of arbitrary
+// (target, point) pairs, back when `oa.ts` added cuts between solves; with the
+// grid fixed up front the cross-product is this loop.
 export function buildOaMilp(
   model: Model,
   qs: readonly number[],
   theta: readonly number[],
-  cuts: readonly Tangent[]
+  grid: readonly number[]
 ): MilpModel {
   const core = buildCore(model, qs, theta, 'oa');
   const { layout, rows } = core;
 
-  for (const cut of cuts) {
-    const s = theta[cut.target] * cut.at;
-    if (!(s > 0) || !Number.isFinite(s)) continue;
-    const slope = theta[cut.target] * slopeAt(s);
-    const rhs = logHit(s) - slope * cut.at;
-    if (!Number.isFinite(slope) || !Number.isFinite(rhs)) continue;
-    rows.begin();
-    rows.add(layout.zBase + cut.target, 1);
-    rows.add(layout.sBase + cut.target, -slope);
-    rows.end(-INF, rhs);
+  for (let t = 0; t < layout.targets; t++) {
+    for (const at of grid) {
+      const s = theta[t] * at;
+      if (!(s > 0) || !Number.isFinite(s)) continue;
+      const slope = theta[t] * slopeAt(s);
+      const rhs = logHit(s) - slope * at;
+      if (!Number.isFinite(slope) || !Number.isFinite(rhs)) continue;
+      rows.begin();
+      rows.add(layout.zBase + t, 1);
+      rows.add(layout.sBase + t, -slope);
+      rows.end(-INF, rhs);
+    }
   }
 
   const objective = new Float64Array(layout.columnCount);
