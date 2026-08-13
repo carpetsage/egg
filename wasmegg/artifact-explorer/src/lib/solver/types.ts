@@ -146,8 +146,9 @@ export const SOLVER_OPTIONS: Readonly<Record<string, boolean | number | string>>
   parallel: 'off',
   random_seed: 0,
   // Off, and measured that way rather than assumed. HiGHS defaults this to
-  // 'choose'; the case for turning it off on this workload is in `highs.ts`,
-  // above the failure path it also happens to remove.
+  // 'choose'; the case for turning it off on this workload is SPEC.md section 8
+  // ("Presolve, and the throw it used to cause"), along with the failure path it
+  // also happens to remove.
   presolve: 'off',
   primal_feasibility_tolerance: 1e-9,
   // Two orders below HiGHS's 1e-6 default, and deliberately so: this is the

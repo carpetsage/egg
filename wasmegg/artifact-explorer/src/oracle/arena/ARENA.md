@@ -242,8 +242,12 @@ so the independence guard does run with the rest of the tests.
 Per-solver JSON lands in `results/<solver-id>.json`, which is gitignored — every
 sweep rewrites it, so re-run rather than expecting a committed reference.
 
-**Gating.** `C0-contract` and `C1-feasibility` hard-fail: a plan that is not a
-plan is broken outright, and that is not a matter of degree. Every other
+**Gating.** `C0-contract`, `C1-feasibility` and `C1-inconclusive` hard-fail: a
+plan that is not a plan is broken outright, and that is not a matter of degree.
+`C1-inconclusive` is the harness's own packer exhausting its node budget rather
+than a verdict on the plan — it gates all the same, because that budget is sized
+so it does not happen, but it is counted separately so the scorecard never reads
+a judge timeout as an infeasible plan. Every other
 invariant is reported rather than thrown, because what the arena measures is how
 far a candidate is from holding them — a suite that aborts on the first
 monotonicity wobble stops producing a scorecard and starts producing a stack

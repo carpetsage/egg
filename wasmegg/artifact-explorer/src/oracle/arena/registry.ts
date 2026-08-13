@@ -30,14 +30,6 @@ export const SOLVERS: ArenaSolver[] = [
   // <- register your candidate here
 ];
 
-export function solverById(id: string): ArenaSolver {
-  const found = SOLVERS.find(s => s.id === id);
-  if (!found) {
-    throw new Error(`unknown solver "${id}"; registered: ${SOLVERS.map(s => s.id).join(', ')}`);
-  }
-  return found;
-}
-
 // `SOLVER=a,b` selects a subset; unset runs the whole roster.
 export function selectedSolvers(): ArenaSolver[] {
   const spec = process.env.SOLVER;
@@ -46,5 +38,11 @@ export function selectedSolvers(): ArenaSolver[] {
     .split(',')
     .map(s => s.trim())
     .filter(Boolean)
-    .map(solverById);
+    .map(id => {
+      const found = SOLVERS.find(s => s.id === id);
+      if (!found) {
+        throw new Error(`unknown solver "${id}"; registered: ${SOLVERS.map(s => s.id).join(', ')}`);
+      }
+      return found;
+    });
 }

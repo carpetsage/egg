@@ -1,11 +1,12 @@
 // Exact 3-bin packing feasibility, returning a witness assignment.
 //
 // This module is deliberately standalone and imports nothing — in particular
-// nothing from `src/oracle/`. The oracle spec re-checks every solver plan
-// against its own independent 3-bin feasibility routine
-// (`src/oracle/optimizer-oracle.spec.ts:140-143`); that assertion is only
-// meaningful while the two implementations are separate. Sharing one packer
-// would make it circular and silently stop validating anything.
+// nothing from `src/oracle/`. The arena re-checks every plan this code helps
+// produce against its own independent packer (`src/oracle/arena/
+// pack-feasibility.ts`, invariant C1); that check is only meaningful while the
+// two implementations are separate. Sharing one packer would make it circular
+// and silently stop validating anything, which is why `independence.spec.ts`
+// lists this file as implementation the harness may not import.
 
 // Three mission slots, as the game gives. Exported because it is a property of
 // the game rather than of this packer, and the plan assembly in

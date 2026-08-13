@@ -14,7 +14,7 @@ import { writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import type { ArenaSolver } from './contract';
 import { run } from './harness';
-import { generateInstance, describeInstance, type ArenaInstance } from './instances';
+import { generateInstance } from './instances';
 import { runChecks, type Check, type Violation } from './invariants';
 
 export interface InstanceResult {
@@ -92,7 +92,7 @@ export function sweep(
 
 const log10 = (p: number) => (p > 0 ? Math.log10(p) : -Infinity);
 
-export interface InvariantTally {
+interface InvariantTally {
   invariant: string;
   count: number;
   instances: number;
@@ -106,7 +106,7 @@ export interface InvariantTally {
   rescues: number; // exactly 0 became a positive probability
 }
 
-export function tally(r: SweepResult): InvariantTally[] {
+function tally(r: SweepResult): InvariantTally[] {
   const byId = new Map<string, InvariantTally>();
   for (const inst of r.instances) {
     const seen = new Set<string>();
@@ -271,5 +271,3 @@ export function writeResults(dir: string, r: SweepResult): string {
   );
   return path;
 }
-
-export { describeInstance, generateInstance, type ArenaInstance };

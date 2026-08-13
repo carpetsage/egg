@@ -10,7 +10,8 @@
 import { describe, expect, it } from 'vitest';
 import { ei, getArtifactTierPropsFromId, Inventory, multiCraftCost, perfectShipsConfig, singleCraftCost } from 'lib';
 
-import { buildRecipeDag, computeBaseYield, computePlanCraftingCost, computeCraftUnitPrices, optimize } from '@/lib';
+import { buildRecipeDag, computeBaseYield, computePlanCraftingCost, computeCraftUnitPrices } from '@/lib';
+import { optimize } from './spec-helpers';
 
 const Name = ei.ArtifactSpec.Name;
 const Level = ei.ArtifactSpec.Level;
@@ -70,12 +71,12 @@ describe('optimize', () => {
   const unitPrices = computeCraftUnitPrices(cubes, null);
 
   it('brings the priced plan under a cap that the uncapped plan blows', async () => {
-    const [uncapped] = await optimize(config, perfectShipsConfig, cubes, baseYield);
+    const uncapped = await optimize(config, perfectShipsConfig, cubes, baseYield);
     const uncappedCost = computePlanCraftingCost(uncapped, null).total;
     expect(uncappedCost).toBeGreaterThan(0);
 
     const capacity = uncappedCost / 4;
-    const [capped] = await optimize(config, perfectShipsConfig, cubes, baseYield, 0, undefined, {
+    const capped = await optimize(config, perfectShipsConfig, cubes, baseYield, 0, undefined, {
       capacity,
       unitPrices,
     });

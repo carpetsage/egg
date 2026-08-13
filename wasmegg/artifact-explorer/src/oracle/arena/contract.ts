@@ -25,7 +25,9 @@ import type { PlanProblem, PlanResult } from '@/lib/solver/types';
 
 // Every plan is packed into this many concurrent mission slots, each holding
 // `timeCapacity` seconds of flight. It is a property of the game, not of any
-// solver, so it lives here rather than in an implementation.
+// solver, so it is stated here. `src/lib/packing.ts` states it too and the two
+// are deliberately not shared: types may cross this seam, values may not, which
+// is exactly what `independence.spec.ts` enforces.
 export const NUM_SLOTS = 3;
 
 export type Planner = (problem: PlanProblem) => PlanResult;

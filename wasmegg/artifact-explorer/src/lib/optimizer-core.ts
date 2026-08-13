@@ -19,6 +19,7 @@ import { ei } from 'lib';
 import { alphaToProb, compileJointInnerLp, JointInnerLp, refineJointCraftSplit } from './value-function';
 import { NUM_SLOTS, packWitness } from './packing';
 import { loadHighs } from './solver/highs';
+import { Q_CERTAIN_PROXY } from './solver/milp';
 import { solveWith } from './solver/oa';
 import type { PlanProblem } from './solver/types';
 
@@ -57,7 +58,10 @@ function buildEvalContext(
   const QByTarget = new Map<string, number>();
   for (const t of desiredArtifactNodeIds) {
     const pCraft = recipeDag.get(t)?.legendaryCraftProbability ?? 0;
-    QByTarget.set(t, pCraft <= 0 ? 0 : pCraft >= 1 ? 1e6 : -Math.log(1 - pCraft));
+    // Q = -log(1 - p) is +Infinity at certainty, which no LP matrix can carry.
+    // Same proxy the MILP steers by, so the two matrices agree on what a certain
+    // craft is worth; see SPEC.md section 4.
+    QByTarget.set(t, pCraft <= 0 ? 0 : pCraft >= 1 ? Q_CERTAIN_PROXY : -Math.log(1 - pCraft));
   }
 
   const innerLp = compileJointInnerLp(recipeDag, desiredArtifactNodeIds, QByTarget, craftBudget);

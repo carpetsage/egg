@@ -9,7 +9,7 @@
 // See SPEC.md sections 2-4 for the columns, rows, and scaling this builds.
 
 import type { Model } from './model';
-import { logHit } from './evaluator';
+import { logHit } from '../concave';
 import { INF, type MilpModel } from './types';
 
 // See SPEC.md section 4 ("Two constants that are not the judge's") for why
@@ -21,7 +21,7 @@ export const Q_CERTAIN_PROXY = 1e4;
 // so no column is unbounded.
 const MAX_PER_SLOT = 1e6;
 
-// g'(s) = 1 / expm1(s), *uncapped* — deliberately not `evaluator.gPrime`. See
+// g'(s) = 1 / expm1(s), *uncapped* — deliberately not `concave.gPrime`. See
 // SPEC.md section 4 ("Two constants that are not the judge's").
 function slopeAt(s: number): number {
   return 1 / Math.expm1(s);
@@ -232,8 +232,9 @@ interface Core {
 // Columns and the rows every variant shares: conservation, score definitions,
 // the fuel budget, the three slot budgets, and the slot-ordering symmetry break.
 function buildCore(model: Model, qs: readonly number[], theta: readonly number[], variant: Variant): Core {
+  // The OA variant is the integer one; the scale LPs are a continuous
+  // relaxation of the same columns.
   const withZ = variant === 'oa';
-  const integral = withZ;
   const layout = layoutOf(model, variant);
   const columnLower = new Float64Array(layout.columnCount);
   const columnUpper = new Float64Array(layout.columnCount).fill(INF);
@@ -244,7 +245,7 @@ function buildCore(model: Model, qs: readonly number[], theta: readonly number[]
     for (let k = 0; k < layout.slots; k++) {
       const col = nCol(layout, g, k);
       columnUpper[col] = cap;
-      columnIsInteger[col] = integral ? 1 : 0;
+      columnIsInteger[col] = withZ ? 1 : 0;
     }
     // Integrality of the total follows from the parts, so this column stays
     // continuous rather than giving branch-and-bound a fourth thing to branch on

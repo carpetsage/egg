@@ -1,8 +1,19 @@
 // Shared fixtures for the optimizer specs: hand-built DAG nodes and launch
-// options with small controlled numbers so tests can assert exact arithmetic.
+// options with small controlled numbers so tests can assert exact arithmetic,
+// plus the in-process planner entry point the pipeline specs drive.
+//
+// `optimize` lives here rather than in `index.ts` because the app never calls
+// it — components plan through the worker — and `index.ts` is the barrel every
+// component imports. Keeping the only path from that barrel to `optimizer-core`
+// out of it keeps the solver and its 3.4MB of Emscripten glue out of the main
+// chunk by module graph rather than by a lazy import nothing would notice
+// losing.
 
-import { ei, MissionType } from 'lib';
-import type { DAGNode, LaunchOption, OptimizerSolution } from './types';
+import { ei, MissionType, type ShipsConfig } from 'lib';
+import type { CraftBudget, DAGNode, LaunchOption, OptimizerConfig, OptimizerSolution, RecipeDAG } from './types';
+import { finalizeSolutions } from './index';
+import { optimizeFull } from './optimizer-core';
+import { enumerateLaunchOptions } from './phases';
 
 export function makeNode(id: string, isLeaf: boolean, children: [string, number][] = [], pCraft = 0): DAGNode {
   return {
@@ -42,6 +53,31 @@ export function makeOpt(
     yieldVector: new Map(yieldEntries),
     legendaryYieldVector: new Map(legendaryEntries),
   };
+}
+
+// Plan in-process, the way the worker does on the other side of the seam.
+// Async because the planner is a WebAssembly module loaded on first use.
+export async function optimize(
+  config: OptimizerConfig,
+  playerConfig: ShipsConfig,
+  dag: RecipeDAG,
+  baseYield: Map<string, number>,
+  launchPeriodSeconds = 0,
+  maxGemCost?: number,
+  craftBudget?: CraftBudget
+): Promise<OptimizerSolution> {
+  const { desiredArtifactNodeIds, fuelTankCapacity, timeBudgetSeconds } = config;
+  const solution = await optimizeFull({
+    options: enumerateLaunchOptions(playerConfig, dag, launchPeriodSeconds),
+    recipeDag: dag,
+    desiredArtifactNodeIds,
+    fuelCapacity: fuelTankCapacity,
+    timeCapacity: timeBudgetSeconds,
+    maximumCost: maxGemCost,
+    baseYield,
+    craftBudget,
+  });
+  return finalizeSolutions([solution], dag)[0];
 }
 
 export function makeSolution(overrides: Partial<OptimizerSolution>): OptimizerSolution {

@@ -11,8 +11,8 @@
 // answer landed, solve again. This does not. The grid is stated up front and
 // sized by the envelope-error law recorded at `DEFAULT_TUNING` below, and there
 // is exactly one MILP per plan. The refinement rounds were measured off rather
-// than reasoned off; that comment carries the campaigns and what the second
-// round turned out to be doing.
+// than reasoned off; RESULTS.md carries the campaigns and what the second round
+// turned out to be doing.
 //
 // What comes back is not the MILP's answer unconditionally. The incumbent is
 // scored by `./evaluator`, the same re-derivation of the objective the other
@@ -64,51 +64,15 @@ function logGrid(floor: number, count: number): number[] {
 // HOW MANY CUTS. Tangent-envelope error for a log-spaced grid is (d ln10)^2 / 8
 // nats at d decades per cut, independent of theta (the scale cancels: the slope
 // is theta g'(theta sigma), which is ~1/sigma) and agreeing with measurement to
-// 0.02%. Over the band plans are actually observed in:
+// 0.02%. At 100 points over five decades that is 1.7e-3 nats across the observed
+// band, 61x tighter than the 15-point grid this replaced, and the slopes still
+// run only 1 to 1e5 — so the count costs rows and leaves conditioning alone.
 //
-//   grid        max error on sigma in [0.27, 1]
-//   15-point    1.037e-1 nats   the retired adaptive loop's starting set
-//   50-point    6.895e-3        15x tighter
-//   100-point   1.690e-3        61x
-//
-// The 15-point grid was misallocated rather than merely coarse: 2 of its points
-// fell inside the observed band and 8 sat below 1e-2 where nothing goes, with
-// its worst error at sigma ~= 0.305, precisely where plans land. At 100 points
-// the tangent slopes still run 1 to 1e5, exactly as they do at 50, so the
-// doubling costs rows and leaves the conditioning alone.
-//
-// HOW MANY NODES, AND WHY ONE PASS. Three 40-instance campaigns (seed bases
-// 2000 / 9000 / 5000), summed violation count / summed severity in nats:
-//
-//   tuning                            count   severity
-//   {2 rounds, 5 nodes, 15-point}       222      2.680   what used to ship
-//   {2 rounds, 5 nodes, 50-point}       208      1.578
-//   {1 round, 5 nodes, 100-point}       245      2.611
-//   {1 round, 50 nodes, 100-point}      240      2.357
-//   {1 round, 100 nodes, 100-point}     234      2.314
-//   {1 round, 200 nodes, 100-point}     220      1.820   this
-//
-// One pass pays only at the top of that column: below 200 nodes it loses to two
-// rounds on violation count in 3 campaigns of 3. At 200 it beats the old default
-// on severity 3/3, on plan quality 3/3 (+0.0022, +0.0010, +0.0011 mean log10
-// joint; head-to-head 17/7, 16/8, 14/9) and on time 3/3 (-3.8%, -11.9%, -8.9%
-// sweep wall clock), with the worst single solve down about a third: 1925 / 2230
-// / 2013ms against 2633 / 2678 / 2958ms.
-//
-// Three campaigns and not one because the baseline's own severity swings 3x
-// across seed bases (1.431 / 0.767 / 0.482) while the harness is exactly
-// reproducible; a single campaign cannot read a delta under about 1.5x. The
-// two-round 50-point arm is the one thing here that wins severity outright
-// (1.70x against this one's 1.47x) and it is not what ships: it costs 7-11% more
-// wall clock and a second MILP to do it, and it is worse on latency at the tail,
-// which is the number a user feels.
-//
-// WHAT THE SECOND ROUND WAS DOING, since it is gone. Not envelope repair. A
-// placebo round solved against a *row-permutation of the identical cut set* —
-// same polytope, same optimum, zero new information — changed the answer on 17
-// of 39 instances and kept 42% of real refinement's gain, with a larger worst
-// swing than refinement itself produces. It was a search restart with a slightly
-// loaded die, and 200 nodes in one pass buys more than the restart did.
+// HOW MANY NODES, AND WHY ONE PASS: measured, over three 40-instance campaigns
+// against five other arms. The tables, the retired arms, and what the deleted
+// refinement round turned out to be doing are in RESULTS.md, *What the budgets
+// buy* — a single campaign cannot read a delta under about 1.5x, so re-tuning
+// this pair means re-running that, not one sweep.
 export const DEFAULT_TUNING: Tuning = { maxNodes: 200, grid: logGrid(SIGMA_FLOOR, SIGMA_CUTS) };
 
 const MIP_REL_GAP = 1e-6;

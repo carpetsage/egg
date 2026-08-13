@@ -6,19 +6,9 @@ export * from './optimizer-tree';
 export * from './optimizer-cost';
 export * from './tank-ids';
 
-import type {
-  CraftBudget,
-  DAGNode,
-  LaunchSolution,
-  OptimizerConfig,
-  OptimizerSolution,
-  DropRow,
-  RecipeDAG,
-} from './types';
-import { enumerateLaunchOptions, generateRecipeDag } from './phases';
-import { ei, getArtifactTierPropsFromId, getCraftingInfoFromLevel, Inventory, InventoryItem, ShipsConfig } from 'lib';
-
-import { iconURL } from 'lib';
+import type { DAGNode, LaunchSolution, OptimizerSolution, DropRow, RecipeDAG } from './types';
+import { generateRecipeDag } from './phases';
+import { ei, getArtifactTierPropsFromId, getCraftingInfoFromLevel, iconURL, Inventory, InventoryItem } from 'lib';
 
 // An undefined previousCraftsOverride means "read each target's own crafted
 // count from the save"; a defined one applies to every target.
@@ -124,8 +114,9 @@ function computeFuelByEgg(solution: OptimizerSolution): Map<ei.Egg, number> {
   return totals;
 }
 
-// Presentation-only fields. The worker path applies this on the main thread
-// afterwards, so both it and optimize() below produce identical solutions.
+// Presentation-only fields, applied on the main thread after the worker
+// returns. `optimize` in `spec-helpers.ts` — the in-process path the tests
+// use — calls this too, so the two produce identical solutions.
 export function finalizeSolutions(solutions: OptimizerSolution[], dag: RecipeDAG): OptimizerSolution[] {
   for (const solution of solutions) {
     solution.choiceHistory.sort((a: LaunchSolution, b: LaunchSolution) => a.ship.shipType - b.ship.shipType);
@@ -133,42 +124,6 @@ export function finalizeSolutions(solutions: OptimizerSolution[], dag: RecipeDAG
     solution.fuelByEgg = computeFuelByEgg(solution);
   }
   return solutions;
-}
-
-// Returns an array though today it's always one solution.
-//
-// Async for two reasons: the planner is a WebAssembly module loaded on first
-// use, and `optimizer-core` is imported dynamically here on purpose. This
-// barrel is what the components import, so a static import would pull the
-// solver and its Emscripten glue into the main chunk — where nothing needs it,
-// because the app plans through the worker. Only the tests call this.
-export async function optimize(
-  config: OptimizerConfig,
-  playerConfig: ShipsConfig,
-  dag: RecipeDAG,
-  baseYield: Map<string, number>,
-  launchPeriodSeconds = 0,
-  maxGemCost?: number,
-  craftBudget?: CraftBudget
-) {
-  const { desiredArtifactNodeIds, fuelTankCapacity, timeBudgetSeconds } = config;
-  const options = enumerateLaunchOptions(playerConfig, dag, launchPeriodSeconds);
-  const { optimizeFull } = await import('./optimizer-core');
-
-  const solutions: OptimizerSolution[] = [
-    await optimizeFull({
-      options,
-      recipeDag: dag,
-      desiredArtifactNodeIds: desiredArtifactNodeIds,
-      fuelCapacity: fuelTankCapacity,
-      timeCapacity: timeBudgetSeconds,
-      maximumCost: maxGemCost,
-      baseYield: baseYield,
-      craftBudget,
-    }),
-  ];
-
-  return finalizeSolutions(solutions, dag);
 }
 
 export type {

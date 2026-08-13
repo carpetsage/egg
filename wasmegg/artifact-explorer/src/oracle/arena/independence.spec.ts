@@ -130,6 +130,7 @@ const HARNESS_FILES = [
 // The planner and everything downstream of it. The harness must not run any of
 // this: it is the thing being measured.
 const IMPLEMENTATION = [
+  'concave.ts', // the objective's own g/g'/line search; the judge re-derives all three
   'lp.ts', // the incumbent's LP
   'optimizer-client.ts', // worker-backed entry point to the planner
   'optimizer-core.ts', // the plan pipeline; calls the planner
@@ -150,6 +151,9 @@ const IMPLEMENTATION = [
   'solver/oa.ts',
   'solver/simplex.ts',
   'solver/types.ts',
+  // Spec fixtures, but `optimize` there runs the planner in-process — so it is
+  // downstream, and the harness builds its problems from `instances.ts` instead.
+  'spec-helpers.ts',
   'value-function.ts',
 ];
 
@@ -165,7 +169,6 @@ const PROBLEM_SURFACE = [
   'loot.ts',
   'missions.ts',
   'phases.ts',
-  'spec-helpers.ts',
   'tank-ids.ts',
   'types.ts',
 ];

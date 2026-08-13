@@ -5,7 +5,8 @@
 
 import { describe, it, expect } from 'vitest';
 import { ei, perfectShipsConfig } from 'lib';
-import { buildRecipeDag, computeBaseYield, optimize } from '@/lib';
+import { buildRecipeDag, computeBaseYield } from '@/lib';
+import { optimize } from './spec-helpers';
 import { enumerateLaunchOptions } from './phases';
 
 const Name = ei.ArtifactSpec.Name;
@@ -104,7 +105,7 @@ describe('optimize', () => {
   it('returns a plan the page can render', async () => {
     const dag = buildRecipeDag(config.desiredArtifactNodeIds, 30);
     const baseYield = computeBaseYield(null, config.desiredArtifactNodeIds, dag);
-    const [sol] = await optimize(config, perfectShipsConfig, dag, baseYield);
+    const sol = await optimize(config, perfectShipsConfig, dag, baseYield);
 
     expect(sol.choiceHistory.length).toBeGreaterThan(0);
     // sorted by ship, so the launch list reads in fleet order
@@ -123,7 +124,7 @@ describe('optimize', () => {
     const dag = buildRecipeDag(config.desiredArtifactNodeIds, 30);
     const baseYield = computeBaseYield(null, config.desiredArtifactNodeIds, dag);
     const launchPeriod = 3600; // high effort: 1 launch / slot / hour
-    const [sol] = await optimize(config, perfectShipsConfig, dag, baseYield, launchPeriod);
+    const sol = await optimize(config, perfectShipsConfig, dag, baseYield, launchPeriod);
 
     // `runningTimeSeconds` is the "you will be done in" figure on the card, and
     // it is raw flight time rather than the floored time the solver packs with.
@@ -135,7 +136,7 @@ describe('optimize', () => {
     expect(sol.runningTimeSeconds).toBeLessThanOrEqual(sol.timeUnitsUsed);
 
     // with a zero launch period nothing is floored: raw flight = makespan
-    const [rawSol] = await optimize(config, perfectShipsConfig, dag, baseYield, 0);
+    const rawSol = await optimize(config, perfectShipsConfig, dag, baseYield, 0);
     expect(rawSol.runningTimeSeconds).toBe(rawSol.timeUnitsUsed);
   });
 });

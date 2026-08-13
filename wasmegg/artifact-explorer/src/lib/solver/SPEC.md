@@ -204,10 +204,9 @@ score target `t` can reach when every other target is ignored and the counts are
 allowed to be fractional — one continuous LP per target (`scaleLps`, solved
 by the same backend). Then `sigma_t = s_t / theta_t` lies in `[0, 1]` for every
 feasible plan, and a tangent at `sigma = a` has slope `1/a` rather than `1/s`.
-With the initial grid bottoming out at `1e-7`, its coefficients stay under `1e7`;
-refinement cuts may go deeper, down to `CUT_FLOOR = 1e-12`, so the largest
-coefficient the matrix can carry is around `1e12` — inside the ingestion window,
-and the reason that floor is a constant rather than "as deep as the search asks".
+The grid is stated up front and bottoms out at `SIGMA_FLOOR = 1e-5`, so no
+tangent coefficient exceeds `1e5` — well inside the ingestion window. Nothing is
+added while solving, which is what makes that a bound rather than a hope.
 
 `theta_t <= 0` for any target means no allocation scores that target at all, so
 the joint probability is zero for every plan and the empty one is as good as any.
@@ -215,7 +214,7 @@ That is returned directly.
 
 A `sigma_t` of exactly zero produces no cut, because there is no tangent at zero:
 when the model wants to abandon a target outright, the deepest existing cut is
-what prices that decision. The grid's `1e-7` point is load-bearing rather than
+what prices that decision. The grid's `1e-5` point is load-bearing rather than
 decorative.
 
 ### The scale LP's objective weight
@@ -239,17 +238,20 @@ instances, returning `HiGHS error -1` from `Highs_run`.
 
 ### Two constants that are not the judge's
 
-`evaluator.ts` exports `gPrime`, which clamps at `1e12` so the judge's
-Frank-Wolfe linearizations stay finite. The cut generator does **not** use it and
+`concave.ts` exports `gPrime`, which clamps at `1e12` so the Frank-Wolfe
+linearizations stay finite. The cut generator does **not** use it and
 computes `1 / expm1(s)` uncapped instead. Reusing the clamp would be a bug rather
 than a shortcut: at `s ~ 1e-13` the clamp is active at every tangent point at
 once, so every cut would come back with the identical slope and the outer
 approximation would carry no curvature at all.
 
 `Q = -log(1 - p)` is `+Infinity` when a craft is certain. Infinity cannot enter a
-matrix, so certainty is proxied by `Q = 1e4` (`Q_CERTAIN_PROXY`), large enough
-that one craft saturates `g` to every bit of a double. The judge still sees the
-real Infinity; the proxy only steers.
+matrix, so certainty is proxied by `Q = 1e4` (`Q_CERTAIN_PROXY` in `milp.ts`),
+large enough that one craft saturates `g` to every bit of a double. Every matrix
+reads that one constant — the OA MILP here and the seed LP `optimizer-core.ts`
+compiles for the reported craft split — so a plan is never chosen against one
+value of certainty and priced against another. The judge (`evaluator.ts`) still
+sees the real Infinity; the proxy only steers.
 
 ## 5. The pass
 
@@ -280,8 +282,8 @@ A placebo round solved against a row-permutation of the identical cut set (same
 polytope, same optimum, no new information) changed the answer on 17 of 39
 instances and kept 42% of real refinement's gain, so what the second round bought
 was mostly a search restart, not a tighter envelope. Spending the same budget on
-branch-and-bound nodes in one pass buys more: see `DEFAULT_TUNING` in `oa.ts` for
-the three campaigns, and section 7.
+branch-and-bound nodes in one pass buys more: see RESULTS.md, *What the budgets
+buy*, for the three campaigns, and section 7.
 
 What comes back is still a *judged* plan, never the MILP's answer taken on faith.
 The incumbent is scored by `evaluator.ts`, a re-derivation of the objective, so
@@ -370,3 +372,81 @@ wrong:
   the order the reader first saw it, not the order the model built its columns
   in. Mapping through `Index` type-checks, runs, and reads the wrong columns.
   `readSolution` maps through the column name.
+
+### Presolve, and the throw it used to cause
+
+`SOLVER_OPTIONS.presolve` is `'off'`. Presolve is a performance bet and on this
+workload it loses. Over twelve arena instances through `optimizeFull`, timed with
+the config order forward and reversed (agreeing within 1%):
+
+| config | wall clock | |
+| --- | --- | --- |
+| presolve on, tolerances as pinned | 27.7s | baseline |
+| presolve off, tolerances as pinned | 24.7s | -11% |
+| presolve on, mip tolerance at 1e-6 | 28.1s | +1% |
+| presolve off, mip tolerance at 1e-6 | 22.9s | -17% |
+
+— with an *identical* joint probability on 12 of 12 instances, to the last bit,
+in every presolve-on config and in presolve-off at the pinned tolerances. The bet
+was that the tight `mip_feasibility_tolerance` was handicapping presolve by
+running two orders below HiGHS's default; the middle rows say otherwise, since at
+the stock tolerance presolve gets slightly worse and the gap widens.
+
+Structurally it does very little. HiGHS's own reduction log on three arena MILPs:
+rows -3% to -6%, columns -2%, nonzeros between -0.6% and *+1.8%* — on arena:2001
+it adds 104 of them. What it buys is implied-integer detection and the restart
+machinery, which tighten the dual bound per node (gap 1.06% vs 1.98% on
+arena:2001 at a five-node budget). What it costs is search: 5058 LP iterations
+against 2348, with 46 sub-MIP calls eating 3.47s of a 4.73s solve.
+
+That trade was struck when `oa.ts` ran two five-node rounds, where a tighter
+per-node bound had a second solve to be washed out by. It no longer does — one
+pass at 200 nodes is the whole search — so the timings above are what carries
+this now, and they were measured through `optimizeFull` rather than per round.
+The dual-bound half of the argument is retired rather than replaced: whether
+presolve pays at the current tuning is open, and answering it means three
+campaigns like any other tuning question.
+
+**Turning it off also removed a failure path.** HiGHS can fail inside *presolve*
+on a model it reads and solves perfectly well without it, throwing "HiGHS error
+-1" out of `Highs_run` — not out of the reader, so this is not the ingestion
+window of section 3. Found on arena:2018 with the fuel tank doubled: identical
+shape and identical matrix range to the instance beside it that solves. HiGHS's
+own option table carries a "Presolve error" status for exactly this. Re-solving
+the rejected model one option at a time says the trigger is not presolve alone:
+
+| knob | result |
+| --- | --- |
+| baseline (presolve on) | THREW |
+| `presolve: off` | Optimal |
+| `presolve: choose` | THREW |
+| `primal_feasibility_tolerance` 1e-7 / 1e-8 | THREW |
+| `mip_feasibility_tolerance: 1e-8` / `1e-6` | Optimal |
+| `dual_feasibility_tolerance: 1e-7` | THREW |
+| `mip_allow_restart: false` | THREW |
+| `random_seed: 1` | Optimal |
+| `threads: 0` / `parallel: on` | THREW |
+| `mip_max_nodes: 50` | THREW |
+
+It is `mip_feasibility_tolerance` at 1e-9 that puts presolve over the edge, which
+is the interaction ERGO-Code/HiGHS#1578 reports: presolve calling a model
+infeasible that solves to optimality without it, once that tolerance is
+tightened. That issue's threshold is 1e-7 and `SOLVER_OPTIONS` pins two orders
+tighter. (#907, #2171 and #2173 are the same shape without the tolerance angle.)
+
+That `random_seed: 1` also clears it says this is a knife-edge numerical
+coincidence rather than anything structural, which is why the seed is not the
+fix — it would settle this instance and silently pick a different one to fail on.
+Of the knobs that work, presolve is the only one that solves the model with every
+tolerance still at its pinned value: `mip_feasibility_tolerance` buys the same
+result by weakening, on *every* solve, the guard that keeps HiGHS's integer
+solutions on the judge's packing scale, so `certifies` could start dropping
+incumbents where today it never fires (section 3). Nothing gentler is available
+either — `presolve_reduction_limit` and `presolve_rule_off` are not in this
+package's typings, and of the three values it does expose, `'choose'` still
+throws (above).
+
+Presolve only reformulates; it cannot change the feasible set, so running without
+it can turn a failure into an answer but never a wrong answer into a
+right-looking one — and the answer is checked by `certifies` and priced by the
+evaluator regardless.

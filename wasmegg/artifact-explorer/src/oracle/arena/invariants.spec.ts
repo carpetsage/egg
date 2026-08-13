@@ -6,9 +6,13 @@
 //   SOLVER=highs ARENA=sweep pnpm arena
 //   ARENA_INSTANCES=80 ARENA_SEED_BASE=9000 ARENA=sweep pnpm arena
 //
-// Gating. C0-contract and C1-feasibility hard-fail: a solver that returns a
-// wrong-shaped or infeasible plan is broken outright, and that is not a matter
-// of degree. Everything else is reported, because the arena exists to measure
+// Gating. C0-contract, C1-feasibility and C1-inconclusive hard-fail: a solver
+// that returns a wrong-shaped or infeasible plan is broken outright, and that is
+// not a matter of degree. A plan the harness's own packer cannot decide within
+// its node budget gates too — the budget exists to make that not happen, so
+// hitting it means the goalpost moved rather than that the plan is fine. It
+// carries a separate id only so the scorecard can tell the two apart; see
+// `checkC1Feasibility`. Everything else is reported, because the arena exists to measure
 // how close candidates get, and a suite that goes red for every entry measures
 // nothing. `ARENA_GATE=all` promotes the rest to failures once a candidate is
 // good enough to hold them.
@@ -49,8 +53,8 @@ const SEED_BASE = intEnv('ARENA_SEED_BASE', 2000);
 const GATE_ALL = process.env.ARENA_GATE === 'all';
 const RESULT_DIR = resolve(__dirname, 'results');
 
-// Non-negotiable: the plan has to be a plan.
-const HARD_FAIL = new Set(['C0-contract', 'C1-feasibility']);
+// Non-negotiable: the plan has to be a plan, and the judge has to be able to say so.
+const HARD_FAIL = new Set(['C0-contract', 'C1-feasibility', 'C1-inconclusive']);
 
 const seeds = Array.from({ length: COUNT }, (_, i) => SEED_BASE + i);
 const checks: Check[] = DEEP ? [...CHEAP_CHECKS, ...DEEP_CHECKS] : CHEAP_CHECKS;

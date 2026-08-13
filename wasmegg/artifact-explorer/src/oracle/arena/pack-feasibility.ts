@@ -271,7 +271,8 @@ export function packFeasible(
     // distribution of a duration's count across the slots, so its branching
     // factor is that count; a production plan of 901 missions with 544 sharing
     // one duration spent the entire node budget on that duration alone and came
-    // back `undecided`, which C1 gates on exactly as it gates on `infeasible`.
+    // back `undecided`, which gates (as `C1-inconclusive`) exactly as
+    // `infeasible` does.
     // The ordering above pins the largest count here, where it costs O(1).
     if (t === active.length - 1) {
       let fits = 0;

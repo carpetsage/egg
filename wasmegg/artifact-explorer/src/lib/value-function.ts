@@ -3,6 +3,7 @@
 // copies of it do not count as crafts. See OPTIMIZER.md.
 
 import type { CraftBudget, RecipeDAG } from './types';
+import { gPrime, goldenSectionArgmax, logHit } from './concave';
 import { solveLp } from './lp';
 
 // The budget's row, over the craft columns of an inner LP:
@@ -32,9 +33,7 @@ function craftBudgetRow(
 
 export interface AlphaResult {
   alpha: number; // craftable count of targets[0]; 0 when it's a leaf
-  score: number; // weighted objective at the optimum
   craftByTarget: Map<string, number>;
-  duals: Map<string, number>; // shadow price per constraint node
   primalByNode: Map<string, number>; // crafted count per non-leaf node
 }
 
@@ -146,16 +145,11 @@ export function compileInnerLp(
       }
       const r = solveLp(c, A, bScratch);
       if (r.status !== 'optimal') {
-        return { alpha: 0, score: 0, craftByTarget: new Map(), duals: new Map(), primalByNode: new Map() };
+        return { alpha: 0, craftByTarget: new Map(), primalByNode: new Map() };
       }
       const craftByTarget = new Map<string, number>();
       for (const t of weightByTarget.keys()) {
         craftByTarget.set(t, r.primal[varIndex.get(t)!]);
-      }
-      const alpha = craftByTarget.get(primary) ?? 0;
-      const duals = new Map<string, number>();
-      for (let i = 0; i < nCons; i++) {
-        duals.set(constraintNodes[i], r.duals[i]);
       }
       const primalByNode = new Map<string, number>();
       for (let i = 0; i < nonLeafNodes.length; i++) {
@@ -163,7 +157,7 @@ export function compileInnerLp(
           primalByNode.set(nonLeafNodes[i], r.primal[i]);
         }
       }
-      return { alpha, score: r.objective, craftByTarget, duals, primalByNode };
+      return { alpha: craftByTarget.get(primary) ?? 0, craftByTarget, primalByNode };
     },
   };
 }
@@ -178,7 +172,7 @@ function makeTrivialLp(primary: string, targets: readonly string[], weightByTarg
     weightByTarget,
     solve(inventory: Map<string, number>): AlphaResult {
       const v = inventory.get(primary) ?? 0;
-      return { alpha: v > 0 ? v : 0, score: 0, craftByTarget: new Map(), duals: new Map(), primalByNode: new Map() };
+      return { alpha: v > 0 ? v : 0, craftByTarget: new Map(), primalByNode: new Map() };
     },
   };
 }
@@ -222,27 +216,29 @@ export function alphaToProb(
 
 // Tangent points for the epigraph relaxation of g(s) = log(1 - e^-s). The
 // envelope OVER-estimates g: safe for search ranking only, never for reporting.
-export const JOINT_TANGENT_BREAKPOINTS: readonly number[] = [
+// (Geometric from 1e-5 to 35, 26 points; transcribed rather than generated so
+// the seed LP's matrix does not move under a refactor.)
+const JOINT_TANGENT_BREAKPOINTS: readonly number[] = [
   1e-5, 1.8271e-5, 3.3383e-5, 6.09941e-5, 0.000111443, 0.000203617, 0.000372029, 0.000679734, 0.00124194, 0.00226916,
   0.00414598, 0.00757513, 0.0138405, 0.0252881, 0.0462038, 0.0844191, 0.154242, 0.281816, 0.514907, 0.940788, 1.71892,
   3.14063, 5.73826, 10.4844, 19.156, 35,
 ];
 
-export interface Tangent {
+interface Tangent {
   alpha: number;
   beta: number;
 }
 
 // beta_k = g'(s_k) = 1/(e^s_k - 1); alpha_k = g(s_k) - beta_k*s_k.
-export const JOINT_TANGENTS: readonly Tangent[] = JOINT_TANGENT_BREAKPOINTS.map(s => {
+const JOINT_TANGENTS: readonly Tangent[] = JOINT_TANGENT_BREAKPOINTS.map(s => {
   const beta = 1 / Math.expm1(s);
-  const g = Math.log(-Math.expm1(-s));
-  return { alpha: g - beta * s, beta };
+  return { alpha: logHit(s) - beta * s, beta };
 });
 
-// z_T can be negative (g(s) < 0 below s = ln 2) but lp.ts assumes x >= 0.
-// Anyone building epigraph rows must subtract nTargets * this from the result.
-export const EPIGRAPH_SHIFT = 50;
+// z_T can be negative (g(s) < 0 below s = ln 2) but lp.ts assumes x >= 0, so
+// every z_T is shifted up by this much. Only the LP's *primal* is read, and the
+// shift does not move the argmax, so nothing has to undo it.
+const EPIGRAPH_SHIFT = 50;
 
 export interface JointAlphaResult {
   craftByTarget: Map<string, number>; // absent for a leaf target, mirroring compileInnerLp
@@ -386,34 +382,6 @@ export function compileJointInnerLp(
   };
 }
 
-// argmax over t in [0, 1] of a concave function. Robust to phi returning
-// -Infinity on part of the interval.
-function goldenSectionArgmaxZeroToOne(phi: (t: number) => number, iters = 100): number {
-  const GOLDEN = (Math.sqrt(5) - 1) / 2;
-  let a = 0;
-  let b = 1;
-  let c = b - GOLDEN * (b - a);
-  let d = a + GOLDEN * (b - a);
-  let fc = phi(c);
-  let fd = phi(d);
-  for (let i = 0; i < iters; i++) {
-    if (fc >= fd) {
-      b = d;
-      d = c;
-      fd = fc;
-      c = b - GOLDEN * (b - a);
-      fc = phi(c);
-    } else {
-      a = c;
-      c = d;
-      fc = fd;
-      d = a + GOLDEN * (b - a);
-      fd = phi(d);
-    }
-  }
-  return (a + b) / 2;
-}
-
 // Recover the per-target craft split maximizing the EXACT objective
 // sum_T g(Q_T*craft_T + lambda_T) at a fixed inventory, by Frank-Wolfe with an
 // exact line search. Runs once per returned solution, never in the search loop.
@@ -435,9 +403,6 @@ export function refineJointCraftSplit(
 
   const Q = (t: string) => QByTarget.get(t) ?? 0;
   const lam = (t: string) => lambda.get(t) ?? 0;
-  const G_PRIME_CAP = 1e12; // guards g'(s) -> Infinity as s -> 0
-  const gPrime = (s: number) => (s <= 0 ? G_PRIME_CAP : Math.min(1 / Math.expm1(s), G_PRIME_CAP));
-  const g = (s: number) => (s > 0 ? Math.log(-Math.expm1(-s)) : -Infinity);
 
   let currentPrimal = new Map(seed.primalByNode);
   let currentCraft = new Map<string, number>();
@@ -468,7 +433,7 @@ export function refineJointCraftSplit(
     const phi = (t: number) => {
       let sum = 0;
       for (let i = 0; i < craftTargets.length; i++) {
-        const gv = g(s0[i] + t * (s1[i] - s0[i]));
+        const gv = logHit(s0[i] + t * (s1[i] - s0[i]));
         if (gv === -Infinity) return -Infinity;
         sum += gv;
       }
@@ -476,7 +441,7 @@ export function refineJointCraftSplit(
     };
     // Golden section only converges *toward* an endpoint, stopping a few ULPs
     // short, and endpoints are the common case. Probe them and prefer on ties.
-    const tInterior = goldenSectionArgmaxZeroToOne(phi);
+    const tInterior = goldenSectionArgmax(phi);
     const fInterior = phi(tInterior);
     let tStar = tInterior;
     if (phi(1) >= fInterior) tStar = 1;

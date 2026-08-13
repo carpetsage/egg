@@ -19,10 +19,10 @@ import { packFeasible, type PackVerdict } from './pack-feasibility';
 
 // Slack on budget comparisons. Capacities are float sums of float costs, so a
 // plan that lands exactly on the cap can read a few ulps over it.
-export const BUDGET_TOL = 1e-9;
+const BUDGET_TOL = 1e-9;
 // An absolute floor on top of the relative slack: fuel figures run to 1e18, but
 // a plan of a few cheap missions can still land an absolute ulp over.
-export const FUEL_ABS_TOL = 1e-6;
+const FUEL_ABS_TOL = 1e-6;
 
 // One predicate, called from both `feasible` here and C1 in `invariants.ts`.
 // The two have to agree exactly: C1 is what reports a plan as infeasible, and
@@ -71,7 +71,7 @@ export interface SolveOverrides {
   fresh?: boolean;
 }
 
-export function buildProblem(inst: ArenaInstance, over: SolveOverrides = {}): PlanProblem {
+function buildProblem(inst: ArenaInstance, over: SolveOverrides = {}): PlanProblem {
   const targets = over.targets ?? inst.targets;
   const config = over.config ?? inst.config;
   const effort = over.effort ?? inst.effort;
@@ -198,49 +198,41 @@ export function oracleInstanceOf(problem: PlanProblem): OracleInstance {
   };
 }
 
-export interface ContractBreach {
-  detail: string;
-}
-
 // A candidate that returns something outside the contract is a finding, not a
 // crash. Normalise what can be normalised, report what cannot.
-export function contractBreaches(problem: PlanProblem, result: PlanResult): ContractBreach[] {
-  const out: ContractBreach[] = [];
+function contractBreaches(problem: PlanProblem, result: PlanResult): string[] {
+  const out: string[] = [];
   const alloc = result.allocation;
   if (!Array.isArray(alloc)) {
-    out.push({ detail: 'allocation is not an array' });
+    out.push('allocation is not an array');
     return out;
   }
   if (alloc.length !== problem.options.length) {
-    out.push({
-      detail: `allocation has ${alloc.length} entries for a menu of ${problem.options.length}`,
-    });
+    out.push(`allocation has ${alloc.length} entries for a menu of ${problem.options.length}`);
     return out;
   }
   for (let i = 0; i < alloc.length; i++) {
     const n = alloc[i];
     if (!Number.isFinite(n)) {
-      out.push({ detail: `allocation[${i}] is ${n}` });
+      out.push(`allocation[${i}] is ${n}`);
       break;
     }
     if (n < 0) {
-      out.push({ detail: `allocation[${i}] is negative (${n})` });
+      out.push(`allocation[${i}] is negative (${n})`);
       break;
     }
     if (!Number.isInteger(n)) {
-      out.push({ detail: `allocation[${i}] is fractional (${n}); missions are indivisible` });
+      out.push(`allocation[${i}] is fractional (${n}); missions are indivisible`);
       break;
     }
   }
   if (result.reported) {
     const r = result.reported;
     if (!Number.isFinite(r.jointProbability)) {
-      out.push({ detail: `reported.jointProbability is ${r.jointProbability}` });
+      out.push(`reported.jointProbability is ${r.jointProbability}`);
     }
     if (r.perTarget.length !== problem.targets.length) {
-      out.push({
-        detail: `reported.perTarget has ${r.perTarget.length} entries for ${problem.targets.length} target(s)`,
-      });
+      out.push(`reported.perTarget has ${r.perTarget.length} entries for ${problem.targets.length} target(s)`);
     }
   }
   return out;
@@ -285,7 +277,7 @@ export interface Solved {
   problem: PlanProblem;
   result: PlanResult;
   allocation: number[];
-  breaches: ContractBreach[];
+  breaches: string[];
   // The harness's own valuation of `result.allocation`. Every invariant
   // compares this, never `result.reported`.
   judged: OracleJointEvaluation;

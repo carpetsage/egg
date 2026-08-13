@@ -8,54 +8,12 @@
 // (centroid seed, capped gradient, golden-section line search, 1e-12 gap).
 
 import type { Model } from './model';
+import { gPrime, goldenSectionArgmax, logHit } from '../concave';
 import { simplexMax } from './simplex';
 
 export interface EvalResult {
   logJoint: number; // sum_T log(1 - exp(-s_T)) in nats; -Infinity when any s_T <= 0
   scores: number[]; // s_T per target (may be +Infinity for a prob-1 craft)
-}
-
-// g(s) = log(1 - exp(-s)), computed as log(-expm1(-s)).
-//
-// The form matters. Evaluating `1 - exp(-s)` directly cancels in the s ~ 1e-13
-// regime the arena scores in, so the accurate expm1 form is the one the judge
-// computes and the one this has to match.
-export function logHit(s: number): number {
-  return s > 0 ? Math.log(-Math.expm1(-s)) : -Infinity;
-}
-
-// g'(s); grows like 1/s as s -> 0, capped to keep linearizations finite.
-const GPRIME_CAP = 1e12;
-function gPrime(s: number): number {
-  return s <= 0 ? GPRIME_CAP : Math.min(1 / Math.expm1(s), GPRIME_CAP);
-}
-
-const GOLDEN = (Math.sqrt(5) - 1) / 2;
-
-// argmax of a unimodal (concave) f over [0, 1].
-function goldenSectionArgmax(f: (x: number) => number, iters: number): number {
-  let a = 0;
-  let b = 1;
-  let c = b - GOLDEN * (b - a);
-  let d = a + GOLDEN * (b - a);
-  let fc = f(c);
-  let fd = f(d);
-  for (let i = 0; i < iters; i++) {
-    if (fc >= fd) {
-      b = d;
-      d = c;
-      fd = fc;
-      c = b - GOLDEN * (b - a);
-      fc = f(c);
-    } else {
-      a = c;
-      c = d;
-      fc = fd;
-      d = a + GOLDEN * (b - a);
-      fd = f(d);
-    }
-  }
-  return (a + b) / 2;
 }
 
 // Max craft_idx over the conservation polytope at inventory b, weighted by c0.
@@ -238,12 +196,7 @@ export function evaluateCounts(
 }
 
 // Value of a given inventory.
-function evaluateAt(
-  model: Model,
-  b: number[],
-  lambdas: readonly number[],
-  precision: EvalPrecision = EXACT_PRECISION
-): EvalResult {
+function evaluateAt(model: Model, b: number[], lambdas: readonly number[], precision: EvalPrecision): EvalResult {
   const Qs = model.Qs;
   const nTargets = model.targets.length;
   const scores = new Array<number>(nTargets).fill(0);

@@ -39,7 +39,7 @@ import {
   type Solved,
 } from './harness';
 import type { ArenaInstance } from './instances';
-import { evaluateAllocationJoint } from '../evaluate';
+import { evaluateAllocationJoint, evaluateAllocationJointFloat } from '../evaluate';
 import { mulberry32 } from '../generate';
 
 // Float LP work drifts by a few ulps; below this a difference is arithmetic,
@@ -535,7 +535,7 @@ export function checkB6DuplicateOption(c: CheckContext) {
 export function checkC0Contract(c: CheckContext) {
   const s = solve(c);
   for (const b of s.breaches) {
-    reportFlat(c, 'C0-contract', b.detail);
+    reportFlat(c, 'C0-contract', b);
   }
 }
 
@@ -549,13 +549,24 @@ export function checkC1Feasibility(c: CheckContext) {
       `plan burns ${b.fuel.toExponential(4)} fuel against a ${s.problem.fuelCapacity.toExponential(4)} tank`
     );
   }
-  if (b.pack !== 'packs') {
+  // `undecided` is the *judge* running out of nodes, not a statement about the
+  // plan — and it happens on tightly-packed plans, which is where a good
+  // candidate lands. Charging it to `C1-feasibility` would make that count
+  // anti-correlated with the thing being measured, so it gets its own id, the
+  // same way `kOpt` separates a truncated search from a clean bill of health.
+  // It still gates (`HARD_FAIL` in `invariants.spec.ts`): the node budget exists
+  // so this does not happen, and hitting it is a goalpost that moved.
+  if (b.pack === 'undecided') {
+    reportFlat(
+      c,
+      'C1-inconclusive',
+      `packing undecided within the node budget (${b.totalTime.toFixed(0)}s over ${s.problem.slots} slots of ${s.problem.timeCapacity}s)`
+    );
+  } else if (b.pack !== 'packs') {
     reportFlat(
       c,
       'C1-feasibility',
-      b.pack === 'undecided'
-        ? `packing undecided within the node budget (${b.totalTime.toFixed(0)}s over ${s.problem.slots} slots of ${s.problem.timeCapacity}s)`
-        : `plan does not pack into ${s.problem.slots} slots of ${s.problem.timeCapacity}s (${b.totalTime.toFixed(0)}s total)`
+      `plan does not pack into ${s.problem.slots} slots of ${s.problem.timeCapacity}s (${b.totalTime.toFixed(0)}s total)`
     );
   }
 }
@@ -763,7 +774,14 @@ function kOpt(id: string, c: CheckContext, arity: 2 | 4, thresholdNats: number, 
 
   let evals = 0;
   let exhausted = false;
-  let best = { p: base, detail: '' };
+  // Ranked in floats, reported exactly. `evaluateAllocationJoint` runs the
+  // BigInt-rational simplex on a single-target instance — 35-50x the cost of
+  // the float path, and this loop calls it up to `maxEvals` times, where
+  // `evaluate.ts`'s own design is that floats rank candidates and the exact
+  // judge produces the number that gets asserted. Float Frank-Wolfe converges
+  // to ~1e-12 against thresholds of 1e-3/5e-3 nats, so no verdict turns on the
+  // difference; only the surviving winner is re-judged exactly, below.
+  let best = { p: evaluateAllocationJointFloat(oracleInst, alloc), alloc, detail: '' };
   const describe = (moves: [number, number][]) =>
     moves
       .map(([i, d]) => `${d > 0 ? '+' : ''}${d} ${options[i].ship.name}->${options[i].target ?? 'untargeted'}`)
@@ -780,8 +798,8 @@ function kOpt(id: string, c: CheckContext, arity: 2 | 4, thresholdNats: number, 
     // run the loops to completion regardless of the budget.
     evals++;
     if (!feasible(s.problem, a)) return;
-    const p = evaluateAllocationJoint(oracleInst, a).jointProbability;
-    if (improved(best.p, p, thresholdNats)) best = { p, detail: describe(moves) };
+    const p = evaluateAllocationJointFloat(oracleInst, a);
+    if (improved(best.p, p, thresholdNats)) best = { p, alloc: a, detail: describe(moves) };
   };
 
   // Pairs: -k of a held line, +m of anything.
@@ -818,6 +836,12 @@ function kOpt(id: string, c: CheckContext, arity: 2 | 4, thresholdNats: number, 
             if (j1 === j2) continue;
             for (let k1 = 1; k1 <= Math.min(alloc[i1], KOPT_MAX_DELTA); k1++) {
               for (let k2 = 1; k2 <= Math.min(alloc[i2], KOPT_MAX_DELTA); k2++) {
+                // (j1, j2) and (j2, j1) build the *same* allocation when the two
+                // exchanges move the same count, so half of those pairs are a
+                // duplicate — about a third of the whole enumeration, each one
+                // paying a full packing search and burning an evaluation the
+                // budget could spend on coverage instead.
+                if (k1 === k2 && j2 < j1) continue;
                 const a = alloc.slice();
                 a[i1] -= k1;
                 a[i2] -= k2;
@@ -840,7 +864,10 @@ function kOpt(id: string, c: CheckContext, arity: 2 | 4, thresholdNats: number, 
   }
 
   if (best.detail) {
-    report(c, id, base, best.p, `${best.detail} improves ${pct(base)} to ${pct(best.p)} (${gap(base, best.p)})`);
+    // Re-judged exactly: `base` is the harness's exact valuation of the plan, so
+    // the number reported against it has to come from the same judge.
+    const exact = evaluateAllocationJoint(oracleInst, best.alloc).jointProbability;
+    report(c, id, base, exact, `${best.detail} improves ${pct(base)} to ${pct(exact)} (${gap(base, exact)})`);
   } else if (exhausted) {
     // Not a violation, but the absence of one is now uninformative: say so
     // rather than let a truncated search read as a clean bill of health.
