@@ -225,6 +225,7 @@ import { useVirtueStore } from '@/stores/virtue';
 import { useTruthEggsStore } from '@/stores/truthEggs';
 import { useAscensionGenerator } from '@/auto/useAscensionGenerator';
 import { useEarningsClothedTE } from '@/composables/useEarningsClothedTE';
+import { loadAutoPlannerSchedule, saveAutoPlannerSchedule } from '@/lib/autoPlannerFormCache';
 import SchedulingInputs from './SchedulingInputs.vue';
 import VirtueProgressSection from './VirtueProgressSection.vue';
 import ChainSummaryBar from './ChainSummaryBar.vue';
@@ -250,6 +251,17 @@ const showLowClothedTEWarning = computed(() => earningsClothedTe.value !== null 
 
 const targetInput = ref<HTMLInputElement | null>(null);
 const isCollapsed = ref(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
+
+// Restore a cached form (start date/time/timezone, target TE) from a previous visit, if any,
+// so a page reload doesn't wipe out what the user had entered. This runs before the defaulting
+// logic below, which only fills in fields that are still empty.
+const cachedSchedule = loadAutoPlannerSchedule();
+if (cachedSchedule) {
+  if (cachedSchedule.timezone) timezone.value = cachedSchedule.timezone;
+  if (cachedSchedule.startDate) startDate.value = cachedSchedule.startDate;
+  if (cachedSchedule.startTime) startTime.value = cachedSchedule.startTime;
+  if (cachedSchedule.targetTE) targetTE.value = cachedSchedule.targetTE;
+}
 
 // Initialize timezone default
 if (!timezone.value) {
@@ -282,6 +294,16 @@ watch(
   },
   { immediate: true }
 );
+
+// Persist the form (start date/time/timezone, target TE) so it survives a page reload.
+watch([timezone, startDate, startTime, targetTE], () => {
+  saveAutoPlannerSchedule({
+    timezone: timezone.value,
+    startDate: startDate.value,
+    startTime: startTime.value,
+    targetTE: targetTE.value,
+  });
+});
 
 const {
   isGenerating,
