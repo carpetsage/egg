@@ -428,3 +428,70 @@ export function runResearchMilestoneIfWorthwhile(
     endState: helpers.getState(),
   };
 }
+
+/**
+ * Buy a research to max, one level at a time via `runResearchMilestoneIfWorthwhile`, rather than
+ * one chain call aimed straight at max level — shared by every shift (`c1.ts`, `c2.ts`) that wants
+ * "buy as much of this research as fits in the time budget, but never a partial down payment on a
+ * level that won't finish."
+ *
+ * Two distinct reasons drive the one-level-at-a-time structure, both load-bearing:
+ *
+ * - Reachability: `runResearchMilestoneIfWorthwhile` noops its ENTIRE chain if it can't fully reach
+ *   its target level — aiming one call straight at max risks a single unreachable (or merely
+ *   not-worth-it) level near the top silently discarding purchases on every cheaper level below it.
+ *   Targeting one level up at a time means that only stops the loop from there.
+ * - Time budget: `maxOptimizedSeconds` is capped at the remaining budget (not leaved `Infinity`),
+ *   so a level whose OWN chain (target level plus whatever earnings research speeds up reaching it)
+ *   can't fully finish within what's left gets skipped entirely, rather than partially executed.
+ *   `optimizedSeconds` is the chain's own full real-time cost to reach the target level (see
+ *   `computeMilestoneSummaryCore`); without this cap, a level whose chain eventually completes but
+ *   takes far longer than what's left (e.g. a graviton coupling level needing weeks against a
+ *   couple hours of remaining shift) still passed the worthwhile gate, then `executeChain` bought as
+ *   much of that chain — earnings-research detours included — as fit in the time limit before giving
+ *   up on the target itself, stranding real gems and shift time spent chasing a level that was never
+ *   going to land. Capping here means a level whose chain can't finish in time buys NOTHING toward it
+ *   at all: finish the chain, or don't start it.
+ *
+ * Each level's chain still buys whatever earnings research speeds up reaching THAT level along the
+ * way — no separate earnings-buying pass needed.
+ */
+export function runBuyResearchLevelByLevel(
+  startState: EngineState,
+  context: SimulationContext,
+  researchId: string,
+  timeLimit: number,
+  // See `runTierUnlockMilestone`'s identical parameter.
+  roiDeadlineOverride?: number
+): ShiftResult {
+  const research = getResearchById(researchId);
+  if (!research) return { actions: [], elapsedSeconds: 0, endState: startState };
+
+  let currentState = startState;
+  let elapsedSeconds = 0;
+  const actions: Action[] = [];
+  const remainingBudget = () => timeLimit - elapsedSeconds;
+
+  let level = currentState.researchLevels[researchId] || 0;
+  while (level < research.levels && remainingBudget() > 0) {
+    const budget = remainingBudget();
+    const result = runResearchMilestoneIfWorthwhile(
+      currentState,
+      context,
+      researchId,
+      level + 1,
+      budget,
+      budget,
+      roiDeadlineOverride
+    );
+    currentState = result.endState;
+    elapsedSeconds += result.elapsedSeconds;
+    actions.push(...result.actions);
+
+    const newLevel = currentState.researchLevels[researchId] || 0;
+    if (newLevel <= level) break; // no progress this round — out of budget or unreachable, stop here
+    level = newLevel;
+  }
+
+  return { actions, elapsedSeconds, endState: currentState };
+}

@@ -3,7 +3,7 @@ import type { EngineState, SimulationContext, ShiftResult } from '../types';
 import { isTierUnlocked, getTiers, getResearchById } from '../../calculations/commonResearch';
 import { rankResearchByROI, buyWhilePassingCheck } from '../../calculations/researchRanking';
 import {
-  runResearchMilestoneIfWorthwhile,
+  runBuyResearchLevelByLevel,
   runTierUnlockMilestone,
   runSmartBuyForSeconds,
   createMilestoneShiftHelpers,
@@ -29,13 +29,16 @@ const GRAVITON_COUPLING_ID = 'micro_coupling';
  *    never run at all if the time budget is spent by then. `unlockTierIfNeeded` no-ops for tiers
  *    already unlocked, so this is safe to run unconditionally even mid-ascension.
  * 2. One more smart-buy sweep once every fleet_size tier is unlocked.
- * 3. Buy each of FLEET_RESEARCH_IDS to max, strictly in order — no sweep interleaved here, since
- *    step 1 already swept every tier crossing below this point and nothing new unlocks mid-loop.
+ * 3. Buy each of FLEET_RESEARCH_IDS to max, one level at a time (`runBuyResearchLevelByLevel`),
+ *    strictly in order — no sweep interleaved here, since step 1 already swept every tier crossing
+ *    below this point and nothing new unlocks mid-loop. Each level is only bought if its ENTIRE
+ *    purchase chain fits within the remaining time budget — never a partial down payment toward a
+ *    level that won't finish before the shift ends.
  * 4. If every fleet_size research got maxed, try to unlock Tier 12 and buy Graviton Coupling
- *    (micro_coupling — also fleet_size, just gated behind the most expensive tier). A single level
- *    counts as success; if the attempt buys zero levels, it's rolled back in full (state/time/
- *    actions all restored to their pre-attempt checkpoint) so the time it would've burned goes to
- *    step 5 instead.
+ *    (micro_coupling — also fleet_size, just gated behind the most expensive tier), same
+ *    level-by-level, finish-or-don't-start rule as step 3. A single level counts as success; if the
+ *    attempt buys zero levels, it's rolled back in full (state/time/actions all restored to their
+ *    pre-attempt checkpoint) so the time it would've burned goes to step 5 instead.
  * 5. Spend whatever time remains buying research in ROI order.
  */
 export function runC1(
@@ -62,12 +65,11 @@ export function runC1(
     mergeMilestone(runTierUnlockMilestone(currentState, context, tier, remainingBudget()));
   };
 
+  // One level at a time, each level only if its ENTIRE purchase chain fits within the remaining
+  // time budget — see `runBuyResearchLevelByLevel`'s own comment for why. Shared with C2's identical
+  // graviton-coupling need.
   const buyResearchToMax = (researchId: string) => {
-    const research = getResearchById(researchId);
-    if (!research) return;
-    mergeMilestone(
-      runResearchMilestoneIfWorthwhile(currentState, context, researchId, research.levels, Infinity, remainingBudget())
-    );
+    mergeMilestone(runBuyResearchLevelByLevel(currentState, context, researchId, remainingBudget()));
   };
 
   const smartBuySweep = () => {
@@ -132,7 +134,7 @@ export function runC1(
   // (`simulateSaleAwareBuy`/`simulateSaleEndsBuy`), which target a specific sale boundary, this sweep
   // just wants the best ROI use of whatever time is left. Only the ranking/check callback below is
   // C1-specific — the purchase mechanics themselves come from `createMilestoneShiftHelpers`, the same
-  // factory `runResearchMilestoneIfWorthwhile`/`runTierUnlockMilestone`/`runSmartBuyForSeconds` build on
+  // factory `runBuyResearchLevelByLevel`/`runTierUnlockMilestone`/`runSmartBuyForSeconds` build on
   // above, rather than a local reimplementation.
   const roiSweepBudget = remainingBudget();
   const roiHelpers = createMilestoneShiftHelpers(currentState, context);
