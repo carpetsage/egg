@@ -29,8 +29,6 @@
     <SmartBuyView
       v-if="currentView === 'smart_buy'"
       :auto-buy-always-on="autoBuyState.alwaysOn"
-      :delivery-impact-only="deliveryImpactOnly"
-      :roi-mode="roiMode"
       :can-buy-until-sale-warning="canBuyUntilSaleWarning"
       :can-buy-until-sale-deadline="canBuyUntilSaleDeadline"
       :quick-buy-preview="quickBuyPreview"
@@ -38,6 +36,9 @@
       :quick-buy-stats="quickBuyStats"
       :sale-aware-preview="saleAwarePreview"
       :sale-aware-stats70="saleAwareStats70"
+      :smart-buy-deadline-label="smartBuyDeadlineLabel"
+      :smart-buy-sale-count="smartBuySaleCount"
+      :smart-buy-sale-count-cap="SMART_BUY_SALE_COUNT_CAP"
       :sale-ends-preview="saleEndsPreview"
       :sale-ends-earnings-preview="saleEndsEarningsPreview"
       :sale-ends-earnings-summary="saleEndsEarningsSummary"
@@ -54,8 +55,8 @@
       @quick-buy="handleThresholdBuy"
       @update:quick-buy-threshold-seconds="quickBuyThreshold = $event"
       @auto-buy-update="state => (autoBuyState = state)"
-      @update:delivery-impact-only="deliveryImpactOnly = $event"
-      @update:roi-mode="roiMode = $event"
+      @increment-smart-buy-sale-count="incrementSmartBuySaleCount"
+      @decrement-smart-buy-sale-count="decrementSmartBuySaleCount"
       @buy-until-sale-warning="handleBuyUntilSaleWarning"
       @buy-until-sale-deadline="handleBuyUntilSaleDeadline"
     />
@@ -279,7 +280,7 @@
 <script setup lang="ts">
 import { computed, ref, watch, watchEffect } from 'vue';
 import { getDiscountedVirtuePrice, getResearchById, type CommonResearch } from '@/calculations/commonResearch';
-import { formatDuration, formatNumber, formatGemPrice } from '@/lib/format';
+import { formatDuration, formatNumber, formatGemPrice, formatAbsoluteTime } from '@/lib/format';
 import { useCommonResearchStore } from '@/stores/commonResearch';
 import { useActionsStore } from '@/stores/actions';
 import { useSalesStore } from '@/stores/sales';
@@ -294,7 +295,7 @@ import {
   buildSaleEndsBuyNotePayload,
   buildMilestoneNotePayload,
 } from '@/lib/actions/notes';
-import { useResearchViews, VIEWS } from '@/composables/useResearchViews';
+import { useResearchViews, VIEWS, SMART_BUY_SALE_COUNT_CAP } from '@/composables/useResearchViews';
 import { getTimeToSave, boostTransitionsFrom } from '@/engine/apply';
 import { getSimulationContext } from '@/engine/adapter';
 import { buyWhilePassingCheck, buyUntilRealSaleStarts } from '@/calculations/researchRanking';
@@ -302,7 +303,6 @@ import {
   getSaleAwareTimeToSave,
   shouldDeferToNextSale,
   findEventCrossings,
-  meetsSaleAwareDeadline,
   type EventCrossing,
 } from '@/calculations/researchROI';
 import { getNextSaleStart } from '@/lib/events';
@@ -382,12 +382,17 @@ const {
   tierSummaries,
   gameViewTimes,
   sortedResearches,
-  roiRankedResearches,
   elrRankedResearches,
   saleAwarePlan70,
   isComputingSaleAwarePlan,
   saleAwarePreview,
   saleAwareStats70,
+  smartBuyFullRoiDeadline,
+  smartBuyStructuralDeadline,
+  smartBuyDeadlineIsFinalSaleCap,
+  smartBuySaleCount,
+  incrementSmartBuySaleCount,
+  decrementSmartBuySaleCount,
   saleEndsPlan,
   isComputingSaleEndsPlan,
   saleEndsPreview,
@@ -398,10 +403,18 @@ const {
   saleEndsStats,
   realisticSummary,
   researchSaleDeadline,
-  nextSaleStart,
   computeThresholdBuy,
   TIER_THRESHOLDS,
 } = useResearchViews();
+
+// "70% Return"'s Gate B deadline, formatted for the sale-ride stepper — `smartBuyFullRoiDeadline` is
+// an absolute Unix timestamp (seconds), so `formatAbsoluteTime` is called with `seconds: 0` and that
+// timestamp (in ms) as its own base, same trick `milestoneSummary.finishAbsoluteTime` doesn't need
+// (it already works from an elapsed-seconds/base-timestamp pair) but is the natural way to format an
+// already-absolute value with this helper.
+const smartBuyDeadlineLabel = computed(() =>
+  formatAbsoluteTime(0, smartBuyFullRoiDeadline.value * 1000, virtueStore.ascensionTimezone)
+);
 
 // Quick Buy's own live threshold (separate from Auto Buy's) — fed up from QuickBuy.vue's input so
 // its preview can update as the user types, without QuickBuy owning any store access itself.
@@ -867,27 +880,17 @@ function handleBuyResearch(research: CommonResearch) {
   withExpiryCheck(duration, true, () => buyOneLevel(research));
 }
 
-// Best-ranked buyable ROI item that doesn't fail the sale-warning check, i.e. the one
-// "Buy Until Sale Warning" would buy next. A higher-ranked item may be skipped over here
-// because it fails the check (e.g. too expensive to finish before the sale) while a
-// cheaper, lower-ranked one still passes.
-//
-// See `meetsSaleAwareDeadline`'s doc comment for the full rule (including why `duringSale` items
-// are deliberately not excluded here — the actual purchase gets stripped out afterward instead,
-// by `runSaleAwareBuyFlow`'s cleanup sweep, since an exclusion here would throw the wait away
-// entirely rather than just the purchase).
-const nextRoiCandidate = computed(() =>
-  roiRankedResearches.value.find(item =>
-    meetsSaleAwareDeadline(
-      item,
-      absoluteSimTimeAt(actionsStore.effectiveSnapshot.lastStepTime),
-      nextSaleStart.value,
-      70
-    )
-  )
-);
-
-const canBuyUntilSaleWarning = computed(() => !!nextRoiCandidate.value);
+// Whether the "70% Return" button has anything to buy — derived directly from the precomputed plan
+// (`saleAwarePlan70`, the same plan the button executes) rather than an independent live re-check.
+// An earlier version re-derived this from `roiRankedResearches` (the ROI tab's own ranking) via
+// `meetsSaleAwareDeadline`, which only ever tested the old single 70%-by-next-sale bar — now that
+// buying also requires clearing the "100% by ride end" gate (see `rankResearchByROI`'s
+// `showBuyNowRoiWarning`/`showFullRoiWarning` in researchRanking.ts), an independent re-check would
+// need to duplicate both gates (bottleneck-pairing included) to stay accurate, which is exactly what
+// `saleAwarePlan70` already computed. Reading it here instead guarantees this can never disagree with
+// what the button actually does, at the cost of one worker round-trip of latency — already covered by
+// `isComputingSaleAwarePlan`'s own spinner state.
+const canBuyUntilSaleWarning = computed(() => saleAwarePlan70.value.entries.length > 0);
 
 // Action types `syncEventStateForItem`/`insertEventCrossingWaits` insert immediately ahead of a
 // purchase (wait+toggle pairs, one pair per sale/boost crossing the purchase's own wait passes
@@ -965,9 +968,16 @@ function findBypassEventCrossingIds(actionId: string): string[] {
 // its input), to the sale that's actually 6-7 days out — so buying should proceed through the
 // currently-active sale (at whatever its real price is) toward THAT target, not bail out
 // immediately just because some sale happens to be live already.
+//
+// `smartBuyStructuralDeadline`, not the raw `nextSaleStart`: this caps at the ride's own
+// `smartBuyFullRoiDeadline` so a click that's already buying WITHIN the final sale of a multi-sale
+// ride doesn't get padded an entire extra week further, into a sale beyond what this ride was ever
+// aiming for — see that computed's own doc comment in useResearchViews.ts for the full reasoning
+// (confirmed as a real, reported bug: clicking mid-final-sale used to advance the plan's clock all
+// the way to the sale after next, even though nothing more was left to buy in this ride).
 async function runSaleAwareBuyFlow(plan: SaleAwarePlanEntry[]) {
   const startAbsoluteTime = absoluteSimTimeAt(actionsStore.effectiveSnapshot.lastStepTime);
-  const targetDeadline = nextSaleStart.value;
+  const targetDeadline = smartBuyStructuralDeadline.value;
 
   let result: { purchased: number; duringSalePurchases: { actionId: string; purchaseTimestamp: number }[] } = {
     purchased: 0,
@@ -976,12 +986,17 @@ async function runSaleAwareBuyFlow(plan: SaleAwarePlanEntry[]) {
   let index = 0;
   await batch(() => {
     // Note goes in ahead of the purchases it's summarizing, same as Quick Buy's. `plan` is already
-    // the exact sequence about to be bought (see this function's doc comment above), and the sale
-    // deadline is known up front, so both figures the note needs are available before anything is
-    // actually purchased.
+    // the exact sequence about to be bought (see this function's doc comment above), so every figure
+    // the note needs is available before anything is actually purchased. The duration reported is
+    // the plan's own span (last entry's `purchaseTimestamp` minus now), not `targetDeadline -
+    // startAbsoluteTime` — that structural boundary doesn't reflect what's actually being bought
+    // (see `saleAwareStats70`'s identical fix in useResearchViews.ts for the full reasoning); an
+    // empty plan reports `0` since there's nothing to span.
+    const lastPlanTimestamp = plan.length > 0 ? plan[plan.length - 1].purchaseTimestamp : startAbsoluteTime;
     const notePayload = buildSaleAwareBuyNotePayload(
       plan.length,
-      targetDeadline - startAbsoluteTime,
+      smartBuySaleCount.value,
+      lastPlanTimestamp - startAbsoluteTime,
       plan.reduce((sum, entry) => sum + entry.price, 0)
     );
     if (notePayload) {
@@ -1030,8 +1045,17 @@ async function runSaleAwareBuyFlow(plan: SaleAwarePlanEntry[]) {
 
   // The buy loop only advances time as a side effect of buying something. If it stopped because
   // candidates ran out rather than because targetDeadline was actually reached, carry the clock
-  // (and any sale/boost toggles due along the way) the rest of the way there on its own.
-  advanceToDeadline(targetDeadline);
+  // (and any sale/boost toggles due along the way) the rest of the way there on its own — but only
+  // when `targetDeadline` is a genuine "wait for the next sale" boundary (something is actually
+  // waiting there: the sale toggling on, more purchases becoming affordable). When
+  // `smartBuyDeadlineIsFinalSaleCap` is true, `targetDeadline` is the ride's OWN final sale ending
+  // while purchasing is already happening inside it — nothing is waiting at that boundary once
+  // candidates have genuinely run out, so padding the clock there would just burn the rest of the
+  // sale for no reason. Stop right where the last real purchase (or the start, if none) left off
+  // instead.
+  if (!smartBuyDeadlineIsFinalSaleCap.value) {
+    advanceToDeadline(targetDeadline);
+  }
 }
 
 // Executes the precomputed 70%-return plan (`saleAwarePlan70` — same plan the preview under the
@@ -1073,12 +1097,15 @@ async function handleBuyUntilSaleDeadline() {
   try {
     await batch(() => {
       // Note goes in ahead of the purchases it's summarizing, same as the other Smart Buy notes.
-      // `plan` is already the exact sequence about to be bought, and the current sale's own end is
-      // known up front, so both figures the note needs are available before anything is purchased.
+      // `plan` is already the exact sequence about to be bought, so every figure the note needs is
+      // available before anything is purchased. Duration reported is the plan's own span
+      // (`lastPurchaseTimestamp - now`), not `researchSaleDeadline - now` — see `saleEndsStats`'s
+      // identical fix in useResearchViews.ts for why that structural figure doesn't reflect what's
+      // actually being bought.
       const startAbsoluteTime = absoluteSimTimeAt(actionsStore.effectiveSnapshot.lastStepTime);
       const notePayload = buildSaleEndsBuyNotePayload(
         plan.length,
-        researchSaleDeadline.value - startAbsoluteTime,
+        saleEndsPlan.value.lastPurchaseTimestamp - startAbsoluteTime,
         saleEndsPlan.value.totalGemsSpent ?? 0
       );
       if (notePayload) {

@@ -10,6 +10,8 @@ import {
   getSaleAwareTimeToSave,
   isActuallyDuringSale,
   meetsROIByDeadline,
+  computeShowBuyNowRoiWarning,
+  computeShowFullRoiWarning,
   MAX_ROI_PAYBACK_SEARCH_SECONDS,
   findEventCrossings,
   type PurchaseEventCrossings,
@@ -122,6 +124,12 @@ export interface ResearchRankingItem {
 
   showSaleWarning?: boolean;
   showDeadlineWarning?: boolean;
+  // Smart Buy's own two gates (see calculateResearchROI's doc comments in researchROI.ts) — only
+  // ever set (and only ever read) by the sale-aware buy flow (`rankResearchByROI`'s own
+  // `fullRoiDeadline` param, via `simulateSaleAwareBuy`). Every other consumer of this ranking (ROI
+  // view, milestone chain) ignores both.
+  showBuyNowRoiWarning?: boolean;
+  showFullRoiWarning?: boolean;
 
   // Whether this candidate's price reflects a research sale (decision-time truth, matching what
   // would actually be charged), and whether the wait to afford it would complete during a 2x
@@ -150,27 +158,37 @@ export function rankResearchByROI(
   researchSaleDeadline: number,
   roiMode: 'immediate' | 'maxed_vehicles',
   deliveryImpactOnly: boolean,
-  // Deadline `showSaleWarning` judges 70%-ROI payback against. Defaults to the calendar's very
-  // next sale start (manual/default behavior — always require clearing 70% by then, even for a
-  // purchase priced during an already-active sale). Callers that already know they're riding out
-  // several sales in a row (C3) can pass a later deadline — e.g. the start of the LAST sale of
-  // that ride — so a purchase gets judged against the runway actually available, not just the
-  // next sale, without needing to bypass the check altogether. See
-  // `ROICalculationInput.eventTiming.roiDeadline`'s own doc comment.
-  roiDeadlineOverride?: number
+  // Deadline `showSaleWarning` (the OLD, single-gate field — still used as-is by the ROI view and by
+  // `milestoneChain.ts`'s `sweepUntilNextSale`/`findRoiDetour`, both out of scope for the Smart Buy
+  // redesign per decision #1) judges 70%-ROI payback against. Defaults to the calendar's very next
+  // sale start; callers already committed to riding out several sales in a row can pass a later
+  // deadline instead — see `ROICalculationInput.eventTiming.roiDeadline`'s own doc comment. Completely
+  // independent of `fullRoiDeadline` below, which feeds Smart Buy's own two NEW gates instead of this
+  // one — see that parameter's own doc comment for why the two don't interact.
+  roiDeadlineOverride?: number,
+  // Smart Buy's "100% by ride end" gate (Gate B) deadline — see `computeShowFullRoiWarning`'s doc
+  // comment (researchROI.ts) for the full two-gate design this feeds. `undefined` for every caller
+  // except the sale-aware buy flow's NEW dual-gate mode (`simulateSaleAwareBuy`, only when it itself
+  // receives a `fullRoiDeadline`) — makes `showFullRoiWarning` an unconditional `false`, a no-op.
+  // Deliberately does NOT affect `roiDeadline`/`showSaleWarning` above in any way — Smart Buy's own
+  // near-term gate (`showBuyNowRoiWarning`) is judged independently, against the immediate next sale
+  // or bypassed while already mid-sale, never against this value or `roiDeadlineOverride` above. See
+  // SMART_BUY_DUAL_ROI_DESIGN.md §2.3.
+  fullRoiDeadline?: number
 ): ResearchRankingItem[] {
   const baseState = createBaseEngineState(startSnapshot);
   const currentEarnings = startSnapshot.offlineEarnings;
 
   const calendarNextSaleStart = getNextPacificTime(5, 9, absoluteSimTime);
   // `Math.max`, not a plain `??`: `roiDeadlineOverride` is typically a FIXED point a caller
-  // computed once up front (e.g. C3's "start of the last sale in this ride"), threaded unchanged
-  // through many rounds as simulated time advances. Once `absoluteSimTime` catches up to or passes
-  // it, using it as-is would hand `meetsROIByDeadline` a deadline at-or-before "now," making every
-  // candidate fail regardless of economics — the opposite of the intended generosity. Falling back
-  // to whichever's later keeps the override purely additive: it can only grant MORE runway than the
-  // calendar default, never less.
-  const roiDeadline = roiDeadlineOverride !== undefined ? Math.max(roiDeadlineOverride, calendarNextSaleStart) : calendarNextSaleStart;
+  // computed once up front (e.g. a milestone-chain caller riding out several sales), threaded
+  // unchanged through many rounds as simulated time advances. Once `absoluteSimTime` catches up to
+  // or passes it, using it as-is would hand `meetsROIByDeadline` a deadline at-or-before "now,"
+  // making every candidate fail regardless of economics — the opposite of the intended generosity.
+  // Falling back to whichever's later keeps the override purely additive: it can only grant MORE
+  // runway than the calendar default, never less.
+  const roiDeadline =
+    roiDeadlineOverride !== undefined ? Math.max(roiDeadlineOverride, calendarNextSaleStart) : calendarNextSaleStart;
   // Computed once and reused for every candidate below — all candidates share the same
   // `startSnapshot`/`absoluteSimTime`, so redoing `boostTransitionsFrom`'s (multi-year-horizon)
   // walk per-candidate would multiply an already expensive operation by the candidate count.
@@ -197,6 +215,8 @@ export function rankResearchByROI(
     let totalRoiSeconds: number;
     let showSaleWarning: boolean;
     let showDeadlineWarning: boolean;
+    let showBuyNowRoiWarning: boolean;
+    let showFullRoiWarning: boolean;
     let resultTimeToBuySeconds: number;
     let resultEarningsDelta: number;
     let resultPrice: number;
@@ -249,6 +269,25 @@ export function rankResearchByROI(
       );
       showDeadlineWarning =
         isResearchSaleActive(absoluteSimTime) && absoluteSimTime + resultTimeToBuySeconds > researchSaleDeadline;
+      // Smart Buy's own two gates — same `computeShowBuyNowRoiWarning`/`computeShowFullRoiWarning`
+      // (researchROI.ts) `calculateResearchROI` itself calls, since this branch's ROI math never
+      // routes through that function.
+      {
+        const maxedVehiclesCompletesAt = absoluteSimTime + resultTimeToBuySeconds;
+        showBuyNowRoiWarning = computeShowBuyNowRoiWarning(
+          resultDuringSale,
+          resultEarningsDelta,
+          resultPrice,
+          maxedVehiclesCompletesAt,
+          absoluteSimTime
+        );
+        showFullRoiWarning = computeShowFullRoiWarning(
+          resultEarningsDelta,
+          resultPrice,
+          maxedVehiclesCompletesAt,
+          fullRoiDeadline
+        );
+      }
     } else {
       const roiResult = calculateResearchROI({
         research: r,
@@ -262,9 +301,18 @@ export function rankResearchByROI(
           researchSaleDeadline,
           isSaleActive: isSale,
           transitions,
+          fullRoiDeadline,
         },
       });
-      ({ roiSeconds, totalRoiSeconds, showSaleWarning, showDeadlineWarning, nextSnapshot } = roiResult);
+      ({
+        roiSeconds,
+        totalRoiSeconds,
+        showSaleWarning,
+        showDeadlineWarning,
+        showBuyNowRoiWarning,
+        showFullRoiWarning,
+        nextSnapshot,
+      } = roiResult);
       resultTimeToBuySeconds = roiResult.timeToBuySeconds;
       resultEarningsDelta = roiResult.earningsDelta;
       resultPrice = roiResult.price;
@@ -285,6 +333,8 @@ export function rankResearchByROI(
       nextSnapshot,
       showSaleWarning,
       showDeadlineWarning,
+      showBuyNowRoiWarning,
+      showFullRoiWarning,
       earningsDelta: resultEarningsDelta,
       duringSale: resultDuringSale,
       duringEarningsBoost: isEarningsBoostActive(absoluteSimTime + resultTimeToBuySeconds),
@@ -304,6 +354,8 @@ export function rankResearchByROI(
       let pairRoiSeconds: number | undefined;
       let pairPartnerResearch: CommonResearch | undefined;
       let showSaleWarning = c.showSaleWarning;
+      let showBuyNowRoiWarning = c.showBuyNowRoiWarning;
+      let showFullRoiWarning = c.showFullRoiWarning;
 
       if (roiMode === 'immediate') {
         const isBottlenecked = c.roiSeconds === Infinity || c.roiSeconds > 3600 * 24 * 7;
@@ -380,6 +432,30 @@ export function rankResearchByROI(
                   roiDeadline,
                   70
                 );
+
+                // Smart Buy's own two gates need the same pair-aware override, and for the same
+                // reason: this candidate's solo earningsDelta/price are meaningless (that's what
+                // "bottlenecked" means), so both must be judged against the pair's combined
+                // economics instead — see `computeShowBuyNowRoiWarning`/`computeShowFullRoiWarning`'s
+                // own doc comments in researchROI.ts for what each gate actually checks. `c.duringSale`
+                // (the anchor candidate's own resolved pricing) is reused for the bypass check, same
+                // as `pairCompletesAt` reuses the anchor's own `timeToBuySeconds` above — the partner
+                // is priced/bought AFTER `c` finishes, so `c`'s own timing is what "is this pair
+                // purchase landing in a sale" should be judged against.
+                const pairCompletesAt = absoluteSimTime + c.timeToBuySeconds;
+                showBuyNowRoiWarning = computeShowBuyNowRoiWarning(
+                  c.duringSale,
+                  pairDelta,
+                  pairTotalCost,
+                  pairCompletesAt,
+                  absoluteSimTime
+                );
+                showFullRoiWarning = computeShowFullRoiWarning(
+                  pairDelta,
+                  pairTotalCost,
+                  pairCompletesAt,
+                  fullRoiDeadline
+                );
               }
             }
           }
@@ -401,6 +477,8 @@ export function rankResearchByROI(
         pairPartnerResearch,
         showSaleWarning,
         showDeadlineWarning: c.showDeadlineWarning,
+        showBuyNowRoiWarning,
+        showFullRoiWarning,
         earningsDelta: c.earningsDelta,
         duringSale: c.duringSale,
         duringEarningsBoost: c.duringEarningsBoost,

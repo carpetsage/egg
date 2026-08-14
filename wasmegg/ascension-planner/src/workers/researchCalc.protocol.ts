@@ -47,7 +47,9 @@ export interface SaleAwareBuyRequest {
   nextSaleStart: number;
   roiMode: 'immediate' | 'maxed_vehicles';
   deliveryImpactOnly: boolean;
-  targetPercent: number;
+  // Forwarded to `simulateSaleAwareBuy`'s own `fullRoiDeadline` — see its doc comment. The "how many
+  // sales are in play" target (manual planner's sale-count picker, or C3's `buildPhaseEnd`).
+  fullRoiDeadline: number;
 }
 
 export interface SaleEndsBuyRequest {

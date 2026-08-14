@@ -57,6 +57,15 @@ export interface ROICalculationInput {
     // that walk per-candidate rather than once-per-step multiplies an already expensive operation
     // by the candidate count for no benefit.
     transitions: EarningsRateTransition[];
+    // Smart Buy's "100% by ride end" gate (Gate B — see `showFullRoiWarning` below) deadline. Only
+    // ever set by the sale-aware buy flow (`rankResearchByROI`'s own `fullRoiDeadline` param, fed
+    // from `simulateSaleAwareBuy`'s required `fullRoiDeadline` — the manual planner's sale-count
+    // picker, or C3's `buildPhaseEnd`); every other caller (ROI view, milestone chain) leaves this
+    // undefined, which makes `showFullRoiWarning` an unconditional `false` — a complete no-op for
+    // them. Deliberately independent of `roiDeadline` above: unlike `showSaleWarning`, Smart Buy's
+    // OWN near-term gate (`showBuyNowRoiWarning`) never reads this field — see that field's own doc
+    // comment for why the two are intentionally decoupled.
+    fullRoiDeadline?: number;
   };
 }
 
@@ -66,6 +75,11 @@ export interface ROICalculationResult {
   earningsDelta: number;
   showSaleWarning: boolean;
   showDeadlineWarning: boolean;
+  // Smart Buy's own two gates — additive to `showSaleWarning`/`showDeadlineWarning` above, not a
+  // replacement. See `eventTiming.fullRoiDeadline`'s doc comment and the computation sites below for
+  // the full reasoning; only Smart Buy's sale-aware buy flow reads either of these.
+  showBuyNowRoiWarning: boolean;
+  showFullRoiWarning: boolean;
   timeToBuySeconds: number;
   nextSnapshot: CalculationsSnapshot;
   // The price actually paid, and whether that reflects a research sale — may differ from
@@ -298,7 +312,11 @@ function walkEventCrossings(
  * anything noticing, if whichever purchase happened to be evaluated while it drifted didn't itself
  * straddle the real end boundary.
  */
-export function isActuallyDuringSale(modeledDuringSale: boolean, completesAt: number, absoluteSimTime: number): boolean {
+export function isActuallyDuringSale(
+  modeledDuringSale: boolean,
+  completesAt: number,
+  absoluteSimTime: number
+): boolean {
   return modeledDuringSale && isResearchSaleActive(completesAt) && completesAt < getNextSaleEnd(absoluteSimTime);
 }
 
@@ -369,13 +387,69 @@ export function meetsSaleAwareDeadline(
 }
 
 /**
+ * Smart Buy's own "70% Return" gate (Gate A) — see SMART_BUY_DUAL_ROI_DESIGN.md §1/§2.3 for the full
+ * design. Independent of `showSaleWarning` (which stays anchored to a caller-supplied `roiDeadline`
+ * unconditionally, for the ROI view/milestone chain) — this one is bypassed entirely once the
+ * purchase is actually landing in the nearest real sale window (`isActuallyDuringSale` — "is this
+ * purchase's own resolved completion inside the nearest real sale, not some far-future one"), since
+ * there's no "would waiting have been better" question left to ask once you're already buying at the
+ * discount. When not bypassed, judged against the immediate next sale (`getNextSaleStart`) —
+ * deliberately NOT a caller's "how many sales are in play" deadline, regardless of how far out that
+ * is: a full-price purchase should only ever be judged against the very next discount opportunity, or
+ * it risks paying full price for something that would've cleared a nearer discount in a few minutes.
+ *
+ * Extracted as its own function (rather than inlined once in `calculateResearchROI`) so
+ * `rankResearchByROI`'s `'maxed_vehicles'` branch and its bottleneck-pairing override — neither of
+ * which routes through `calculateResearchROI` — can compute the exact same gate from their own
+ * already-computed price/wait/duringSale figures, and so it can be unit-tested directly without
+ * needing the full engine-state machinery `calculateResearchROI` requires.
+ *
+ * Fixes a bug an earlier version of this gate had: reusing `roiDeadline`-style deadline math here too
+ * (rather than bypassing outright) could land on a deadline in the past whenever a sale was already
+ * active, making the gate fail unconditionally instead of correctly recognizing "already at the
+ * discount, nothing left to check."
+ */
+export function computeShowBuyNowRoiWarning(
+  duringSale: boolean,
+  earningsDelta: number,
+  price: number,
+  completesAt: number,
+  absoluteSimTime: number
+): boolean {
+  return isActuallyDuringSale(duringSale, completesAt, absoluteSimTime)
+    ? false
+    : !meetsROIByDeadline(earningsDelta, price, completesAt, getNextSaleStart(absoluteSimTime), 70);
+}
+
+/**
+ * Smart Buy's "100% by ride end" gate (Gate B) — see SMART_BUY_DUAL_ROI_DESIGN.md §1/§2.3. Never
+ * bypassed, active sale or not — unlike Gate A above, `fullRoiDeadline` (a caller's "how many sales
+ * are in play" target) is the one place that choice actually matters. Only active when
+ * `fullRoiDeadline` is supplied (Smart Buy's sale-aware buy flow); every other caller leaves it
+ * `undefined`, making this an unconditional `false` — a complete no-op for them. Extracted alongside
+ * `computeShowBuyNowRoiWarning` for the same reasons (shared by three call sites, unit-testable on
+ * its own).
+ */
+export function computeShowFullRoiWarning(
+  earningsDelta: number,
+  price: number,
+  completesAt: number,
+  fullRoiDeadline: number | undefined
+): boolean {
+  return fullRoiDeadline !== undefined
+    ? !meetsROIByDeadline(earningsDelta, price, completesAt, fullRoiDeadline, 100)
+    : false;
+}
+
+/**
  * Calculate the Return on Investment (ROI) for a specific research purchase.
  * This predicts how long it will take for the research to pay for itself
  * in terms of increased earnings.
  */
 export function calculateResearchROI(input: ROICalculationInput): ROICalculationResult {
   const { research, level, mods, snapshot, context, eventTiming } = input;
-  const { absoluteSimTime, roiDeadline, researchSaleDeadline, isSaleActive, transitions } = eventTiming;
+  const { absoluteSimTime, roiDeadline, researchSaleDeadline, isSaleActive, transitions, fullRoiDeadline } =
+    eventTiming;
 
   const purchase = getSaleAwareTimeToSave(research, level, mods, isSaleActive, absoluteSimTime, snapshot, transitions);
   const price = purchase.price;
@@ -471,6 +545,15 @@ export function calculateResearchROI(input: ROICalculationInput): ROICalculation
 
   const showDeadlineWarning = isResearchSaleActive(absoluteSimTime) && completesAt > researchSaleDeadline;
 
+  const showBuyNowRoiWarning = computeShowBuyNowRoiWarning(
+    purchase.duringSale,
+    earningsDelta,
+    price,
+    completesAt,
+    absoluteSimTime
+  );
+  const showFullRoiWarning = computeShowFullRoiWarning(earningsDelta, price, completesAt, fullRoiDeadline);
+
   return {
     roiSeconds,
     totalRoiSeconds,
@@ -479,6 +562,8 @@ export function calculateResearchROI(input: ROICalculationInput): ROICalculation
     duringSale: purchase.duringSale,
     showSaleWarning,
     showDeadlineWarning,
+    showBuyNowRoiWarning,
+    showFullRoiWarning,
     timeToBuySeconds,
     nextSnapshot,
   };

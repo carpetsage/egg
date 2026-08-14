@@ -19,14 +19,16 @@
         />
       </template>
       <template #description>
-        Buys all the earnings research that should be bought before the next research sale.
+        Buys earnings research that pays for itself by the end of your last research sale.
+        This automatically considers whether to buy before a sale or wait until the sale to purchase.
       </template>
 
-      <RoiViewControls
-        :delivery-impact-only="deliveryImpactOnly"
-        :roi-mode="roiMode"
-        @update:delivery-impact-only="$emit('update:deliveryImpactOnly', $event)"
-        @update:roi-mode="$emit('update:roiMode', $event)"
+      <SaleRideStepper
+        :deadline-label="smartBuyDeadlineLabel"
+        :sale-count="smartBuySaleCount"
+        :cap="smartBuySaleCountCap"
+        @increment="$emit('increment-smart-buy-sale-count')"
+        @decrement="$emit('decrement-smart-buy-sale-count')"
       />
 
       <div class="flex flex-col gap-1.5">
@@ -36,11 +38,8 @@
           @click="$emit('buy-until-sale-warning')"
         >
           <InlineSpinner v-if="saleAwareApplying" class="w-3 h-3" />
-          {{ saleAwareApplying ? 'Buying…' : '70% Return' }}
+          {{ saleAwareApplying ? 'Buying…' : 'Buy Now' }}
         </button>
-        <p class="text-[9px] text-slate-500 text-center leading-tight px-0.5">
-          For strategic buying early in your build.
-        </p>
         <ResearchPurchasePreview :items="saleAwarePreview" empty-text="Nothing to buy right now" />
         <SmartBuyStats
           :purchase-count="saleAwareStats70.purchaseCount"
@@ -65,7 +64,7 @@
         />
       </template>
       <template #description>
-        Buys earnings and delivery research during the current sale to get max delivery research at max speed.
+        Buys earnings and delivery research during this sale to maximize delivery rate.
       </template>
       <button
         class="btn-premium btn-primary w-full text-[10px] disabled:opacity-20 inline-flex items-center justify-center gap-1.5"
@@ -73,7 +72,7 @@
         @click="$emit('buy-until-sale-deadline')"
       >
         <InlineSpinner v-if="saleEndsApplying" class="w-3 h-3" />
-        {{ saleEndsApplying ? 'Buying…' : 'Buy Until Sale Ends' }}
+        {{ saleEndsApplying ? 'Buying…' : 'Buy Now' }}
       </button>
       <SmartBuyStats
         :purchase-count="saleEndsStats.purchaseCount"
@@ -115,12 +114,11 @@
 
 <script setup lang="ts">
 import { iconURL } from 'lib';
-import { type RoiMode } from '@/composables/useResearchViews';
 import type { ResearchSummaryItem } from '@/calculations/smartBuyPreview';
 import QuickBuy from './QuickBuy.vue';
 import AutoBuy from './AutoBuy.vue';
 import SmartBuyCard from './SmartBuyCard.vue';
-import RoiViewControls from './RoiViewControls.vue';
+import SaleRideStepper from './SaleRideStepper.vue';
 import ResearchPurchasePreview from './ResearchPurchasePreview.vue';
 import RatePreviewDelta from './RatePreviewDelta.vue';
 import SmartBuyStats from './SmartBuyStats.vue';
@@ -139,8 +137,6 @@ interface BuyStats {
 
 defineProps<{
   autoBuyAlwaysOn: boolean;
-  deliveryImpactOnly: boolean;
-  roiMode: RoiMode;
   canBuyUntilSaleWarning: boolean;
   canBuyUntilSaleDeadline: boolean;
   quickBuyPreview: ResearchSummaryItem[];
@@ -148,6 +144,12 @@ defineProps<{
   quickBuyStats: BuyStats;
   saleAwarePreview: ResearchSummaryItem[];
   saleAwareStats70: BuyStats;
+  /** "70% Return"'s Gate B target — formatted deadline label, current sale count, and the count's
+   *  upper bound, all already resolved by the composable (see useResearchViews.ts's
+   *  `smartBuyFullRoiDeadline`/`smartBuySaleCount`/`SMART_BUY_SALE_COUNT_CAP`). */
+  smartBuyDeadlineLabel: string;
+  smartBuySaleCount: number;
+  smartBuySaleCountCap: number;
   saleEndsPreview: ResearchSummaryItem[];
   saleEndsEarningsPreview: ResearchSummaryItem[];
   saleEndsEarningsSummary: RateSummary;
@@ -169,8 +171,8 @@ defineEmits<{
   (e: 'quick-buy', thresholdSeconds: number): void;
   (e: 'update:quickBuyThresholdSeconds', value: number): void;
   (e: 'auto-buy-update', state: { threshold: number; alwaysOn: boolean }): void;
-  (e: 'update:deliveryImpactOnly', value: boolean): void;
-  (e: 'update:roiMode', value: RoiMode): void;
+  (e: 'increment-smart-buy-sale-count'): void;
+  (e: 'decrement-smart-buy-sale-count'): void;
   (e: 'buy-until-sale-warning'): void;
   (e: 'buy-until-sale-deadline'): void;
 }>();

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { getSaleAwareTimeToSave } from './researchROI';
+import { getSaleAwareTimeToSave, computeShowBuyNowRoiWarning, computeShowFullRoiWarning } from './researchROI';
 import { getNextSaleStart, getNextSaleEnd, isResearchSaleActive } from '@/lib/events';
 import type { CommonResearch, ResearchCostModifiers } from './commonResearch';
 import type { CalculationsSnapshot } from '@/types';
@@ -147,6 +147,99 @@ describe('getSaleAwareTimeToSave', () => {
     expect(isResearchSaleActive(completesAt)).toBe(true);
     // Confirms it's not just re-using the current sale's own (already-too-short) window.
     expect(completesAt).toBeGreaterThan(getNextSaleEnd(currentAbsoluteTime));
+  });
+});
+
+// Smart Buy's two dual-ROI gates (SMART_BUY_DUAL_ROI_DESIGN.md §1/§2.3) — tested directly against
+// these small pure functions rather than through `calculateResearchROI`'s full engine-state
+// machinery, which is exactly why they're factored out on their own.
+describe('computeShowBuyNowRoiWarning (Gate A)', () => {
+  test('not during a sale: warns when 70% payback would not land before the next sale start', () => {
+    const anchor = Date.UTC(2024, 0, 1, 0, 0, 0) / 1000;
+    const absoluteSimTime = getNextSaleEnd(anchor) + 3600; // 1h after a sale ended, not in a sale
+    expect(isResearchSaleActive(absoluteSimTime)).toBe(false);
+
+    // Zero earnings delta can never clear any payback percentage.
+    const result = computeShowBuyNowRoiWarning(false, 0, 100, absoluteSimTime, absoluteSimTime);
+    expect(result).toBe(true);
+  });
+
+  test('not during a sale: does not warn when 70% payback comfortably lands before the next sale start', () => {
+    const anchor = Date.UTC(2024, 0, 1, 0, 0, 0) / 1000;
+    const absoluteSimTime = getNextSaleEnd(anchor) + 3600;
+    expect(isResearchSaleActive(absoluteSimTime)).toBe(false);
+
+    // $1/s earnings delta against a $100 price easily clears 70% well within the ~6 days until the
+    // next sale starts.
+    const result = computeShowBuyNowRoiWarning(false, 1, 100, absoluteSimTime, absoluteSimTime);
+    expect(result).toBe(false);
+  });
+
+  test('actually landing in a live sale bypasses the check entirely, even with zero earnings delta', () => {
+    const anchor = Date.UTC(2024, 0, 1, 0, 0, 0) / 1000;
+    const saleStart = getNextSaleStart(anchor);
+    const absoluteSimTime = saleStart + 1000; // 1000s into an active sale
+    expect(isResearchSaleActive(absoluteSimTime)).toBe(true);
+
+    // Purchase completes instantly, right now, mid-sale — would fail the 70% check on its own
+    // economics, but should be bypassed outright since it's already at the discount.
+    const result = computeShowBuyNowRoiWarning(true, 0, 100, absoluteSimTime, absoluteSimTime);
+    expect(result).toBe(false);
+  });
+
+  test('3 minutes before a sale: rejects buying at full price right now instead of waiting', () => {
+    const anchor = Date.UTC(2024, 0, 1, 0, 0, 0) / 1000;
+    const saleStart = getNextSaleStart(anchor);
+    const absoluteSimTime = saleStart - 180; // 3 minutes before the sale starts
+    expect(isResearchSaleActive(absoluteSimTime)).toBe(false);
+
+    // Already affordable right now (zero wait) at full price — but 3 minutes is nowhere near enough
+    // to clear 70% payback before the sale that's about to start, so this should still warn.
+    const completesAt = absoluteSimTime;
+    const result = computeShowBuyNowRoiWarning(false, 0, 100, completesAt, absoluteSimTime);
+    expect(result).toBe(true);
+  });
+
+  test('3 minutes before a sale: accepts waiting those 3 minutes to buy at the discount instead', () => {
+    const anchor = Date.UTC(2024, 0, 1, 0, 0, 0) / 1000;
+    const saleStart = getNextSaleStart(anchor);
+    const absoluteSimTime = saleStart - 180;
+    expect(isResearchSaleActive(absoluteSimTime)).toBe(false);
+
+    // Same zero-earnings-delta purchase as above, but this time it resolved to waiting the 3 minutes
+    // for the sale (getSaleAwareTimeToSave's own job — not re-tested here) and completes just after
+    // the sale starts. Should be bypassed exactly like the "already mid-sale" case above.
+    const completesAt = saleStart + 1;
+    const result = computeShowBuyNowRoiWarning(true, 0, 100, completesAt, absoluteSimTime);
+    expect(result).toBe(false);
+  });
+});
+
+describe('computeShowFullRoiWarning (Gate B)', () => {
+  test('undefined fullRoiDeadline is a no-op, regardless of economics', () => {
+    expect(computeShowFullRoiWarning(0, 100, 1000, undefined)).toBe(false);
+  });
+
+  test('warns when 100% payback would not land before fullRoiDeadline', () => {
+    const completesAt = 1000;
+    const fullRoiDeadline = completesAt + 50; // only 50s of runway
+    // $1/s against a $100 price needs 100s to fully pay back — doesn't fit in 50s.
+    expect(computeShowFullRoiWarning(1, 100, completesAt, fullRoiDeadline)).toBe(true);
+  });
+
+  test('does not warn when 100% payback lands before fullRoiDeadline', () => {
+    const completesAt = 1000;
+    const fullRoiDeadline = completesAt + 200; // plenty of runway
+    expect(computeShowFullRoiWarning(1, 100, completesAt, fullRoiDeadline)).toBe(false);
+  });
+
+  test('never bypassed by being "during a sale" — unlike Gate A, there is no bypass parameter at all', () => {
+    // Gate B's signature has no duringSale/isActuallyDuringSale concept — this test exists to
+    // document that omission is deliberate (SMART_BUY_DUAL_ROI_DESIGN.md §2.3: "100% by the end of
+    // the final sale" always applies, sale active or not), not an oversight.
+    const completesAt = 1000;
+    const fullRoiDeadline = completesAt + 50;
+    expect(computeShowFullRoiWarning(0, 100, completesAt, fullRoiDeadline)).toBe(true);
   });
 });
 

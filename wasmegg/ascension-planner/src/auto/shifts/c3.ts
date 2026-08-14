@@ -2,7 +2,11 @@ import type { Action } from '@/types/actions/meta';
 import type { NotificationPayload } from '@/types';
 import type { EngineState, SimulationContext, ShiftResult } from '../types';
 import { getTiers, isTierUnlocked, type ResearchCostModifiers } from '../../calculations/commonResearch';
-import { createMilestoneShiftHelpers, runTierUnlockMilestone, runResearchMilestoneIfWorthwhile } from './helpers/milestones';
+import {
+  createMilestoneShiftHelpers,
+  runTierUnlockMilestone,
+  runResearchMilestoneIfWorthwhile,
+} from './helpers/milestones';
 import { applyShiftAction } from './helpers/actionHelpers';
 import { advanceTimeWithBoundaries } from './helpers/advanceTime';
 import { computeSnapshot } from '../../engine/compute';
@@ -15,6 +19,7 @@ import {
   getNextSaleEnd,
   getBuildPhaseEndForSaleCount,
   getSaleStartForEnd,
+  countSalesThrough,
 } from '@/lib/events';
 
 export interface C3Params {
@@ -48,21 +53,20 @@ const MULTI_LAYERING_TARGET_LEVEL = 2;
  *    before `buildPhaseEnd`, never after), or it doesn't finish at all — there's no third case
  *    where it "succeeds but finishes late," so a plain post-attempt tier check is the complete
  *    impossible/possible test for each attempt; no separate overrun handling is needed here.
- * 3. Repeat: buy earnings research toward 70% ROI, then wait for the next sale to start — until
- *    reaching the start of the final sale (the one ending at the build phase's end). This naturally
- *    does fewer cycles (or none) if step 2's Tier 13 unlock already consumed enough real time to
- *    cross earlier sales while buying — the loop just walks forward from wherever `getAbsTime()`
- *    currently is via `getNextSaleStart`/`getNextSaleEnd`, it doesn't count cycles. The 70% bar
- *    itself is judged against `roiDeadline` (`getSaleStartForEnd(buildPhaseEnd)`, computed once up
- *    front) rather than just each cycle's own immediately-upcoming sale: unlike the manual planner's
- *    "Buy Until Sale Warning" button — which only ever knows about the next sale, since a human
- *    clicking it hasn't committed to riding out any particular number of further ones — this shift
- *    already commits to `buildPhaseEnd` before step 3 even starts, so a purchase priced during one of
- *    the sales along the way doesn't need to pay for itself by THAT sale specifically; it only needs
- *    to clear 70% by the start of the LAST sale of the whole ride to be worth taking now rather than
- *    saving the gems for something else. This is purely additive runway, never a way to accept a
- *    worse deal than the manual default: every individual purchase still gets at least the calendar's
- *    own next-sale deadline (see `rankResearchByROI`'s `Math.max` merge of the two).
+ * 3. Repeat: buy earnings research that clears Smart Buy's two ROI gates, then wait for the next
+ *    sale to start — until reaching the start of the final sale (the one ending at the build
+ *    phase's end). This naturally does fewer cycles (or none) if step 2's Tier 13 unlock already
+ *    consumed enough real time to cross earlier sales while buying — the loop just walks forward
+ *    from wherever `getAbsTime()` currently is via `getNextSaleStart`/`getNextSaleEnd`, it doesn't
+ *    count cycles. The two gates (see `rankResearchByROI`'s `showBuyNowRoiWarning`/
+ *    `showFullRoiWarning` doc comments in researchROI.ts, and SMART_BUY_DUAL_ROI_DESIGN.md §1/§2.3)
+ *    are identical to the manual planner's own "70% Return" button, with no C3-specific override
+ *    needed for either: the near-term gate is always judged against whichever sale is immediately
+ *    upcoming (or bypassed outright while already buying at a live discount, whichever sale that
+ *    happens to be), and the full-payback gate is judged against `buildPhaseEnd` — this shift's own
+ *    commitment to riding out every sale between now and then, passed as `fullRoiDeadline` — so a
+ *    purchase doesn't need to fully pay for itself by any one sale along the way, only by the end of
+ *    the whole ride.
  * 4. Buy delivery research until nothing more is worth buying (not necessarily until the sale
  *    itself ends — once purchasing stalls out, C3 stops there rather than padding the clock the
  *    rest of the way to `buildPhaseEnd`; K3, the next shift, already waits out any remaining time
@@ -91,17 +95,15 @@ export function runC3(
   const baseAbsTime = context.ascensionStartTime + ((startState.lastStepTime || 0) - context.planStartOffset);
   const getAbsTime = () => baseAbsTime + elapsedSeconds;
 
-  // Unlike the manual planner (which only ever knows about "the next sale" — a human clicking a
-  // button has no advance commitment to riding out further ones), this whole shift already commits
-  // to `buildPhaseEnd` up front — riding out every sale between now and then. So a purchase's 70%
-  // ROI bar doesn't need to clear by just the immediately upcoming sale: it only needs to clear by
-  // the start of the LAST sale of this ride (`buildPhaseEnd` is always that sale's own END — see
-  // `getBuildPhaseEndForSaleCount`), since that's the last point where "is this worth buying now, at
-  // this discount" is still being decided under this shift's own multi-sale plan. Threaded through
-  // every ROI-gated purchase below (`buyUntilSaleWarning`, and the ML/Tier-13 milestone chains) —
-  // each individual function call still only ever judges against "no earlier than the calendar's
-  // own next sale" (see `rankResearchByROI`'s `Math.max` merge), so this is purely additive runway,
-  // never a way to force a WORSE deadline than the manual default.
+  // Used ONLY by step 2's ML/Tier-13 milestone-chain attempts below (`runResearchMilestoneIfWorthwhile`/
+  // `runTierUnlockMilestone`'s own `roiDeadlineOverride`) — a separate, untouched mechanism from step
+  // 3's Smart Buy gates (see `buyUntilSaleWarning` below, which passes `buildPhaseEnd` itself, not
+  // this value, as `fullRoiDeadline`). Kept as its own variable specifically because the two steps
+  // now use "how far can this deadline stretch" concepts differently — milestone-chain purchases
+  // still judge a single, stretched 70%-by-`roiDeadline` bar; Smart Buy purchases judge two separate
+  // gates instead (see step 3's own doc comment above). `buildPhaseEnd` is always the ride's last
+  // sale's own END (see `getBuildPhaseEndForSaleCount`); `getSaleStartForEnd` recovers that sale's
+  // START for the milestone-chain callers that still want it.
   const roiDeadline = getSaleStartForEnd(buildPhaseEnd);
 
   const advanceTime = (totalSeconds: number) => {
@@ -150,15 +152,20 @@ export function runC3(
   // plan in real order, one entry at a time — so this was a defect specific to this replay helper.
   // `buildNote`, when given, mirrors the manual planner's Smart Buy notes: it's handed the
   // purchases actually landed here (not the plan's own precomputed count/total, which may run
-  // ahead of what `timeLimit` allows) and, if it returns a payload, that note is inserted ahead of
-  // this sweep's purchases — same "prepend a summary note" shape as `createMilestoneShiftHelpers`'
-  // own `executeChain`/`runSmartBuyForSeconds`, just for the sale-aware/sale-ends buy plans instead
-  // of a milestone chain.
+  // ahead of what `timeLimit` allows) — including `elapsedSeconds`, the real time this sweep's own
+  // purchases actually took (`helpers.getElapsedSeconds()` at the moment the note is built, NOT
+  // `timeLimit` itself — a sweep that runs out of qualifying candidates early finishes in less than
+  // `timeLimit`, and the note should say so rather than reporting the caller's full budget
+  // regardless of what was actually bought; see `saleAwareStats70`'s identical fix in
+  // useResearchViews.ts for the same bug in the manual planner's equivalent stat) — and, if it
+  // returns a payload, that note is inserted ahead of this sweep's purchases — same "prepend a
+  // summary note" shape as `createMilestoneShiftHelpers`'s own `executeChain`/`runSmartBuyForSeconds`,
+  // just for the sale-aware/sale-ends buy plans instead of a milestone chain.
   const executePlanToLevels = (
     researchIdsInOrder: string[],
     targetLevels: Record<string, number>,
     timeLimit: number,
-    buildNote?: (purchaseCount: number, totalGemsSpent: number) => NotificationPayload | null
+    buildNote?: (purchaseCount: number, totalGemsSpent: number, elapsedSeconds: number) => NotificationPayload | null
   ) => {
     const helpers = createMilestoneShiftHelpers(currentState, context);
     let purchaseCount = 0;
@@ -172,7 +179,7 @@ export function runC3(
     }
 
     if (buildNote && purchaseCount > 0) {
-      const notePayload = buildNote(purchaseCount, totalGemsSpent);
+      const notePayload = buildNote(purchaseCount, totalGemsSpent, helpers.getElapsedSeconds());
       if (notePayload) helpers.addNotification(notePayload);
     }
 
@@ -183,13 +190,21 @@ export function runC3(
     });
   };
 
-  // "Buy Until Sale Warning" (70% ROI before `targetDeadline`, the upcoming sale's start) — same
-  // plan the manual planner's button executes. Deliberately 'immediate' mode, not 'maxed_vehicles':
-  // this is the earnings-ROI pass and is meant to judge "does this pay for itself soon, given what's
-  // actually on the farm right now" — 'maxed_vehicles' is the delivery-research mode's job
-  // (`buyUntilSaleEnds` below already passes `'realistic'` to `rankResearchByELRImpact`, which itself
-  // assumes maxed habs/vehicles via `getOptimalELRSet`). See git history around 2026-08-12 for a
-  // reverted attempt to swap this to 'maxed_vehicles' — that conflated the two passes' jobs.
+  // "Buy Until Sale Warning" (Smart Buy's two gates, cleared before `targetDeadline`, the upcoming
+  // sale's start) — same plan the manual planner's button executes. Deliberately 'immediate' mode,
+  // not 'maxed_vehicles': this is the earnings-ROI pass and is meant to judge "does this pay for
+  // itself soon, given what's actually on the farm right now" — 'maxed_vehicles' is the
+  // delivery-research mode's job (`buyUntilSaleEnds` below already passes `'realistic'` to
+  // `rankResearchByELRImpact`, which itself assumes maxed habs/vehicles via `getOptimalELRSet`). See
+  // git history around 2026-08-12 for a reverted attempt to swap this to 'maxed_vehicles' — that
+  // conflated the two passes' jobs.
+  //
+  // `buildPhaseEnd` (this shift's own commitment — the ride's last sale's own end), NOT the local
+  // `roiDeadline` variable above, is what's passed as `fullRoiDeadline`: the near-term gate needs no
+  // override at all (it's always judged against whichever sale is immediately upcoming, same as the
+  // manual planner), and the full-payback gate's deadline is `buildPhaseEnd` itself, not a start-of-
+  // sale value derived from it. See this function's own top-level doc comment (step 3) for the full
+  // reasoning.
   const buyUntilSaleWarning = (targetDeadline: number) => {
     const snapshot = computeSnapshot(currentState, context, { skipGrowth: true });
     const absTime = getAbsTime();
@@ -203,15 +218,20 @@ export function runC3(
       targetDeadline,
       'immediate',
       false,
-      70,
-      roiDeadline
+      undefined,
+      buildPhaseEnd
     );
+    // "How many sales from here to buildPhaseEnd" — same `countSalesThrough` the manual planner's
+    // `smartBuySaleCount` (useResearchViews.ts) uses, counted from THIS cycle's own `absTime` rather
+    // than the whole ascension's start, so the note reads the same "sales remaining in this ride"
+    // way a human clicking the button repeatedly would see it count down cycle to cycle.
+    const saleCount = countSalesThrough(absTime, buildPhaseEnd);
     executePlanToLevels(
       plan.entries.map(e => e.researchId),
       plan.endLevels,
       Math.max(0, targetDeadline - absTime),
-      (purchaseCount, totalGemsSpent) =>
-        buildSaleAwareBuyNotePayload(purchaseCount, targetDeadline - absTime, totalGemsSpent)
+      (purchaseCount, totalGemsSpent, elapsedSeconds) =>
+        buildSaleAwareBuyNotePayload(purchaseCount, saleCount, elapsedSeconds, totalGemsSpent)
     );
   };
 
@@ -235,7 +255,8 @@ export function runC3(
       plan.researchIds,
       plan.endLevels,
       Math.max(0, deadline - absTime),
-      (purchaseCount, totalGemsSpent) => buildSaleEndsBuyNotePayload(purchaseCount, deadline - absTime, totalGemsSpent)
+      (purchaseCount, totalGemsSpent, elapsedSeconds) =>
+        buildSaleEndsBuyNotePayload(purchaseCount, elapsedSeconds, totalGemsSpent)
     );
   };
 

@@ -18,7 +18,12 @@ import { computeSnapshot } from '@/engine/compute';
 import { getSimulationContext, createBaseEngineState } from '@/engine/adapter';
 import { applyAction, applyTime, getTimeToSave } from '@/engine/apply';
 import { calculateShippingCapacity } from '@/calculations/shippingCapacity';
-import { getNextPacificTime, isResearchSaleActive as isRealSaleActiveAt } from '@/lib/events';
+import {
+  getNextPacificTime,
+  getBuildPhaseEndForSaleCount,
+  countSalesThrough,
+  isResearchSaleActive as isRealSaleActiveAt,
+} from '@/lib/events';
 import { type CalculationsSnapshot } from '@/types';
 import { getOptimalELRSet } from '@/lib/artifacts/virtue';
 import { calculateArtifactModifiers } from '@/lib/artifacts';
@@ -170,8 +175,14 @@ const ELR_ROI_DISPLAY_MODE_STORAGE_KEY = 'ascension_research_elr_roi_display_mod
 const DELIVERY_IMPACT_ONLY_STORAGE_KEY = 'ascension_research_delivery_impact_only';
 const ROI_MODE_STORAGE_KEY = 'ascension_research_roi_mode';
 const MILESTONE_TARGET_STORAGE_KEY = 'ascension_research_milestone_target';
+const SMART_BUY_SALE_TARGET_END_STORAGE_KEY = 'ascension_smart_buy_sale_target_end';
 
 const DEFAULT_RESEARCH_VIEW: ViewType = 'smart_buy';
+
+/** Upper bound on how many sales out the "70% Return" card's sale-count stepper can reach — matches
+ *  C3's own default max `saleCount` (see `auto/shifts/c3.ts`'s `runC3Variants`), keeping the manual
+ *  tool aligned with what auto-planning actually considers. */
+export const SMART_BUY_SALE_COUNT_CAP = 3;
 
 function loadStoredResearchView(): ViewType {
   const stored = localStorage.getItem(RESEARCH_VIEW_STORAGE_KEY);
@@ -208,6 +219,19 @@ function loadStoredDeliveryImpactOnly(): boolean {
 function loadStoredRoiMode(): RoiMode {
   const stored = localStorage.getItem(ROI_MODE_STORAGE_KEY);
   return stored === 'immediate' || stored === 'maxed_vehicles' ? stored : 'immediate';
+}
+
+/**
+ * The "70% Return" card's pinned full-ROI-deadline timestamp — `null` means "no pin, track the live
+ * default" (see `smartBuyFullRoiDeadline`'s own doc comment below for what the default is and why a
+ * stale/expired pin falls back to it automatically without needing this loader to validate anything
+ * itself).
+ */
+function loadStoredSmartBuySaleTargetEnd(): number | null {
+  const stored = localStorage.getItem(SMART_BUY_SALE_TARGET_END_STORAGE_KEY);
+  if (!stored) return null;
+  const parsed = Number(stored);
+  return Number.isFinite(parsed) ? parsed : null;
 }
 
 function loadStoredMilestoneTarget(): MilestoneTarget | null {
@@ -256,6 +280,17 @@ export function useResearchViews() {
   watch(deliveryImpactOnly, v => localStorage.setItem(DELIVERY_IMPACT_ONLY_STORAGE_KEY, String(v)));
   const roiMode = ref<RoiMode>(loadStoredRoiMode());
   watch(roiMode, v => localStorage.setItem(ROI_MODE_STORAGE_KEY, v));
+  // The "70% Return" card's pinned full-ROI-deadline (Gate B) target — `null` = no pin, track the
+  // live default. Persisted like every other Smart Buy pref above, but unlike them this can hold a
+  // stale value indefinitely (a timestamp from days ago) without correctness issues: nothing here
+  // ever needs to actively clear it, because `smartBuyFullRoiDeadline` below already ignores a pin
+  // once it's in the past and falls back to the live default on its own — see that computed's doc
+  // comment for the full reasoning (SMART_BUY_DUAL_ROI_DESIGN.md §2.1/§2.2).
+  const smartBuySaleTargetEnd = ref<number | null>(loadStoredSmartBuySaleTargetEnd());
+  watch(smartBuySaleTargetEnd, v => {
+    if (v === null) localStorage.removeItem(SMART_BUY_SALE_TARGET_END_STORAGE_KEY);
+    else localStorage.setItem(SMART_BUY_SALE_TARGET_END_STORAGE_KEY, String(v));
+  });
   const milestoneTarget = ref<MilestoneTarget | null>(loadStoredMilestoneTarget());
   watch(
     milestoneTarget,
@@ -813,6 +848,75 @@ export function useResearchViews() {
     return ranked.map(toResearchViewItemFromELR);
   });
 
+  // The "70% Return" card's own live "now" — same formula every other absolute-time computed in this
+  // file already repeats inline (`nextSaleStart`/`researchSaleDeadline` above, etc.); kept as its own
+  // small helper here since the sale-count stepper logic below reads it from three separate places.
+  function smartBuyAbsoluteSimTime(): number {
+    const baseTimestamp = virtueStore.planStartTime.getTime() / 1000;
+    const offset = actionsStore.planStartOffset;
+    return baseTimestamp + (actionsStore.effectiveSnapshot.lastStepTime - offset);
+  }
+
+  // The "70% Return" card's Gate B deadline (see `rankResearchByROI`'s `fullRoiDeadline` doc comment
+  // in researchRanking.ts) — "how many sales are in play," default 1 (the very next sale). Pinned to
+  // a captured absolute timestamp once the stepper's touched (`smartBuySaleTargetEnd`), rather than
+  // continuously re-derived as "N sales from whatever now happens to be": re-deriving live would mean
+  // riding out a chosen sale, one button click per cycle, silently re-targets one sale further out
+  // after each click, since "now" keeps advancing — defeating the entire point of picking a fixed
+  // target (see SMART_BUY_DUAL_ROI_DESIGN.md §2.1). A pin that's fallen into the past (the ride it
+  // pointed at already finished) is treated exactly like no pin at all — this is what makes
+  // persisting `smartBuySaleTargetEnd` across sessions safe (§2.2): a stale timestamp from days ago
+  // just falls back to today's live default on its own, without needing anything to actively clear it.
+  const smartBuyFullRoiDeadline = computed(() => {
+    const pinned = smartBuySaleTargetEnd.value;
+    if (pinned !== null && pinned > smartBuyAbsoluteSimTime()) return pinned;
+    return getBuildPhaseEndForSaleCount(smartBuyAbsoluteSimTime(), 1);
+  });
+
+  // The "70% Return" flow's structural per-click stop point (fed to `simulateSaleAwareBuy`'s own
+  // `nextSaleStart` param, and `runSaleAwareBuyFlow`'s `targetDeadline` in ResearchActions.vue) —
+  // normally just `nextSaleStart` itself (the immediate next sale: one click handles "before that
+  // sale," riding out further sales is "click again next week" — see `runSaleAwareBuyFlow`'s own doc
+  // comment), but capped at `smartBuyFullRoiDeadline` so a click that's already buying WITHIN the
+  // ride's final sale doesn't get pushed an entire extra week further, into a sale beyond what this
+  // ride was ever aiming for.
+  //
+  // `Math.min` is a no-op outside that case: `nextSaleStart` is always earlier than
+  // `smartBuyFullRoiDeadline` for every sale before the final one (the ride's deadline is, by
+  // definition, further out than the very next sale until you actually reach it), and only drops
+  // below it once `getNextSaleStart` has skipped past a currently-active sale to the FOLLOWING one
+  // (its "always strictly after now" guarantee) while `smartBuyFullRoiDeadline` — this active sale's
+  // own end, if it's the final one — hasn't. Confirmed via a live report: with N=1 (default) picked
+  // while 2 hours into a sale, this used to pad the clock a full 6 more days to the sale after next,
+  // even though `smartBuyFullRoiDeadline` (this same sale's own end) was only 22 hours out.
+  const smartBuyStructuralDeadline = computed(() => Math.min(nextSaleStart.value, smartBuyFullRoiDeadline.value));
+
+  // Whether the cap above actually won — i.e. purchasing is already happening WITHIN the ride's
+  // final sale, rather than in the ordinary "before the next sale starts" case. `runSaleAwareBuyFlow`
+  // (ResearchActions.vue) reads this to decide whether it's worth padding the plan's clock the rest
+  // of the way to `smartBuyStructuralDeadline` once the buy loop stops: when `false` (the deadline is
+  // `nextSaleStart`, a sale START), parking the clock there is useful setup for whatever comes next
+  // — the sale toggling on, more purchases becoming affordable, etc. When `true` (the deadline is
+  // this active sale's own END), there's nothing waiting at that boundary once purchasing has
+  // genuinely run out of qualifying candidates — advancing to it would just burn the rest of the sale
+  // for no reason, so that flow stops right after the last real purchase instead.
+  const smartBuyDeadlineIsFinalSaleCap = computed(() => smartBuyFullRoiDeadline.value < nextSaleStart.value);
+
+  // How many sales `smartBuyFullRoiDeadline` currently represents — display value for the stepper,
+  // and what its own `+`/`-` handlers below count from/to. Derived from the deadline itself (not
+  // tracked as separate state) so it can never disagree with what's actually being sent to the plan.
+  const smartBuySaleCount = computed(() => countSalesThrough(smartBuyAbsoluteSimTime(), smartBuyFullRoiDeadline.value));
+
+  function incrementSmartBuySaleCount(): void {
+    const nextCount = Math.min(SMART_BUY_SALE_COUNT_CAP, smartBuySaleCount.value + 1);
+    smartBuySaleTargetEnd.value = getBuildPhaseEndForSaleCount(smartBuyAbsoluteSimTime(), nextCount);
+  }
+
+  function decrementSmartBuySaleCount(): void {
+    const nextCount = Math.max(1, smartBuySaleCount.value - 1);
+    smartBuySaleTargetEnd.value = getBuildPhaseEndForSaleCount(smartBuyAbsoluteSimTime(), nextCount);
+  }
+
   // Dry-run plan for the sale-aware ROI buy flow ("70% Return") — the single source of truth for
   // "what gets bought, in what order" for both the Smart Buy preview and the real button click
   // (see `simulateSaleAwareBuy`'s own doc comment). No `currentView` gate, same rationale as
@@ -853,9 +957,8 @@ export function useResearchViews() {
     const context = getSimulationContext();
     const mods = costModifiers.value;
     const deadline = researchSaleDeadline.value;
-    const saleStart = nextSaleStart.value;
-    const mode = roiMode.value;
-    const deliveryOnly = deliveryImpactOnly.value;
+    const saleStart = smartBuyStructuralDeadline.value;
+    const fullRoiDeadline = smartBuyFullRoiDeadline.value;
     const baseTimestamp = virtueStore.planStartTime.getTime() / 1000;
     const offset = actionsStore.planStartOffset;
     const absoluteSimTime = baseTimestamp + (startSnapshot.lastStepTime - offset);
@@ -867,6 +970,11 @@ export function useResearchViews() {
     isComputingSaleAwarePlan.value = true;
 
     try {
+      // `roiMode: 'immediate'`/`deliveryImpactOnly: false` are hardcoded here, not read from the
+      // `roiMode`/`deliveryImpactOnly` refs above (those still back the separate ROI tab) — there's
+      // exactly one correct way to run Smart Buy's sale-aware purchasing, so the card offers no
+      // override for either. This also means changing the ROI tab's own mode can no longer silently
+      // change what this card buys, which it used to.
       const result = await computeSaleAwareBuy({
         researchLevels,
         startSnapshot,
@@ -875,9 +983,9 @@ export function useResearchViews() {
         absoluteSimTime,
         deadline,
         nextSaleStart: saleStart,
-        roiMode: mode,
-        deliveryImpactOnly: deliveryOnly,
-        targetPercent: 70,
+        roiMode: 'immediate',
+        deliveryImpactOnly: false,
+        fullRoiDeadline,
       });
 
       // Discard if a newer invocation has started since — only the latest result should ever land.
@@ -916,6 +1024,7 @@ export function useResearchViews() {
     earningsEndSnapshot: actionsStore.effectiveSnapshot,
     endLevels: {},
     endSnapshot: actionsStore.effectiveSnapshot,
+    lastPurchaseTimestamp: 0,
   });
   let saleEndsPlanGeneration = 0;
 
@@ -938,6 +1047,7 @@ export function useResearchViews() {
         earningsEndSnapshot: actionsStore.effectiveSnapshot,
         endLevels: {},
         endSnapshot: actionsStore.effectiveSnapshot,
+        lastPurchaseTimestamp: 0,
       };
       isComputingSaleEndsPlan.value = false;
       return;
@@ -1006,17 +1116,27 @@ export function useResearchViews() {
     after: saleAwarePlan70.value.endSnapshot.offlineEarnings * 3600,
   }));
 
-  // Purchase count / time-until-next-sale / gems spent for the "70% Return" card — the same three
+  // Purchase count / duration spanned / gems spent for the "70% Return" card — the same three
   // figures its note reports (`buildSaleAwareBuyNotePayload` in `src/lib/actions/notes.ts`), shown
   // live in the card itself before the button is clicked.
+  //
+  // `seconds` is the ACTUAL plan's own span (last purchase's `purchaseTimestamp` minus now), not
+  // `nextSaleStart - now` (the structural boundary this used to report unconditionally, pre-dating
+  // the sale-count picker). That structural figure never changed no matter what deadline was picked
+  // — before the picker existed there was nothing to contrast it against, but it's actively
+  // misleading now: a tight Gate B (e.g. "1 sale," mid-sale) legitimately stops finding qualifying
+  // candidates well before the structural cap, and the card should show that shorter span, not
+  // "6d 22h" every single time regardless of what was actually bought. Falls back to `0` when the
+  // plan is empty (nothing to span).
   const saleAwareStats70 = computed(() => {
     const baseTimestamp = virtueStore.planStartTime.getTime() / 1000;
     const offset = actionsStore.planStartOffset;
     const absoluteSimTime = baseTimestamp + (actionsStore.effectiveSnapshot.lastStepTime - offset);
     const entries = saleAwarePlan70.value.entries;
+    const lastPurchaseTimestamp = entries.length > 0 ? entries[entries.length - 1].purchaseTimestamp : absoluteSimTime;
     return {
       purchaseCount: entries.length,
-      seconds: Math.max(0, nextSaleStart.value - absoluteSimTime),
+      seconds: Math.max(0, lastPurchaseTimestamp - absoluteSimTime),
       gems: entries.reduce((sum, entry) => sum + entry.price, 0),
     };
   });
@@ -1030,16 +1150,22 @@ export function useResearchViews() {
     after: saleEndsPlan.value.earningsEndSnapshot.offlineEarnings * 3600,
   }));
 
-  // Purchase count / time-until-sale-ends / gems spent for "Buy Until Sale Ends" — the same three
+  // Purchase count / duration spanned / gems spent for "Buy Until Sale Ends" — the same three
   // figures its note reports (`buildSaleEndsBuyNotePayload` in `src/lib/actions/notes.ts`), shown
   // live in the card itself before the button is clicked.
+  //
+  // `seconds` is the plan's own span (`lastPurchaseTimestamp - now`), not `researchSaleDeadline -
+  // now` — the latter is just the structural window this plan is bounded BY, not how long it
+  // actually takes; a plan that runs out of qualifying candidates early legitimately finishes well
+  // before the sale ends, and should say so (same fix as `saleAwareStats70` above, for the same
+  // reason — see that computed's own comment).
   const saleEndsStats = computed(() => {
     const baseTimestamp = virtueStore.planStartTime.getTime() / 1000;
     const offset = actionsStore.planStartOffset;
     const absoluteSimTime = baseTimestamp + (actionsStore.effectiveSnapshot.lastStepTime - offset);
     return {
       purchaseCount: saleEndsPlan.value.researchIds.length,
-      seconds: Math.max(0, researchSaleDeadline.value - absoluteSimTime),
+      seconds: Math.max(0, saleEndsPlan.value.lastPurchaseTimestamp - absoluteSimTime),
       gems: saleEndsPlan.value.totalGemsSpent ?? 0,
     };
   });
@@ -1293,6 +1419,12 @@ export function useResearchViews() {
     isComputingSaleAwarePlan,
     saleAwarePreview,
     saleAwareStats70,
+    smartBuyFullRoiDeadline,
+    smartBuyStructuralDeadline,
+    smartBuyDeadlineIsFinalSaleCap,
+    smartBuySaleCount,
+    incrementSmartBuySaleCount,
+    decrementSmartBuySaleCount,
     saleEndsPlan,
     isComputingSaleEndsPlan,
     saleEndsPreview,
