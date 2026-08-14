@@ -18,10 +18,12 @@ const C2_TIME_LIMIT_SECONDS = 14400; // 4 hours
  * 1. Shift to Curiosity.
  * 2. Buy every fleet_size research to its max level, one level at a time.
  * 3. Unlock graviton_coupling's tier if C1 didn't already (its Phase 2 can roll this back), then
- *    buy graviton_coupling levels, one at a time, as many as fit in the remaining time budget. If
- *    the attempt buys zero levels, the whole attempt (unlock included) is rolled back — no point
- *    paying to unlock the tier if nothing gets bought once it's open (mirrors C1's own Graviton
- *    Coupling checkpoint/rollback).
+ *    buy graviton_coupling levels, one at a time, each level only if its ENTIRE purchase chain
+ *    (target level plus whatever earnings research speeds up reaching it) fits within the
+ *    remaining time budget — never a partial down payment toward a level that won't finish before
+ *    the shift ends (see `buyLevelByLevel`'s own comment). If the attempt buys zero levels, the
+ *    whole attempt (unlock included) is rolled back — no point paying to unlock the tier if nothing
+ *    gets bought once it's open (mirrors C1's own Graviton Coupling checkpoint/rollback).
  *
  * Steps 2-3 both go through `runResearchMilestoneIfWorthwhile`'s ROI-optimal milestone chain, one
  * level per call rather than one call aimed straight at max level — so each level gets its own
@@ -52,12 +54,24 @@ export function runC2(startState: EngineState, context: SimulationContext): Shif
   // can't fully reach its target level — targeting one level up at a time means a level that turns
   // out unreachable (or not worthwhile) only stops the loop from there, instead of discarding
   // purchases on every earlier, perfectly buyable level too.
+  //
+  // `maxOptimizedSeconds` is capped at `remainingBudget()`, not `Infinity`: `optimizedSeconds` is
+  // the chain's own full real-time cost to reach the target level (see `computeMilestoneSummaryCore`),
+  // so this makes "worthwhile" also mean "finishes before this shift's clock runs out." Without it, a
+  // level whose chain eventually completes but takes far longer than what's left (e.g. a graviton
+  // coupling level needing weeks against a couple hours of remaining shift) still passed the
+  // worthwhile gate, then `executeChain` bought as much of that chain — earnings-research detours
+  // included — as fit in the time limit before giving up on the target itself, stranding real gems
+  // spent on a level that was never going to land. Capping here means a level whose chain can't
+  // finish in time buys NOTHING toward it at all, matching this shift's "finish the whole chain or
+  // don't start it" contract.
   const buyLevelByLevel = (id: string) => {
     const research = getResearchById(id);
     if (!research) return;
     let level = currentState.researchLevels[id] || 0;
     while (level < research.levels && remainingBudget() > 0) {
-      runMilestone(runResearchMilestoneIfWorthwhile(currentState, context, id, level + 1, Infinity, remainingBudget()));
+      const budget = remainingBudget();
+      runMilestone(runResearchMilestoneIfWorthwhile(currentState, context, id, level + 1, budget, budget));
       const newLevel = currentState.researchLevels[id] || 0;
       if (newLevel <= level) break; // no progress this round — out of budget or unreachable, stop here
       level = newLevel;
