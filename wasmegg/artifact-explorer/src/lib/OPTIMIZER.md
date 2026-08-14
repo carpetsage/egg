@@ -169,7 +169,7 @@ sits where it does.
 
 **What it buys.** Measured over the arena's 40 instances: no plan that collapses
 to probability zero, against eight for the previous search, and a worst
-monotonicity violation of 0.20 nats against 1.09. See `solver/RESULTS.md`.
+monotonicity violation of 0.20 nats against 1.09.
 
 **What is still wrong with it.** Roughly sixty invariant violations across the
 sweep, all of the form "a more constrained problem scored better", all small, and
