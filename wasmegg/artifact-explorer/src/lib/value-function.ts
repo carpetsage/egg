@@ -203,7 +203,7 @@ export function alphaToProb(
   return { bestProbability, craftProbability: craftProbability, dropProbability };
 }
 
-// Tangent points for the epigraph relaxation of g(s). The envelope OVER-estimates g: safe for search
+// Tangent points for the outer approximation of g(s). The envelope OVER-estimates g: safe for search
 // ranking only, never for reporting. Transcribed rather than generated, so the seed LP's matrix does not move.
 const JOINT_TANGENT_BREAKPOINTS: readonly number[] = [
   1e-5, 1.8271e-5, 3.3383e-5, 6.09941e-5, 0.000111443, 0.000203617, 0.000372029, 0.000679734, 0.00124194, 0.00226916,
@@ -221,9 +221,9 @@ const JOINT_TANGENTS: readonly Tangent[] = JOINT_TANGENT_BREAKPOINTS.map(s => {
   return { alpha: logHit(s) - beta * s, beta };
 });
 
-// z_T can be negative (g(s) < 0 below s = ln 2) but lp.ts assumes x >= 0, so every z_T is shifted up by
+// z_T is negative (g(s) < 0 everywhere) but lp.ts assumes x >= 0, so every z_T is shifted up by
 // this much. Only the LP's primal is read and the shift does not move the argmax, so nothing undoes it.
-const EPIGRAPH_SHIFT = 50;
+const ENVELOPE_SHIFT = 50;
 
 export interface JointAlphaResult {
   craftByTarget: Map<string, number>; // absent for a leaf target, mirroring compileInnerLp
@@ -239,7 +239,7 @@ export interface JointInnerLp {
   solve(inventory: Map<string, number>, lambda: Map<string, number>): JointAlphaResult;
 }
 
-// The craft-conservation LP with one epigraph variable z_T per target. lambda
+// The craft-conservation LP with one envelope variable z_T per target. lambda
 // enters inside each tangent expression, never as one pooled scalar outside.
 export function compileJointInnerLp(
   recipeDag: RecipeDAG,
@@ -316,8 +316,8 @@ export function compileJointInnerLp(
     }
   }
 
-  // Last row, after both the conservation and the epigraph blocks, so neither
-  // `fillEpigraphB` nor the inventory fill can overwrite its RHS.
+  // Last row, after both the conservation and the envelope blocks, so neither
+  // `fillEnvelopeB` nor the inventory fill can overwrite its RHS.
   const budgetRow = craftBudgetRow(nonLeafNodes, totalVars, budget);
   if (budgetRow) A.push(budgetRow.row);
 
@@ -325,11 +325,11 @@ export function compileJointInnerLp(
   const bScratch = new Float64Array(nRows);
   if (budgetRow) bScratch[nRows - 1] = budgetRow.capacity;
 
-  function fillEpigraphB(lambda: Float64Array) {
+  function fillEnvelopeB(lambda: Float64Array) {
     for (let r = 0; r < rowTargetIdx.length; r++) {
       const ti = rowTargetIdx[r];
       const k = rowTangentIdx[r];
-      bScratch[nCons + r] = JOINT_TANGENTS[k].alpha + EPIGRAPH_SHIFT + JOINT_TANGENTS[k].beta * lambda[ti];
+      bScratch[nCons + r] = JOINT_TANGENTS[k].alpha + ENVELOPE_SHIFT + JOINT_TANGENTS[k].beta * lambda[ti];
     }
   }
 
@@ -346,7 +346,7 @@ export function compileJointInnerLp(
       }
       const lambda = new Float64Array(nt);
       for (let i = 0; i < nt; i++) lambda[i] = lambdaMap.get(targets[i]) ?? 0;
-      fillEpigraphB(lambda);
+      fillEnvelopeB(lambda);
       const r = solveLp(c, A, bScratch);
       const craftByTarget = new Map<string, number>();
       const primalByNode = new Map<string, number>();
