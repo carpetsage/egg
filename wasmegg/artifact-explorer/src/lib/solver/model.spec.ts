@@ -40,11 +40,11 @@ describe('buildModel rejects non-finite quantities the way it rejects non-finite
 
 describe('the default tangent grid stays inside its stated envelope error', () => {
   it('starts at 1, stays in (0, 1], and errs by under 2e-3 nats', () => {
-    const grid = DEFAULT_TUNING.grid;
-    expect(grid[0]).toBeCloseTo(1, 12);
-    const floor = grid[grid.length - 1];
+    const sigmaGrid = DEFAULT_TUNING.sigmaGrid;
+    expect(sigmaGrid[0]).toBeCloseTo(1, 12);
+    const floor = sigmaGrid[sigmaGrid.length - 1];
     expect(floor).toBeGreaterThan(0);
     expect(floor).toBeLessThan(1);
-    expect(envelopeErrorNats(floor, grid.length)).toBeLessThan(2e-3);
+    expect(envelopeErrorNats(floor, sigmaGrid.length)).toBeLessThan(2e-3);
   });
 });

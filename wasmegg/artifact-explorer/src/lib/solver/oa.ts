@@ -9,7 +9,7 @@ import { buildOaMilp, decodeCounts, effectiveQs, layoutOf, nCol, scaleLps, type 
 export interface Tuning {
   maxNodes: number;
   // Tangent points per target, in units of theta, each in (0, 1].
-  grid: readonly number[];
+  sigmaGrid: readonly number[];
 }
 
 const SIGMA_FLOOR = 1e-2;
@@ -26,7 +26,7 @@ export function envelopeErrorNats(floor: number, count: number): number {
   return (decadesPerCut * Math.LN10) ** 2 / 8;
 }
 
-export const DEFAULT_TUNING: Tuning = { maxNodes: 400, grid: logGrid(SIGMA_FLOOR, SIGMA_CUTS) };
+export const DEFAULT_TUNING: Tuning = { maxNodes: 400, sigmaGrid: logGrid(SIGMA_FLOOR, SIGMA_CUTS) };
 
 const MIP_REL_GAP = 1e-6;
 
@@ -39,7 +39,7 @@ const SLOT_TOL = 1e-9;
 function fuelOf(model: Model, counts: readonly number[]): number {
   let total = 0;
   for (let g = 0; g < counts.length; g++) {
-    if (counts[g] > 0) total += counts[g] * model.groups[g].fuel;
+    if (counts[g] > 0) total += counts[g] * model.groups[g].fuelFraction;
   }
   return total;
 }
@@ -118,7 +118,7 @@ export function solveWith(
   const theta = scales(model, qs, solve, limits);
   if (!theta) return emit(problem, model, empty, report);
 
-  const solution = solve(buildOaMilp(model, qs, theta, tuning.grid), limits);
+  const solution = solve(buildOaMilp(model, qs, theta, tuning.sigmaGrid), limits);
   if (solution.status === 'infeasible' || solution.status === 'unknown') return emit(problem, model, empty, report);
 
   const layout = layoutOf(model, 'oa');

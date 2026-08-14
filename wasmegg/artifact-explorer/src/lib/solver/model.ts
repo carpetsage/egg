@@ -7,8 +7,9 @@ import type { PlanProblem } from './types';
 const GROUP_CAP = 1e9;
 
 export interface Group {
-  fuel: number;
-  time: number;
+  // Normalized: a fraction of the whole tank, and of one slot's horizon.
+  fuelFraction: number;
+  timeFraction: number;
   timeSeconds: number;
   yieldByItem: number[];
   legendaryByTarget: number[];
@@ -25,7 +26,7 @@ export interface Model {
   consRows: number[][]; // items x craftables
   // Per craftable, its children; `childCraft` is -1 when the child is not crafted.
   craftChildren: { itemIdx: number; childCraft: number }[][];
-  baseB: number[];
+  baseInventoryByItem: number[];
   Qs: number[];
   targetCraftIdx: number[]; // craft column per target; -1 when not craftable
   slots: number;
@@ -40,8 +41,8 @@ export interface Model {
 type Entry = [string, number];
 
 interface Candidate {
-  fuel: number;
-  time: number;
+  fuelFraction: number;
+  timeFraction: number;
   timeSeconds: number;
   yieldEntries: Entry[]; // sorted by item id
   legendaryEntries: Entry[]; // sorted by target id
@@ -59,8 +60,8 @@ function cmpEntries(a: Entry[], b: Entry[]): number {
 }
 
 function cmpKey(a: Candidate, b: Candidate): number {
-  if (a.fuel !== b.fuel) return a.fuel - b.fuel;
-  if (a.time !== b.time) return a.time - b.time;
+  if (a.fuelFraction !== b.fuelFraction) return a.fuelFraction - b.fuelFraction;
+  if (a.timeFraction !== b.timeFraction) return a.timeFraction - b.timeFraction;
   return cmpEntries(a.yieldEntries, b.yieldEntries) || cmpEntries(a.legendaryEntries, b.legendaryEntries);
 }
 
@@ -71,12 +72,12 @@ function craftUpperBounds(
   craftIndex: ReadonlyMap<string, number>,
   items: readonly string[],
   itemIndex: ReadonlyMap<string, number>,
-  baseB: readonly number[],
+  baseInventoryByItem: readonly number[],
   groups: readonly Group[]
 ): number[] {
   const dropped = new Array<number>(items.length);
   for (let i = 0; i < items.length; i++) {
-    let total = baseB[i];
+    let total = baseInventoryByItem[i];
     for (const grp of groups) {
       const y = grp.yieldByItem[i];
       if (y > 0) total += y * grp.cap;
@@ -185,7 +186,7 @@ export function buildModel(problem: PlanProblem): Model {
       }))
   );
 
-  const baseB = items.map(item => {
+  const baseInventoryByItem = items.map(item => {
     const quantity = problem.baseYield.get(item) ?? 0;
     return Number.isFinite(quantity) && quantity >= 0 ? quantity : 0;
   });
@@ -223,9 +224,9 @@ export function buildModel(problem: PlanProblem): Model {
     ) {
       return;
     }
-    const fuel = fuelCap > 0 ? opt.actualFuel / fuelCap : 0;
-    const time = timeCap > 0 ? opt.actualTime / timeCap : Infinity;
-    if (time > 1) return;
+    const fuelFraction = fuelCap > 0 ? opt.actualFuel / fuelCap : 0;
+    const timeFraction = timeCap > 0 ? opt.actualTime / timeCap : Infinity;
+    if (timeFraction > 1) return;
 
     const yieldEntries: Entry[] = [];
     for (const [item, qty] of opt.yieldVector) {
@@ -247,13 +248,21 @@ export function buildModel(problem: PlanProblem): Model {
     legendaryEntries.sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0));
 
     const cap = Math.min(
-      fuel > 0 ? Math.floor(1 / fuel) : GROUP_CAP,
-      time > 0 ? Math.floor(slots / time) : GROUP_CAP,
+      fuelFraction > 0 ? Math.floor(1 / fuelFraction) : GROUP_CAP,
+      timeFraction > 0 ? Math.floor(slots / timeFraction) : GROUP_CAP,
       GROUP_CAP
     );
     if (cap < 1) return;
 
-    candidates.push({ fuel, time, timeSeconds: opt.actualTime, yieldEntries, legendaryEntries, cap, index });
+    candidates.push({
+      fuelFraction,
+      timeFraction,
+      timeSeconds: opt.actualTime,
+      yieldEntries,
+      legendaryEntries,
+      cap,
+      index,
+    });
   });
 
   candidates.sort((a, b) => cmpKey(a, b) || a.index - b.index);
@@ -271,8 +280,8 @@ export function buildModel(problem: PlanProblem): Model {
       return hit ? hit[1] : 0;
     });
     groups.push({
-      fuel: cand.fuel,
-      time: cand.time,
+      fuelFraction: cand.fuelFraction,
+      timeFraction: cand.timeFraction,
       timeSeconds: cand.timeSeconds,
       yieldByItem,
       legendaryByTarget,
@@ -289,12 +298,12 @@ export function buildModel(problem: PlanProblem): Model {
     items,
     consRows,
     craftChildren,
-    baseB,
+    baseInventoryByItem,
     Qs,
     targetCraftIdx,
     slots,
     timeCapacitySeconds: timeCap,
-    craftCaps: craftUpperBounds(dag, targets, craftables, craftIndex, items, itemIndex, baseB, groups),
+    craftCaps: craftUpperBounds(dag, targets, craftables, craftIndex, items, itemIndex, baseInventoryByItem, groups),
     craftPrices,
     craftBudgetCapacity,
     groups,

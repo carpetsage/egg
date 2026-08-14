@@ -139,7 +139,7 @@ class Rows {
 
 function perSlotCap(model: Model, group: number): number {
   const grp = model.groups[group];
-  const byTime = grp.time > 0 ? Math.floor(1 / grp.time) : MAX_PER_SLOT;
+  const byTime = grp.timeFraction > 0 ? Math.floor(1 / grp.timeFraction) : MAX_PER_SLOT;
   return Math.max(0, Math.min(grp.cap, byTime, MAX_PER_SLOT));
 }
 
@@ -192,7 +192,7 @@ function buildCore(model: Model, qs: readonly number[], theta: readonly number[]
     rows.begin();
     for (let p = 0; p < layout.crafts; p++) rows.add(layout.cBase + p, model.consRows[i][p]);
     for (let g = 0; g < layout.groups; g++) rows.add(layout.aBase + g, -model.groups[g].yieldByItem[i]);
-    rows.end(-INF, model.baseB[i]);
+    rows.end(-INF, model.baseInventoryByItem[i]);
   }
 
   for (let t = 0; t < layout.targets; t++) {
@@ -205,7 +205,7 @@ function buildCore(model: Model, qs: readonly number[], theta: readonly number[]
   }
 
   rows.begin();
-  for (let g = 0; g < layout.groups; g++) rows.add(layout.aBase + g, model.groups[g].fuel);
+  for (let g = 0; g < layout.groups; g++) rows.add(layout.aBase + g, model.groups[g].fuelFraction);
   rows.end(-INF, 1);
 
   if (Number.isFinite(model.craftBudgetCapacity)) {
@@ -268,13 +268,13 @@ export function buildOaMilp(
   model: Model,
   qs: readonly number[],
   theta: readonly number[],
-  grid: readonly number[]
+  sigmaGrid: readonly number[]
 ): MilpModel {
   const core = buildCore(model, qs, theta, 'oa');
   const { layout, rows } = core;
 
   for (let t = 0; t < layout.targets; t++) {
-    for (const at of grid) {
+    for (const at of sigmaGrid) {
       const s = theta[t] * at;
       if (!(s > 0) || !Number.isFinite(s)) continue;
       const slope = theta[t] * slopeAt(s);

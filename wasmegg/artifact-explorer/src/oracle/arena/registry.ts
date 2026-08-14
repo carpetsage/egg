@@ -4,9 +4,7 @@
 import type { ArenaSolver } from './contract';
 import { highs } from './solvers/highs';
 
-export const SOLVERS: ArenaSolver[] = [
-  highs,
-];
+export const SOLVERS: ArenaSolver[] = [highs];
 
 export function selectedSolvers(): ArenaSolver[] {
   const spec = process.env.SOLVER;
