@@ -86,7 +86,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed } from 'vue';
 import { iconURL } from 'lib';
 import { formatNumber } from '@/lib/format';
 import { useTruthEggsStore, VIRTUE_TE_ORDER } from '@/stores/truthEggs';
@@ -102,7 +102,7 @@ import { getArtifactLoadoutFromBackup, getOptimalEarningsSet } from '@/lib/artif
 import { useEarningsClothedTE } from '@/composables/useEarningsClothedTE';
 import { computeSnapshot } from '@/engine/compute';
 import { rollUpPendingTE } from '@/lib/modes';
-import { loadAutoPlannerTEInputs, saveAutoPlannerTEInputs } from '@/lib/autoPlannerFormCache';
+import { consumeAutoPlannerTEInputs, saveAutoPlannerTEInputs } from '@/lib/autoPlannerFormCache';
 import type { VirtueEgg } from '@/types';
 
 const VIRTUE_EGGS_MAP: Record<number, VirtueEgg> = {
@@ -183,6 +183,7 @@ const handleTEEarnedChange = (egg: VirtueEgg, value: string) => {
 
   truthEggsStore.setTEEarnedWithSync(egg, count);
   syncTEAcrossStores(egg);
+  cacheTEInputs();
 };
 
 const syncTEAcrossStores = async (egg: VirtueEgg) => {
@@ -202,8 +203,11 @@ const syncTEAcrossStores = async (egg: VirtueEgg) => {
 
 // Restore cached starting TE inputs from a previous visit, if any, so a page reload doesn't wipe
 // out edits the user made to these fields. Applied on top of the fresh backup default captured
-// above as `defaultTeEarned`.
-const cachedTEInputs = loadAutoPlannerTEInputs();
+// above as `defaultTeEarned`. `consumeAutoPlannerTEInputs` only returns a value the first time
+// it's called per player per page load, so switching Auto/Manual back and forth (which remounts
+// this component) won't keep reapplying a stale cache on top of fresher state from a backup
+// refresh, plan import, or Manual-mode edit.
+const cachedTEInputs = consumeAutoPlannerTEInputs(initialStateStore.playerId);
 if (cachedTEInputs?.teEarned) {
   for (const egg of VIRTUE_TE_ORDER) {
     const cachedValue = cachedTEInputs.teEarned[egg];
@@ -214,13 +218,13 @@ if (cachedTEInputs?.teEarned) {
   }
 }
 
-// Persist starting TE inputs so they survive a page reload.
-watch(
-  () => VIRTUE_TE_ORDER.map(egg => truthEggsStore.teEarned[egg]),
-  () => {
-    saveAutoPlannerTEInputs({ teEarned: { ...truthEggsStore.teEarned } });
-  }
-);
+// Persist starting TE inputs so they survive a page reload. Called explicitly from the actual
+// user-driven entry points below (editing a field, resetting to defaults) rather than from a
+// blanket store watcher, so values that change for other reasons (backup refresh, plan import,
+// Manual-mode sync, rolling up pending TE) don't get cached as if the user had typed them.
+function cacheTEInputs() {
+  saveAutoPlannerTEInputs(initialStateStore.playerId, { teEarned: { ...truthEggsStore.teEarned } });
+}
 
 // Whether any starting TE input has drifted from what the backup showed on load — governs
 // whether the Reset button is shown at all.
@@ -240,6 +244,7 @@ function resetTEInputsToDefault() {
       syncTEAcrossStores(egg);
     }
   }
+  cacheTEInputs();
 }
 </script>
 
