@@ -264,6 +264,7 @@ export function runC3(
   const shifted = applyShiftAction(currentState, context, 'curiosity');
   currentState = shifted.state;
   actions.push(shifted.action);
+  if (shifted.saleToggleAction) actions.push(shifted.saleToggleAction);
 
   // 2 (only when requested): try to unlock Tier 13 before anything else. Must run right here, at
   // elapsedSeconds === 0 — runTierUnlockMilestone derives its absolute-time baseline from
