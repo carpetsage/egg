@@ -2,8 +2,8 @@
 
 The shipped planner. `src/lib/optimizer-core.ts` calls `solveWith` from `oa.ts`
 on a module loaded by `loadHighs`, and the invariant arena enters the same pair
-through a shim (`src/oracle/arena/solvers/highs/`), so the solver users run and
-the solver the harness measures are one code path. `src/oracle/arena/ARENA.md`
+through a shim (`tests/arena/solvers/highs/`), so the solver users run and
+the solver the harness measures are one code path. `tests/arena/ARENA.md`
 states the problem; this file states the method.
 
 The whole problem — mission counts per slot, crafts as flow over the
