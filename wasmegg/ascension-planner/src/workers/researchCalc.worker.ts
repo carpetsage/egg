@@ -77,8 +77,12 @@ ctx.onmessage = (event: MessageEvent<WorkerRequest>) => {
           nextSaleStart,
           roiMode,
           deliveryImpactOnly,
-          targetPercent,
+          fullRoiDeadline,
         } = msg;
+        // `roiDeadlineOverride` (the OLD single-gate mode) is always `undefined` here — this request
+        // kind only ever backs the real Smart Buy UI flow, which always supplies `fullRoiDeadline`
+        // (the NEW dual-gate mode); the OLD mode is only used internally by `milestoneChain.ts`'s
+        // `sweepUntilNextSale`, a plain function call that never goes through this worker message.
         const result = simulateSaleAwareBuy(
           researchLevels,
           startSnapshot,
@@ -89,7 +93,8 @@ ctx.onmessage = (event: MessageEvent<WorkerRequest>) => {
           nextSaleStart,
           roiMode,
           deliveryImpactOnly,
-          targetPercent
+          undefined,
+          fullRoiDeadline
         );
         post({ type: 'result', requestId: msg.requestId, result });
         break;

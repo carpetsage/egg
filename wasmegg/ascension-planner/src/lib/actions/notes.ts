@@ -59,22 +59,30 @@ export function buildQuickBuyNotePayload(
 
 /**
  * Builds the inline-note payload the "Buy Earnings Research" (70% Return) sweep inserts ahead of
- * its purchases — `ResearchActions.vue`'s `runSaleAwareBuyFlow`, the driver behind the "70% Return"
- * button. Same shape as `buildQuickBuyNotePayload`'s note, but calls out what actually gates this
- * sweep: every earnings research that clears 70% ROI before the next research sale starts, not a
- * fixed time-to-save threshold.
+ * its purchases — `ResearchActions.vue`'s `runSaleAwareBuyFlow` (the manual planner's "70% Return"
+ * button) and `auto/shifts/c3.ts`'s `buyUntilSaleWarning` (its automated equivalent) both build this
+ * same note, so it reads consistently regardless of which one produced it. Same shape as
+ * `buildQuickBuyNotePayload`'s note, but calls out what actually gates this sweep: every earnings
+ * research that clears both of Smart Buy's ROI gates — see `showBuyNowRoiWarning`/
+ * `showFullRoiWarning`'s doc comments in researchROI.ts — not a fixed time-to-save threshold.
+ *
+ * `saleCount` is "how many sales are in play" for the ride this sweep's 100%-ROI gate is judged
+ * against (the manual planner's sale-count stepper, or C3's own `saleCount` — see each caller's own
+ * `countSalesThrough`/`smartBuySaleCount` usage), surfaced directly in the message so a "1-sale" buy
+ * reads differently from a deliberate multi-sale ride.
  *
  * Returns null when the sweep bought nothing.
  */
 export function buildSaleAwareBuyNotePayload(
   purchaseCount: number,
+  saleCount: number,
   secondsUntilNextSale: number,
   totalGemsSpent: number
 ): NotificationPayload | null {
   if (purchaseCount <= 0) return null;
 
   return {
-    message: '70% ROI Buy',
+    message: `${saleCount}-sale Earnings Buy`,
     submessage: `${formatPurchasesOverDuration(purchaseCount, secondsUntilNextSale, totalGemsSpent)}, before next sale`,
   };
 }

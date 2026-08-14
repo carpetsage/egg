@@ -83,13 +83,21 @@ export interface SimpleBuyPlan {
 }
 
 /**
- * Dry run of the sale-aware ROI buy flow ("70% Return", parameterized by `targetPercent` so other
- * thresholds remain possible) — mirrors `runSaleAwareBuyFlow` in ResearchActions.vue, but against
- * disposable scratch state instead of the live plan, so it can run reactively for a preview.
- * Re-derives sale state from the simulated clock via `isResearchSaleActive` at each step rather
- * than replicating the real flow's `insertWait`/`insertToggleSale` bookkeeping — that machinery
- * only writes real history records for the player to see later, it doesn't change which research
- * gets picked.
+ * Dry run of the sale-aware ROI buy flow ("70% Return") — mirrors `runSaleAwareBuyFlow` in
+ * ResearchActions.vue, but against disposable scratch state instead of the live plan, so it can run
+ * reactively for a preview. Re-derives sale state from the simulated clock via
+ * `isResearchSaleActive` at each step rather than replicating the real flow's
+ * `insertWait`/`insertToggleSale` bookkeeping — that machinery only writes real history records for
+ * the player to see later, it doesn't change which research gets picked.
+ *
+ * In its NEW dual-gate mode (`fullRoiDeadline` supplied — see the parameter doc comments below), a
+ * candidate must clear BOTH of `rankResearchByROI`'s two gates to be bought — see
+ * `showBuyNowRoiWarning`/`showFullRoiWarning`'s doc comments in researchROI.ts (and
+ * SMART_BUY_DUAL_ROI_DESIGN.md §1/§2.3) for the full asymmetric rule: near-term "would waiting a few
+ * minutes have been better" sanity check (bypassed once actually buying at a live discount), plus a
+ * "will this really pay for itself by the end of the ride" floor that's always active, sale or not.
+ * The OLD single-gate mode (`roiDeadlineOverride`) still exists alongside it for a caller out of this
+ * redesign's scope — see that parameter's own doc comment.
  *
  * Returns the plan `ResearchActions.vue`'s real handler executes directly (see its own comments) —
  * this function is the single source of truth for "what gets bought, in what order" for both the
@@ -105,16 +113,30 @@ export function simulateSaleAwareBuy(
   nextSaleStart: number,
   roiMode: 'immediate' | 'maxed_vehicles',
   deliveryImpactOnly: boolean,
-  targetPercent: number,
-  // Forwarded to `rankResearchByROI`'s own `roiDeadlineOverride` — see its doc comment. Distinct
-  // from `nextSaleStart` above, which stays the loop's own stopping boundary (always the very next
-  // sale, whether this call rides one cycle or is part of a longer multi-sale run) regardless of
-  // how far out the ROI bar itself is allowed to look.
-  roiDeadlineOverride?: number
+  // Two mutually-exclusive modes, mirroring `rankResearchByROI`'s own two independent parameters of
+  // the same names (see their doc comments there for the full story):
+  //
+  // - `roiDeadlineOverride`: the OLD single-gate mode — candidate selection uses `showSaleWarning`
+  //   (70%-by-`roiDeadlineOverride`-or-calendar-default). Only ever used by
+  //   `milestoneChain.ts`'s `sweepUntilNextSale`, buying earnings research en route to a milestone —
+  //   out of scope for the Smart Buy redesign (SMART_BUY_DUAL_ROI_DESIGN.md decision #1), kept
+  //   working exactly as before.
+  // - `fullRoiDeadline`: Smart Buy's NEW dual-gate mode — candidate selection uses
+  //   `showBuyNowRoiWarning`/`showFullRoiWarning` instead. Used by the manual planner's "70% Return"
+  //   button and C3's step 3, both via this same function so preview/execution/auto-planning never
+  //   diverge.
+  //
+  // Every current caller sets exactly one of the two (never both, never neither) — see this
+  // function's own doc comment for which.
+  roiDeadlineOverride?: number,
+  fullRoiDeadline?: number
 ): SaleAwareBuyPlan {
   if (DEBUG_SALE_AWARE_BUY) {
+    const fullRoiDeadlineLabel = fullRoiDeadline !== undefined ? new Date(fullRoiDeadline * 1000).toISOString() : 'n/a';
+    const roiDeadlineOverrideLabel =
+      roiDeadlineOverride !== undefined ? new Date(roiDeadlineOverride * 1000).toISOString() : 'n/a';
     console.log(
-      `[smartBuyPreview] simulateSaleAwareBuy: start, absoluteSimTime=${new Date(absoluteSimTime * 1000).toISOString()}, nextSaleStart=${new Date(nextSaleStart * 1000).toISOString()}, targetPercent=${targetPercent}, bank=${snapshot.bankValue}, offlineEarnings=${snapshot.offlineEarnings}, levelsSet=${Object.keys(researchLevels).length}`
+      `[smartBuyPreview] simulateSaleAwareBuy: start, absoluteSimTime=${new Date(absoluteSimTime * 1000).toISOString()}, nextSaleStart=${new Date(nextSaleStart * 1000).toISOString()}, fullRoiDeadline=${fullRoiDeadlineLabel}, roiDeadlineOverride=${roiDeadlineOverrideLabel}, bank=${snapshot.bankValue}, offlineEarnings=${snapshot.offlineEarnings}, levelsSet=${Object.keys(researchLevels).length}`
     );
   }
   let simState: EngineState = { ...createBaseEngineState(snapshot), researchLevels: { ...researchLevels } };
@@ -145,25 +167,27 @@ export function simulateSaleAwareBuy(
         researchSaleDeadline,
         roiMode,
         deliveryImpactOnly,
-        roiDeadlineOverride
+        roiDeadlineOverride,
+        fullRoiDeadline
       );
       // NOTE: intentionally NOT `meetsSaleAwareDeadline` (which `nextRoiCandidate` in
-      // ResearchActions.vue still uses, for its own button-enabled/highlight preview only — not
-      // purchase execution). That function derives eligibility from the candidate's SOLO
-      // price/earningsDelta/duringSale, which is wrong for a bottleneck-paired candidate: its own
-      // solo earningsDelta can be zero (that's what "bottlenecked" means) even when the PAIR it was
-      // ranked alongside genuinely clears `targetPercent`% ROI by `nextSaleStart` — or, just as
-      // wrongly, the solo-blind "lands inside an active sale" bypass can rescue a candidate whose
-      // real (solo or paired) economics never clear the bar at all. `item.showSaleWarning` is the
-      // field `rankResearchByROI` already computes correctly for both cases (solo ROI normally,
-      // pair-combined ROI when a pairing beats the solo figure — see its own bottleneck-pairing
-      // block), so using it here instead keeps this loop consistent with the ranking that produced
-      // `ranked`'s own sort order, rather than re-deriving a second, pairing-blind answer.
-      // (`targetPercent` is always 70 for every current caller of this function, matching the 70%
-      // hardcoded into `rankResearchByROI`'s own `showSaleWarning` computation — if a future caller
-      // ever needs a different threshold, `showSaleWarning` would need to become
-      // threshold-parameterized too.)
-      const candidate = ranked.find(item => item.canBuy && !item.showSaleWarning);
+      // ResearchActions.vue used to use, for its own button-enabled/highlight preview only — not
+      // purchase execution; that computed has since been replaced by reading this very plan's own
+      // entries instead, for exactly this reason). That function derives eligibility from the
+      // candidate's SOLO price/earningsDelta/duringSale, which is wrong for a bottleneck-paired
+      // candidate: its own solo earningsDelta can be zero (that's what "bottlenecked" means) even when
+      // the PAIR it was ranked alongside genuinely clears the relevant gate(s). `rankResearchByROI`
+      // already computes both modes' fields correctly for both cases (solo ROI normally, pair-combined
+      // ROI when a pairing beats the solo figure — see its own bottleneck-pairing block), so reading
+      // them here instead keeps this loop consistent with the ranking that produced `ranked`'s own
+      // sort order, rather than re-deriving a second, pairing-blind answer.
+      //
+      // `fullRoiDeadline !== undefined` selects which of the two mutually-exclusive modes this call is
+      // in — see this function's own parameter doc comments.
+      const candidate =
+        fullRoiDeadline !== undefined
+          ? ranked.find(item => item.canBuy && !item.showBuyNowRoiWarning && !item.showFullRoiWarning)
+          : ranked.find(item => item.canBuy && !item.showSaleWarning);
       if (!candidate) {
         if (DEBUG_SALE_AWARE_BUY) {
           console.log(
@@ -178,6 +202,8 @@ export function simulateSaleAwareBuy(
               purchaseTimestamp: simTime + (item.timeToBuySeconds ?? 0),
               duringSale: item.duringSale,
               showSaleWarning: item.showSaleWarning,
+              showBuyNowRoiWarning: item.showBuyNowRoiWarning,
+              showFullRoiWarning: item.showFullRoiWarning,
               pairRoiSeconds: item.pairRoiSeconds,
               pairPartner: item.pairPartnerResearch?.id,
             }))
@@ -398,6 +424,20 @@ export function runDeliveryBuyLoop(
 
   buyWhilePassingCheck(
     () => {
+      // Explicit stop condition, NOT delegated to `showDeadlineWarning` alone (unlike a plain
+      // candidate filter — this loop needs a hard bound `buyWhilePassingCheck` itself has no concept
+      // of). `showDeadlineWarning` is gated behind `isResearchSaleActive(simTime)`, correct for its
+      // OTHER job (a live-browsing badge that should stay silent when no sale is happening at all —
+      // ResearchFlatView.vue/ResearchItem.vue), but wrong as this loop's only stopping mechanism:
+      // once `simTime` (walked forward by each purchase's own wait) crosses past the sale's real end,
+      // `isResearchSaleActive(simTime)` flips to `false`, silently disabling `showDeadlineWarning`
+      // for every remaining candidate and letting this loop keep buying — confirmed in practice,
+      // producing a "plan" that reported finishing in a few hours but actually took 6+ real days to
+      // execute. Checking `simTime >= researchSaleDeadline` directly here, the same way
+      // `simulateEarningsPreludeForSaleEnd`'s own loop condition already does (`for (...; simTime <
+      // researchSaleDeadline; ...)`) and `simulateSaleAwareBuy`'s `buyUntilRealSaleStarts` does via
+      // its own explicit `shouldStop`, closes that gap.
+      if (simTime >= researchSaleDeadline) return undefined;
       const isSale = isResearchSaleActive(simTime);
       const ranked = rankResearchByELRImpact(
         simState.researchLevels,
@@ -484,6 +524,15 @@ export interface SaleEndsPlan extends SimpleBuyPlan {
    *  post-earnings-prelude rate" comparison, same idea as `SaleAwareBuyPlan.endSnapshot`'s doc
    *  comment. */
   earningsEndSnapshot: CalculationsSnapshot;
+  /** Absolute timestamp the LAST purchase in this plan (earnings or delivery, whichever comes
+   *  later) actually completes at — falls back to the plan's own starting `absoluteSimTime` when
+   *  nothing was bought at all. This is what a caller should use for "how long do these purchases
+   *  span," NOT `researchSaleDeadline - absoluteSimTime`: that's just the structural window this
+   *  plan is bounded BY, not how long it actually takes — a plan that runs out of qualifying
+   *  candidates early legitimately finishes well before the deadline, and should say so. See
+   *  `saleAwareStats70`'s identical fix (useResearchViews.ts) for the same bug on the "70% Return"
+   *  card. */
+  lastPurchaseTimestamp: number;
 }
 
 /**
@@ -573,6 +622,14 @@ export function simulateSaleEndsBuy(
   const totalGemsSpent =
     checkpoints[bestK].purchases.reduce((sum, p) => sum + p.price, 0) +
     bestRun.purchases.reduce((sum, p) => sum + p.price, 0);
+  // The delivery run's own last purchase if it bought anything, else wherever the (possibly-trimmed)
+  // earnings prelude left off — `checkpoints[bestK].simTime` already covers BOTH "some prelude, no
+  // delivery" and "no prelude, no delivery" (it's `absoluteSimTime` itself at k=0), so no separate
+  // fallback is needed for the fully-empty case.
+  const lastPurchaseTimestamp =
+    bestRun.purchases.length > 0
+      ? bestRun.purchases[bestRun.purchases.length - 1].purchaseTimestamp
+      : checkpoints[bestK].simTime;
 
   return {
     researchIds: [...earningsResearchIds, ...deliveryResearchIds],
@@ -583,6 +640,7 @@ export function simulateSaleEndsBuy(
     endLevels: bestRun.endLevels,
     endSnapshot: bestRun.endSnapshot,
     totalGemsSpent,
+    lastPurchaseTimestamp,
   };
 }
 
