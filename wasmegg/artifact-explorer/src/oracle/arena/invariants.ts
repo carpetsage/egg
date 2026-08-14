@@ -47,8 +47,47 @@ function differs(a: number, b: number, tol: number): boolean {
   return Math.abs(la - lb) > tol;
 }
 
+// The arena's public vocabulary: these ids are written into `results/*.json` and
+// ARENA.md, so the set is added to rather than renumbered. There is no B4.
+export type InvariantId =
+  | 'A1-fuel'
+  | 'A2-time'
+  | 'A3-menu'
+  | 'A4-inventory'
+  | 'A5-effort'
+  | 'A6-zerog'
+  | 'A7-crafting'
+  | 'A8-targets'
+  | 'A9-golden-eggs'
+  | 'B1-option-order'
+  | 'B2-target-order'
+  | 'B3-fuel-scale'
+  | 'B5-determinism'
+  | 'B6-duplicate'
+  | 'C0-contract'
+  | 'C1-feasibility'
+  | 'C1-inconclusive'
+  | 'C2-honesty'
+  | 'C3-joint-product'
+  | 'M1-solo-product'
+  | 'M2-projection'
+  | 'M3-union'
+  | LocalOptimalityId
+  // `kOpt` reports these when it runs out of evaluation budget without finding an
+  // improving move: not a verdict that the plan is locally optimal, just no answer.
+  | `${LocalOptimalityId}-inconclusive`;
+
+// The only ids `kOpt` is called with, narrowed so its `-inconclusive` suffix stays
+// inside the declared vocabulary instead of widening it to any string.
+export type LocalOptimalityId = 'D1-2opt' | 'D2-4opt';
+
+// A check that throws is reported under its own function name rather than an id
+// (`runChecks` below), and `invariants.spec.ts` hard-fails on the suffix, so the
+// id space has to admit those too.
+export type ViolationId = InvariantId | `${string}-threw`;
+
 export interface Violation {
-  invariant: string;
+  invariant: ViolationId;
   instance: string;
   detail: string;
   nats?: number;
@@ -67,15 +106,15 @@ export interface CheckContext {
 
 const solve = (c: CheckContext, over: SolveOverrides = {}): Solved => run(c.planner, c.inst, over);
 
-function report(c: CheckContext, invariant: string, from: number, to: number, detail: string) {
+function report(c: CheckContext, invariant: InvariantId, from: number, to: number, detail: string) {
   c.out.push({ invariant, instance: c.inst.label, detail, nats: lg(to) - lg(from) });
 }
 
-function reportFlat(c: CheckContext, invariant: string, detail: string) {
+function reportFlat(c: CheckContext, invariant: InvariantId, detail: string) {
   c.out.push({ invariant, instance: c.inst.label, detail });
 }
 
-function monotone(id: string, c: CheckContext, axis: { label: string; over: SolveOverrides }[]) {
+function monotone(id: InvariantId, c: CheckContext, axis: { label: string; over: SolveOverrides }[]) {
   let prev = -1;
   let prevLabel = '';
   for (const step of axis) {
@@ -493,7 +532,7 @@ export function checkM3UnionLowerBound(c: CheckContext) {
   }
 }
 
-function kOpt(id: string, c: CheckContext, arity: 2 | 4, thresholdNats: number, maxEvals: number) {
+function kOpt(id: LocalOptimalityId, c: CheckContext, arity: 2 | 4, thresholdNats: number, maxEvals: number) {
   const s = solve(c);
   const alloc = s.allocation;
   const oracleInst = oracleInstanceOf(s.problem);

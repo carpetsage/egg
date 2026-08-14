@@ -6,7 +6,7 @@ import { dirname, resolve } from 'node:path';
 import type { ArenaSolver } from './contract';
 import { run } from './harness';
 import { generateInstance } from './instances';
-import { runChecks, type Check, type Violation } from './invariants';
+import { runChecks, type Check, type Violation, type ViolationId } from './invariants';
 
 export interface InstanceResult {
   seed: number;
@@ -80,7 +80,7 @@ export function sweep(
 const log10 = (p: number) => (p > 0 ? Math.log10(p) : -Infinity);
 
 interface InvariantTally {
-  invariant: string;
+  invariant: ViolationId;
   count: number;
   instances: number;
   worstNats: number;
