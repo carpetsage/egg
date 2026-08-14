@@ -5,9 +5,8 @@
 // 1.06e-6 to 3.56e-6 nats, tripping C2-honesty on 11 of 18 instances; the plans
 // themselves are unchanged. Issue #52 carries the remaining work.
 //
-// DEVIATION from SPEC section 2 ("Bland's rule simplex, iteration guard
-// 50*(rows+cols)"): pricing is Dantzig, falling back permanently to Bland after a
-// degenerate streak. Pure Bland blew the stated guard on the bound-polytope LPs.
+// Pricing is Dantzig, falling back permanently to Bland's rule after a degenerate
+// streak. Pure Bland is finite but blew the iteration guard on the bound-polytope LPs.
 //
 // Every row is equilibrated to max |coefficient| = 1 and the objective to max
 // |c| = 1: an absolute pivot tolerance on the raw tableau accepts rounding noise as

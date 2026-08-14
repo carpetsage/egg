@@ -92,7 +92,7 @@ export const SOLVER_OPTIONS: Readonly<Record<string, boolean | number | string>>
   // Off, and measured that way rather than assumed; see SPEC.md section 8.
   presolve: 'off',
   primal_feasibility_tolerance: 1e-9,
-  // Two orders below HiGHS's 1e-6 default: HiGHS may satisfy a slot row only to this
+  // Three orders below HiGHS's 1e-6 default: HiGHS may satisfy a slot row only to this
   // figure while the arena's packer admits at most `capacity + 1e-9`, so loosening it
   // lets the solver commit a violation the judge will not accept. Tried at 1e-8 for
   // the presolve breakdown 1e-9 triggers (ERGO-Code/HiGHS#1578); presolve off removes
