@@ -111,7 +111,7 @@ export function checkA2Time(c: CheckContext) {
     c,
     [1, 1.05, 1.25, 1.5, 2].map(m => ({
       label: `time x${m}`,
-      over: { timeCapacity: Math.round(c.inst.timeCapacity * m) },
+      over: { timeCapacityPerSlot: Math.round(c.inst.timeCapacityPerSlot * m) },
     }))
   );
 }
@@ -371,13 +371,13 @@ export function checkC1Feasibility(c: CheckContext) {
     reportFlat(
       c,
       'C1-inconclusive',
-      `packing undecided within the node budget (${b.totalTime.toFixed(0)}s over ${s.problem.slots} slots of ${s.problem.timeCapacity}s)`
+      `packing undecided within the node budget (${b.totalTime.toFixed(0)}s over ${s.problem.slots} slots of ${s.problem.timeCapacityPerSlot}s)`
     );
   } else if (b.pack !== 'packs') {
     reportFlat(
       c,
       'C1-feasibility',
-      `plan does not pack into ${s.problem.slots} slots of ${s.problem.timeCapacity}s (${b.totalTime.toFixed(0)}s total)`
+      `plan does not pack into ${s.problem.slots} slots of ${s.problem.timeCapacityPerSlot}s (${b.totalTime.toFixed(0)}s total)`
     );
   }
 }
@@ -467,7 +467,7 @@ export function checkM3UnionLowerBound(c: CheckContext) {
       const part = solve(c, {
         targets: [c.inst.targets[i]],
         fuelCapacity: c.inst.fuelCapacity * w[i],
-        timeCapacity: Math.floor(c.inst.timeCapacity * w[i]),
+        timeCapacityPerSlot: Math.floor(c.inst.timeCapacityPerSlot * w[i]),
       });
       part.allocation.forEach((count, idx) => {
         if (!(count > 0)) return;

@@ -33,7 +33,7 @@ async function main(): Promise<void> {
   console.log(`\n=== instance ${SPEC} ===`);
   console.log(`targets: ${inst.targets.join(', ')}`);
   console.log(`fuelCapacity: ${inst.fuelCapacity}`);
-  console.log(`timeCapacity: ${inst.timeCapacity} s`);
+  console.log(`timeCapacityPerSlot: ${inst.timeCapacityPerSlot} s`);
   console.log(`baseYield: ${JSON.stringify([...inst.baseYield])}`);
   console.log('options (the ONLY missions the solver was offered):');
   for (const o of inst.options) {
@@ -48,7 +48,7 @@ async function main(): Promise<void> {
     recipeDag: inst.dag,
     desiredArtifactNodeIds: inst.targets,
     fuelCapacity: inst.fuelCapacity,
-    timeCapacity: inst.timeCapacity,
+    timeCapacityPerSlot: inst.timeCapacityPerSlot,
     baseYield: inst.baseYield,
     maximumCost: Infinity,
   });
@@ -73,7 +73,7 @@ async function main(): Promise<void> {
   console.log(`  independent evaluation:   ${planEval.probability}`);
   console.log(
     `  uses fuel ${fuelUsed}/${inst.fuelCapacity} (${((100 * fuelUsed) / Math.max(1, inst.fuelCapacity)).toFixed(1)}%), ` +
-      `busiest slot ${makespan}/${inst.timeCapacity}s (${((100 * makespan) / Math.max(1, inst.timeCapacity)).toFixed(1)}%)`
+      `busiest slot ${makespan}/${inst.timeCapacityPerSlot}s (${((100 * makespan) / Math.max(1, inst.timeCapacityPerSlot)).toFixed(1)}%)`
   );
   console.log(`  slots: ${JSON.stringify(sol.slots ?? [])}`);
 

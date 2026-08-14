@@ -95,7 +95,7 @@ export async function optimize(
     recipeDag: dag,
     desiredArtifactNodeIds,
     fuelCapacity: fuelTankCapacity,
-    timeCapacity: timeBudgetSeconds,
+    timeCapacityPerSlot: timeBudgetSeconds,
     maximumCost: maxGemCost,
     baseYield,
     craftBudget,

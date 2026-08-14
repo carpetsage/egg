@@ -41,7 +41,7 @@ export interface SolveOverrides {
   config?: ArenaInstance['config'];
   targets?: string[];
   fuelCapacity?: number;
-  timeCapacity?: number;
+  timeCapacityPerSlot?: number;
   craftBudget?: CraftBudget;
   effort?: EffortLevel;
   craftingLevel?: number;
@@ -77,7 +77,7 @@ function buildProblem(inst: ArenaInstance, over: SolveOverrides = {}): PlanProbl
     // sorted it in place would silently change every later check instead of producing a violation.
     targets: [...targets],
     fuelCapacity: over.fuelCapacity ?? inst.fuelCapacity,
-    timeCapacity: over.timeCapacity ?? inst.timeCapacity,
+    timeCapacityPerSlot: over.timeCapacityPerSlot ?? inst.timeCapacityPerSlot,
     slots: NUM_SLOTS,
     baseYield: over.baseYield ?? new Map<string, number>(),
     // Only ever set by an override: generated instances are uncapped, so the
@@ -139,7 +139,7 @@ function problemKey(problem: PlanProblem): string {
   return [
     problem.targets.join(','),
     problem.fuelCapacity,
-    problem.timeCapacity,
+    problem.timeCapacityPerSlot,
     budget,
     problem.slots,
     sortedEntries(problem.baseYield),
@@ -179,7 +179,7 @@ export function oracleInstanceOf(problem: PlanProblem): OracleInstance {
       dag: problem.dag,
       targets: problem.targets as string[],
       fuelCapacity: problem.fuelCapacity,
-      timeCapacity: problem.timeCapacity,
+      timeCapacityPerSlot: problem.timeCapacityPerSlot,
       baseYield: problem.baseYield as Map<string, number>,
       craftBudget: problem.craftBudget,
     };
@@ -252,7 +252,7 @@ export function budgetsOf(problem: PlanProblem, alloc: readonly number[]): Budge
   return {
     fuel,
     totalTime,
-    pack: packFeasible(durations, counts, problem.timeCapacity, problem.slots),
+    pack: packFeasible(durations, counts, problem.timeCapacityPerSlot, problem.slots),
   };
 }
 

@@ -68,7 +68,7 @@ function problemOf(targets: string[]): PlanProblem {
     dag: jointDag,
     targets,
     fuelCapacity: 6,
-    timeCapacity: 4,
+    timeCapacityPerSlot: 4,
     slots: 3,
     baseYield: new Map([['C1', 4]]),
   };

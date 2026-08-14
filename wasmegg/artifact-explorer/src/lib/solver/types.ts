@@ -12,8 +12,8 @@ export interface PlanProblem {
   // — the product over targets, not the max or the sum.
   readonly targets: readonly string[];
   readonly fuelCapacity: number;
-  // Seconds available *per slot*, not across the plan.
-  readonly timeCapacity: number;
+  // Seconds. Note the asymmetry with `fuelCapacity` above, which is for the whole plan.
+  readonly timeCapacityPerSlot: number;
   readonly slots: number;
   // Copies of each node the player already owns, folded in before crafting.
   readonly baseYield: ReadonlyMap<string, number>;
@@ -30,7 +30,7 @@ export interface PlanReport {
 
 export interface PlanResult {
   // Missions launched per option, parallel to `problem.options`. Non-negative
-  // integers, fuel within capacity, packable into `slots` slots of `timeCapacity`.
+  // integers, fuel within capacity, packable into `slots` slots of `timeCapacityPerSlot`.
   allocation: number[];
   reported?: PlanReport;
 }

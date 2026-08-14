@@ -18,7 +18,7 @@ export interface OptimizeArgs {
   recipeDag: RecipeDAG;
   desiredArtifactNodeIds: string[];
   fuelCapacity: number;
-  timeCapacity: number;
+  timeCapacityPerSlot: number;
   maximumCost: number | undefined;
   baseYield: Map<string, number>;
   // Golden egg cap on the plan's crafts, or absent for no cap. It has to reach both the MILP and the inner
@@ -97,7 +97,7 @@ export async function optimizeFull(args: OptimizeArgs): Promise<OptimizerSolutio
     recipeDag,
     desiredArtifactNodeIds,
     fuelCapacity: rawR,
-    timeCapacity: rawS,
+    timeCapacityPerSlot: rawS,
     maximumCost,
     baseYield,
     craftBudget,
@@ -135,7 +135,7 @@ export async function optimizeFull(args: OptimizeArgs): Promise<OptimizerSolutio
     dag: recipeDag,
     targets: desiredArtifactNodeIds,
     fuelCapacity: R,
-    timeCapacity: S,
+    timeCapacityPerSlot: S,
     slots: NUM_SLOTS,
     baseYield,
     craftBudget,

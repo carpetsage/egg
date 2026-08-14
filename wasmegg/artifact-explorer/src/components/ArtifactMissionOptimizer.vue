@@ -197,7 +197,7 @@ export default defineComponent({
         recipeDag: recipeDag.value,
         desiredArtifactNodeIds: [...artifactIds.value],
         fuelCapacity: effectiveFuelTankCapacity.value,
-        timeCapacity: maxWaitTimeSeconds.value,
+        timeCapacityPerSlot: maxWaitTimeSeconds.value,
         baseYield: playerBaseYield.value,
         maximumCost: maxGemCost,
         craftBudget,

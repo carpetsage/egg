@@ -62,7 +62,7 @@ async function runNested(baseYield: Map<string, number>, targets = ['A', 'B']) {
     recipeDag: nestedDag(),
     desiredArtifactNodeIds: targets,
     fuelCapacity: 1000,
-    timeCapacity: 100, // per slot, so C arrives at a fixed rate the tests read back
+    timeCapacityPerSlot: 100, // per slot, so C arrives at a fixed rate the tests read back
     baseYield,
     maximumCost: Infinity,
   });

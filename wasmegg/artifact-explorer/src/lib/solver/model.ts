@@ -208,7 +208,7 @@ export function buildModel(problem: PlanProblem): Model {
   // Normalized budgets: fuel 1, per-slot time 1. `fuelCapacity <= 0` reads as
   // "all fuel costs are 0".
   const fuelCap = problem.fuelCapacity;
-  const timeCap = problem.timeCapacity;
+  const timeCap = problem.timeCapacityPerSlot;
   const slots = problem.slots;
 
   const candidates: Candidate[] = [];

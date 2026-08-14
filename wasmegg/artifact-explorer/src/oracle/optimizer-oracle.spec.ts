@@ -33,7 +33,7 @@ async function runOptimizer(inst: OracleInstance): Promise<OptimizerSolution> {
     recipeDag: inst.dag,
     desiredArtifactNodeIds: inst.targets,
     fuelCapacity: inst.fuelCapacity,
-    timeCapacity: inst.timeCapacity,
+    timeCapacityPerSlot: inst.timeCapacityPerSlot,
     baseYield: inst.baseYield,
     maximumCost: Infinity,
   });
@@ -79,7 +79,7 @@ async function solverPricesAllocation(inst: OracleInstance, allocation: number[]
     recipeDag: inst.dag,
     desiredArtifactNodeIds: inst.targets,
     fuelCapacity: 1,
-    timeCapacity: 1,
+    timeCapacityPerSlot: 1,
     baseYield: inst.baseYield,
     maximumCost: Infinity,
   });
@@ -212,7 +212,7 @@ describe('oracle calibration', () => {
       ),
       targets: ['t'],
       fuelCapacity: 0,
-      timeCapacity: 0,
+      timeCapacityPerSlot: 0,
       baseYield: new Map([
         ['a', 5],
         ['b', 1.5],
@@ -240,7 +240,7 @@ describe('oracle calibration', () => {
       dag: new Map([makeNode('a', true), makeNode('t', false, [['a', 1]], 0.4)].map(n => [n.id, n])),
       targets: ['t'],
       fuelCapacity: 6,
-      timeCapacity: 100,
+      timeCapacityPerSlot: 100,
       baseYield: new Map(),
     };
     // no craftable supply at all, so the only play is 3 launches of drops
@@ -274,7 +274,7 @@ describe('oracle calibration', () => {
       ),
       targets: ['t'],
       fuelCapacity: 0,
-      timeCapacity: 0,
+      timeCapacityPerSlot: 0,
       baseYield: new Map([['a', 4]]),
     };
     // each craft consumes 1 mid (2a) + 1a = 3a, so crafts = 4/3
@@ -294,7 +294,7 @@ describe('oracle calibration', () => {
       dag: new Map([makeNode('a', true), makeNode('t', false, [['a', 2]], 0.6)].map(n => [n.id, n])),
       targets: ['t'],
       fuelCapacity: 7,
-      timeCapacity: 100,
+      timeCapacityPerSlot: 100,
       baseYield: new Map([['a', 1]]),
     };
     // 2 launches -> inventory a = 1 + 3 = 4 -> crafts = 2
@@ -317,7 +317,7 @@ describe('oracle calibration', () => {
       ),
       targets: ['t0', 't1'],
       fuelCapacity: 0,
-      timeCapacity: 0,
+      timeCapacityPerSlot: 0,
       baseYield: new Map([['a', 2]]),
     };
     const theirs = await runOptimizer(inst);
@@ -341,7 +341,7 @@ describe('oracle calibration', () => {
       ),
       targets: ['t0', 't1', 't2'],
       fuelCapacity: 6,
-      timeCapacity: 3,
+      timeCapacityPerSlot: 3,
       baseYield: new Map([['a', 1]]),
     };
     assertNoFailures([await checkInstance(inst)]);
@@ -377,7 +377,7 @@ describe('oracle calibration', () => {
       ),
       targets: ['t0', 't1', 't2'],
       fuelCapacity: 6,
-      timeCapacity: 3,
+      timeCapacityPerSlot: 3,
       baseYield: new Map([['a', 2]]),
     };
     assertNoFailures([await checkInstance(inst)]);

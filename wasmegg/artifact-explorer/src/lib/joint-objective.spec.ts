@@ -15,7 +15,7 @@ describe('the product objective reduces to the linear score at n=1', () => {
     recipeDag: dag,
     desiredArtifactNodeIds: ['A'],
     fuelCapacity: 65,
-    timeCapacity: 40,
+    timeCapacityPerSlot: 40,
     baseYield: new Map<string, number>(),
     maximumCost: Infinity,
   };
@@ -24,7 +24,7 @@ describe('the product objective reduces to the linear score at n=1', () => {
     const sol = await optimizeFull(args);
 
     const Q = -Math.log(1 - 0.1);
-    const perSlot = Math.floor(args.timeCapacity / opt.actualTime);
+    const perSlot = Math.floor(args.timeCapacityPerSlot / opt.actualTime);
     const maxK = Math.min(Math.floor(args.fuelCapacity / opt.actualFuel), 3 * perSlot);
     let bestScore = 0;
     for (let k = 0; k <= maxK; k++) {

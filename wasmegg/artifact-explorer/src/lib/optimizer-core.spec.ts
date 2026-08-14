@@ -17,7 +17,7 @@ describe('optimizeFull', () => {
       recipeDag: craftDag(),
       desiredArtifactNodeIds: ['A'],
       fuelCapacity: 1000,
-      timeCapacity: 100,
+      timeCapacityPerSlot: 100,
       baseYield: new Map(),
       maximumCost: Infinity,
     });
@@ -38,7 +38,7 @@ describe('optimizeFull', () => {
       recipeDag: craftDag(0.1),
       desiredArtifactNodeIds: ['A'],
       fuelCapacity: 100,
-      timeCapacity: 100,
+      timeCapacityPerSlot: 100,
       baseYield: new Map<string, number>(),
     };
 
@@ -66,7 +66,7 @@ describe('optimizeFull', () => {
       recipeDag: dag,
       desiredArtifactNodeIds: ['A'],
       fuelCapacity: 100,
-      timeCapacity: 100,
+      timeCapacityPerSlot: 100,
       baseYield: new Map(),
       maximumCost: Infinity,
     });
@@ -89,7 +89,7 @@ describe('optimizeFull', () => {
       recipeDag: dag,
       desiredArtifactNodeIds: [root],
       fuelCapacity: 1_000_000,
-      timeCapacity: 50,
+      timeCapacityPerSlot: 50,
       baseYield: new Map([[leaf, 5]]),
       maximumCost: Infinity,
     });
@@ -105,13 +105,13 @@ describe('optimizeFull', () => {
     // An empty input field upstream arrives as NaN; degrade to the no-launch baseline rather than leak it
     // into the solve. Reachable from the UI and nowhere else.
     const opts = [makeOpt(10, 10, [['B', 1]]), makeOpt(0, 3, [['B', 1]])];
-    for (const timeCapacity of [NaN, -5, Infinity]) {
+    for (const timeCapacityPerSlot of [NaN, -5, Infinity]) {
       const sol = await optimizeFull({
         options: opts,
         recipeDag: craftDag(0.1),
         desiredArtifactNodeIds: ['A'],
         fuelCapacity: 1000,
-        timeCapacity,
+        timeCapacityPerSlot,
         baseYield: new Map(),
         maximumCost: Infinity,
       });
@@ -125,7 +125,7 @@ describe('optimizeFull', () => {
       recipeDag: craftDag(0.1),
       desiredArtifactNodeIds: ['A'],
       fuelCapacity: NaN,
-      timeCapacity: 100,
+      timeCapacityPerSlot: 100,
       baseYield: new Map(),
       maximumCost: Infinity,
     });

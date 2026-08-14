@@ -12,7 +12,7 @@ export interface OracleInstance {
   dag: RecipeDAG;
   targets: string[];
   fuelCapacity: number;
-  timeCapacity: number;
+  timeCapacityPerSlot: number;
   baseYield: Map<string, number>;
   craftBudget?: CraftBudget;
 }

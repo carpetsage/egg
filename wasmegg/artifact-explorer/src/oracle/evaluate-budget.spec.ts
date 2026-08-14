@@ -30,7 +30,7 @@ function instance(dag: RecipeDAG, targets: string[], owned: number, budget?: Ora
     dag,
     targets,
     fuelCapacity: 1e9,
-    timeCapacity: 1e9,
+    timeCapacityPerSlot: 1e9,
     // Inventory supplied as base yield, so the allocation is irrelevant and
     // every difference below is the budget's doing.
     baseYield: new Map([['C1', owned]]),

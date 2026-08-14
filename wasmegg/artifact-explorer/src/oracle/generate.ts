@@ -157,7 +157,7 @@ function finalize(
   pool: RealPool,
   options: LaunchOption[],
   fuelCapacity: number,
-  timeCapacity: number,
+  timeCapacityPerSlot: number,
   baseYield: Map<string, number>,
   minFeasible = 24
 ): OracleInstance | null {
@@ -167,11 +167,11 @@ function finalize(
   if (keys.size !== options.length) {
     throw new Error(`${label} seed ${seed}: duplicate option cost/target triple`);
   }
-  // timeCapacity is the per-slot horizon S; never let it fall below the
-  // longest chosen mission, which could then never fit any slot.
+  // Never let the horizon fall below the longest chosen mission, which could
+  // then never fit any slot.
   const maxDur = Math.max(...options.map(o => o.actualTime));
   let fuel = fuelCapacity;
-  let time = Math.max(timeCapacity, maxDur);
+  let time = Math.max(timeCapacityPerSlot, maxDur);
   for (let attempt = 0; attempt < 25; attempt++) {
     const inst: OracleInstance = {
       label,
@@ -180,7 +180,7 @@ function finalize(
       dag: pool.dag,
       targets: pool.targets,
       fuelCapacity: fuel,
-      timeCapacity: time,
+      timeCapacityPerSlot: time,
       baseYield,
     };
     const count = countFeasible(inst, FEASIBLE_CAP);

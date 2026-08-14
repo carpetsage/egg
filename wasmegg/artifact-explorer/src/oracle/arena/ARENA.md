@@ -20,7 +20,7 @@ probability of getting a legendary of **every** target artifact.
 | `dag` | the recipe graph for the targets: what crafts into what, how many of each ingredient a craft consumes, and each node's legendary craft chance. |
 | `targets` | the desired artifact node ids. |
 | `fuelCapacity` | total fuel for the whole plan. |
-| `timeCapacity` | seconds available **per slot**. |
+| `timeCapacityPerSlot` | seconds available **per slot**. |
 | `slots` | how many missions can be in flight at once. Always 3. |
 | `baseYield` | copies of each node the player already owns. |
 
@@ -38,9 +38,9 @@ reporting a plan whose craft accounting you did not work out yourself.
 
 - **Fuel.** `sum_i allocation[i] * options[i].actualFuel <= fuelCapacity`.
 - **Packing.** The missions partition into `slots` groups, each with summed
-  `actualTime` at most `timeCapacity`. This is a genuine 3-way bin packing, not
-  a check that the total fits in `3 * timeCapacity` — a plan can pass the volume
-  bound and still be infeasible.
+  `actualTime` at most `timeCapacityPerSlot`. This is a genuine 3-way bin
+  packing, not a check that the total fits in `3 * timeCapacityPerSlot` — a plan
+  can pass the volume bound and still be infeasible.
 
 The harness decides this with its own packer (`pack-feasibility.ts`), which
 imports nothing and which no candidate may import. Returning an infeasible plan

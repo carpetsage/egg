@@ -25,7 +25,7 @@ describe('buildModel rejects non-finite quantities the way it rejects non-finite
       dag,
       targets: ['A1'],
       fuelCapacity: 60,
-      timeCapacity: 1000,
+      timeCapacityPerSlot: 1000,
       slots: 3,
       baseYield: new Map([['B1', NaN]]), // clamped to 0
     };

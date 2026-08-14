@@ -13,7 +13,7 @@ export interface ArenaInstance {
   craftingLevel: number;
   previousCrafts: number;
   fuelCapacity: number;
-  timeCapacity: number;
+  timeCapacityPerSlot: number;
   effort: EffortLevel;
 }
 
@@ -52,7 +52,7 @@ export function generateInstance(seed: number): ArenaInstance {
     craftingLevel: randInt(rng, 1, 30),
     previousCrafts: pick(rng, [0, 10, 50, 100, 300]),
     fuelCapacity: fuelTankSizes[randInt(rng, 2, fuelTankSizes.length - 1)],
-    timeCapacity: randInt(rng, 1, 30) * 86400,
+    timeCapacityPerSlot: randInt(rng, 1, 30) * 86400,
     effort: pick(rng, [...EFFORT_LEVELS]),
   };
 }
@@ -60,7 +60,7 @@ export function generateInstance(seed: number): ArenaInstance {
 export function describeInstance(inst: ArenaInstance): string {
   return (
     `${inst.label}: ${inst.targets.length} target(s) [${inst.targets.join(', ')}], ` +
-    `effort=${inst.effort}, ${(inst.timeCapacity / 86400).toFixed(0)}d, ` +
+    `effort=${inst.effort}, ${(inst.timeCapacityPerSlot / 86400).toFixed(0)}d, ` +
     `fuel=${inst.fuelCapacity.toExponential(1)}, craft=${inst.craftingLevel}, prev=${inst.previousCrafts}`
   );
 }

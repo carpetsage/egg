@@ -19,7 +19,7 @@ export interface OptimizerRequest {
   recipeDag: RecipeDAG;
   desiredArtifactNodeIds: string[];
   fuelCapacity: number;
-  timeCapacity: number;
+  timeCapacityPerSlot: number;
   maximumCost: number | undefined;
   baseYield: Map<string, number>;
   // Plain data (a number and a Map), so structured clone carries it intact —
