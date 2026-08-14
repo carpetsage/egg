@@ -1,7 +1,5 @@
-// End-to-end coverage of the production pipeline on real game data: recipe
-// DAG construction, launch option enumeration, and a full await optimize() run.
-// Assertions stick to structure and invariants so loot data refreshes don't
-// break them; the one exact-recipe check (puzzle cube) is stable game design.
+// End-to-end coverage of the production pipeline on real game data. Assertions stick to structure and
+// invariants so loot data refreshes do not break them; the one exact-recipe check is stable game design.
 
 import { describe, it, expect } from 'vitest';
 import { ei, perfectShipsConfig } from 'lib';
@@ -99,9 +97,6 @@ describe('optimize', () => {
     timeBudgetSeconds: 3 * 24 * 3600,
   };
 
-  // That the plan fits its budgets is arena C1, over 40 instances rather than
-  // this one. What only exists here is the presentation pass `optimize` runs on
-  // top of the plan, which is what the page renders.
   it('returns a plan the page can render', async () => {
     const dag = buildRecipeDag(config.desiredArtifactNodeIds, 30);
     const baseYield = computeBaseYield(null, config.desiredArtifactNodeIds, dag);
@@ -112,7 +107,6 @@ describe('optimize', () => {
     for (let i = 1; i < sol.choiceHistory.length; i++) {
       expect(sol.choiceHistory[i - 1].ship.shipType).toBeLessThanOrEqual(sol.choiceHistory[i].ship.shipType);
     }
-    // drop rows filled in, with resolvable icons
     expect(sol.expectedDrops.length).toBeGreaterThan(0);
     for (const row of sol.expectedDrops) {
       expect(row.expected).toBeGreaterThan(0);

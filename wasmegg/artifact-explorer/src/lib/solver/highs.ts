@@ -1,9 +1,6 @@
-// HiGHS as WebAssembly (`highs`, lovasoa/highs-js): the loader, and the text
-// interface it insists on. See SPEC.md section 8.
-//
-// Options are applied *after* `Highs_readModel`, so anything governing how a model
-// is ingested (`small_matrix_value`, `large_matrix_value`, `infinite_bound`) is set
-// too late and silently does nothing; `milp.ts` scales its rows instead.
+// HiGHS as WebAssembly (`highs`, lovasoa/highs-js): the loader, and the text interface it insists on.
+// Options are applied *after* `Highs_readModel`, so anything governing ingestion (`small_matrix_value`,
+// `large_matrix_value`, `infinite_bound`) is set too late and silently does nothing; `milp.ts` scales rows instead.
 
 import highsLoader from 'highs';
 import wasmUrl from 'highs/runtime?url';

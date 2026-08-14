@@ -1,30 +1,12 @@
-// Regression guard for `pack-feasibility.ts`, the arena's fixed goalpost: C1
-// fails a plan on its verdict and every k-opt move filters on it.
-//
-// This file was deleted once as "dev scaffolding whose job is done". It was not:
-// the goalpost is the one piece of the harness that can fail a candidate
-// outright, and with no tests on it a blind spot reached a sweep and reported
-// two feasible production plans as C1 contract failures. It stays.
-//
-// Two bugs are pinned here, both found from a sweep rather than by inspection:
-//
-//   * the memo keyed infeasible states on slot loads rounded to whole seconds,
-//     so distinct states collided ([0, 1.075, 2.15] and [0, 1, 2] became one
-//     key) and a packable plan came back `infeasible`;
-//   * the search enumerated how many missions of each duration go in each slot,
-//     so its branching factor was the *count*. A real plan of 901 missions,
-//     544 of them sharing one duration, exhausted the whole node budget on that
-//     first duration and returned `undecided` — which C1 gates on identically to
-//     `infeasible`.
+// Regression guard for `pack-feasibility.ts`, the arena's fixed goalpost: C1 fails a plan on its verdict
+// and every k-opt move filters on it. Deleted once as "dev scaffolding"; the blind spot that left reported
+// two feasible production plans as C1 failures. It stays.
 
 import { describe, expect, it } from 'vitest';
 import { packFeasible } from './pack-feasibility';
 
 const SLOTS = 3;
 
-// Seeded so a differential failure below names a multiset that can be replayed.
-// Kept local rather than taken from `../generate`: like the goalpost it guards,
-// this file depends on nothing that a candidate could change underneath it.
 function lcg(seed: number) {
   let a = seed;
   const rnd = () => {
@@ -60,10 +42,7 @@ function brutePacks(durations: number[], counts: number[], capacity: number, slo
 
 describe('packFeasible', () => {
   it('packs the instance the rounded memo key rejected', () => {
-    // Three 0.806s, two 0.64s and two 1.203s do fit three slots of 2.157:
-    // 1.203+0.64, 1.203+0.64, 0.806+0.806 — and the last 0.806 goes with a
-    // 1.203 (2.009) or alongside the pair (1.612). The rounded key said
-    // `infeasible`.
+    // A witness: 1.203+0.64, 1.203+0.64, 0.806+0.806, and the last 0.806 alongside either.
     expect(packFeasible([0.806, 0.64, 1.203], [3, 2, 2], 2.157, SLOTS)).toBe('packs');
   });
 
@@ -87,15 +66,6 @@ describe('packFeasible', () => {
   });
 });
 
-// arena:2006. The plan is 901 missions filling 5,960,448s of a 5,961,600s
-// horizon — 1152s of slack, a near-exact partition. The witness:
-//
-//   slot 0: 408*3600 + 18*10368 + 20736 + 62208 + 248832 = 1,987,200  (exact)
-//   slot 1: 68*3600 + 168*10368                          = 1,986,624
-//   slot 2: 68*3600 + 168*10368                          = 1,986,624
-//
-// The old search never found it, and `undecided` is a C1 hard failure, so the
-// harness reported a feasible plan as a broken one.
 describe('the plan a real sweep could not decide', () => {
   const DURATIONS = [3600, 10368, 20736, 62208, 248832];
   const COUNTS = [544, 354, 1, 1, 1];
@@ -103,36 +73,17 @@ describe('the plan a real sweep could not decide', () => {
 
   it('packs, well inside the node budget', () => {
     expect(packFeasible(DURATIONS, COUNTS, CAPACITY, SLOTS)).toBe('packs');
-    // Decided with an order of magnitude to spare, so this is not a fixture that
-    // only passes because the default budget was raised to suit it.
     expect(packFeasible(DURATIONS, COUNTS, CAPACITY, SLOTS, 50_000)).toBe('packs');
   });
 
   it('rejects the same plan with one mission too many', () => {
-    // Both are ruled out by the volume bound alone — 5960448s of 5961600s leaves
-    // 1152s, and the shorter mission is 3600s — so this pins the cheap path and
-    // nothing more. It is here because a plan this close to the horizon must
-    // come back `infeasible` rather than `undecided`, not because it exercises
-    // the search; the families below are what test the search's infeasible side.
+    // Ruled out by the volume bound alone: a plan this close to the horizon must come back
+    // `infeasible` rather than `undecided`.
     expect(packFeasible(DURATIONS, [545, 354, 1, 1, 1], CAPACITY, SLOTS)).toBe('infeasible');
     expect(packFeasible(DURATIONS, [544, 355, 1, 1, 1], CAPACITY, SLOTS)).toBe('infeasible');
   });
 });
 
-// The second plan a real sweep could not decide, and a different reason.
-//
-// arena:2025, verbatim from the sweep: 961 missions filling 4146408s of 4147200s
-// — 99.98% of the horizon, 792 seconds of slack in the whole plan. It came back
-// `undecided` at the default budget, and it is packable. Two things were wrong,
-// and this instance needs both fixed:
-//
-//   - 17856s arrives TWICE, as 27 and as 6, because `budgetsOf` emits one group
-//     per launch option and two options can share a duration. Interchangeable
-//     missions enumerated as two independent groups.
-//   - The arithmetic level went to the wrong group. Longest-first put the single
-//     1800s mission last and left `fill` enumerating 920 missions of 2700s: the
-//     shortcut fires on a count of 1 while the count of 920 pays full price.
-//     The largest count is only the shortest duration by luck, and here it isn't.
 describe('the near-exact plan, where the duration order runs out of luck', () => {
   // Verbatim from the sweep's allocation, duplicate duration and all.
   const DURATIONS = [1800, 2700, 17856, 17856, 107136, 214272];
@@ -141,17 +92,11 @@ describe('the near-exact plan, where the duration order runs out of luck', () =>
 
   it('packs, well inside the node budget', () => {
     expect(packFeasible(DURATIONS, COUNTS, CAPACITY, SLOTS)).toBe('packs');
-    // Two orders of magnitude below the default, so this is not passing on
-    // budget. Before the fix it was `undecided` at ten times the default.
     expect(packFeasible(DURATIONS, COUNTS, CAPACITY, SLOTS, 5_000)).toBe('packs');
   });
 
-  // No "one mission too many" case here, deliberately. At 792s of slack every
-  // such variant overshoots `slots * capacity`, so the volume bound returns
-  // `infeasible` before the search runs at all — it would pass with or without
-  // the ordering fix and pin nothing. The infeasible direction on instances the
-  // volume bound cannot see is what the two integrality families and the
-  // brute-force differential below are for.
+  // No "one mission too many" case here, deliberately: at 792s of slack every such variant overshoots
+  // `slots * capacity`, so the volume bound answers `infeasible` before the search runs at all.
 
   it('is indifferent to how the caller splits equal durations', () => {
     // The same 33 missions of 17856s, listed as one group and as two. A judge
@@ -162,17 +107,6 @@ describe('the near-exact plan, where the duration order runs out of luck', () =>
   });
 });
 
-// The third plan a real sweep could not decide, and the case the exhaustive
-// search structurally cannot help with.
-//
-// arena:3038, verbatim from the sweep: 1165 missions filling 3887928s of a
-// 3888000s horizon (3 slots of 1296000s) — 99.998% full, 72s of slack in the
-// whole plan. Unlike arena:2025 this is not a duration-ordering problem: at
-// this little slack the residual-volume bound prunes almost nothing at any
-// level, so the exact search has to enumerate its way to the one near-exact
-// partition and burns the whole default budget doing it, coming back
-// `undecided`. The fix is the completion heuristic in `pack-feasibility.ts`:
-// best-fit-decreasing on the flattened missions finds a witness in one pass.
 describe('the near-exact plan the search alone cannot decide in budget', () => {
   // Verbatim from the sweep's allocation, duplicate-free this time but not
   // tidied otherwise.
@@ -182,24 +116,14 @@ describe('the near-exact plan the search alone cannot decide in budget', () => {
 
   it('packs, well inside the node budget', () => {
     expect(packFeasible(DURATIONS, COUNTS, CAPACITY, SLOTS)).toBe('packs');
-    // Two orders of magnitude below the default: the heuristic witnesses this
-    // in about as many node-charges as there are missions (1165), so a budget
-    // this size is margin, not a fixture tuned to just clear the bar. Before
-    // the fix this instance was `undecided` at the full default budget.
+    // The completion heuristic witnesses this in about as many node-charges as there are missions.
     expect(packFeasible(DURATIONS, COUNTS, CAPACITY, SLOTS, 2_000)).toBe('packs');
   });
 
-  // No "one mission too many" case here either, for the same reason as
-  // arena:2025: at 72s of slack, adding any listed mission overshoots
-  // `slots * capacity` and the volume bound alone returns `infeasible`
-  // without exercising the fix. See the differential family below for
-  // coverage of near-exact instances that are genuinely infeasible.
+  // No "one mission too many" case here either: at 72s of slack the volume bound alone returns
+  // `infeasible` without ever exercising the fix.
 });
 
-// The shortcut that makes the above tractable: n identical missions of length d
-// fit the room left over exactly when sum_k floor(room_k / d) >= n. That is
-// exact rather than a bound, because identical items are interchangeable and
-// each slot's count is independent — so it has to be right in BOTH directions.
 // These two families pin both, over instances the volume bound cannot see.
 describe('per-slot integrality, where the volume bound is blind', () => {
   it('rules out one mission more than the slots can hold, and admits exactly that many', () => {
@@ -244,9 +168,8 @@ describe('per-slot integrality, where the volume bound is blind', () => {
   });
 });
 
-// Differential against the definition, on instances every cheap prefilter lets
-// through and which are at least 80% full — so the verdict comes from the search
-// rather than from the volume or half-capacity bounds.
+// Differential against the definition, on instances every cheap prefilter lets through and which are at
+// least 80% full — so the verdict comes from the search, not from the volume or half-capacity bounds.
 describe('agrees with brute force on tight instances', () => {
   it('matches on 20k multisets that survive every prefilter', () => {
     const { rnd, ri } = lcg(777);
@@ -289,26 +212,16 @@ describe('agrees with brute force on tight instances', () => {
     }
 
     expect(tested).toBe(20_000);
-    // Both verdicts have to be well represented, or agreement is cheap: a packer
-    // that always said `packs` would match a sample that was never infeasible.
+    // Both verdicts have to be well represented, or agreement is cheap.
     expect(infeasible).toBeGreaterThan(1000);
     expect(undecided).toBe(0);
     expect(wrong.slice(0, 10)).toEqual([]);
   }, 120_000);
 });
 
-// The differential above samples durations and counts independently, which
-// rarely lands on the near-exact regime (arena:3038 is 99.998% full) — a
-// random multiset that happens to be 80%+ full is usually not *close* to the
-// horizon the way a real near-full plan is. This family builds instances the
-// other way around: start from an actual packing (so feasibility is known by
-// construction, not by inspection of a hand-picked fixture — the mistake this
-// file's history already made once, where a fixture asserted infeasible
-// actually packed) and then perturb toward infeasible by merging two items
-// from different slots into one. The merge keeps total volume unchanged, so
-// the volume bound alone cannot decide the perturbed instance either way;
-// whether it is actually infeasible is decided by brute force below, not
-// assumed by the perturbation.
+// Built the other way around: start from an actual packing, so feasibility is known by construction, then
+// perturb toward infeasible by merging two items from different slots. The merge keeps total volume
+// unchanged, so the volume bound alone cannot decide the perturbed instance either way.
 describe('agrees with brute force on near-exact instances built from a known packing', () => {
   it('matches on 5k near-exact multisets, feasible by construction and perturbed toward infeasible', () => {
     const { rnd, ri } = lcg(424242);
@@ -320,10 +233,7 @@ describe('agrees with brute force on near-exact instances built from a known pac
 
     for (let attempts = 0; attempts < 200_000 && tested < 5_000; attempts++) {
       const capacity = ri(20, 80);
-      // Give each slot a target load within a small slack of `capacity`, then
-      // split that target into 1-4 positive pieces. The split is itself a
-      // witness packing, so the unperturbed multiset below is feasible by
-      // construction.
+      // The split is itself a witness packing, so the unperturbed multiset below is feasible by construction.
       const slack = ri(0, 3);
       const slotItems: number[][] = [];
       for (let s = 0; s < SLOTS; s++) {
@@ -342,12 +252,8 @@ describe('agrees with brute force on near-exact instances built from a known pac
 
       let items = slotItems[0].concat(slotItems[1], slotItems[2]);
       let perturbed = false;
-      // Perturb toward infeasible about half the time: merge one item from
-      // slot 0's pieces with one from slot 1's into a single atomic mission.
-      // The merged item now has to fit one slot on its own — exactly the
-      // shape the per-slot integrality shortcut and the residual-volume bound
-      // have to get right together, and the case the search alone struggles
-      // with at high fill.
+      // Merge one item from slot 0's pieces with one from slot 1's: the merged mission now has to fit a
+      // slot on its own, which is the shape the integrality shortcut and the volume bound must get right together.
       if (rnd() < 0.5 && slotItems[0].length > 0 && slotItems[1].length > 0) {
         const i0 = ri(0, slotItems[0].length - 1);
         const i1 = ri(0, slotItems[1].length - 1);

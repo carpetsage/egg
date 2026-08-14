@@ -141,8 +141,7 @@ export interface EvalPrecision {
 
 // The judge's constants; the default so parity and the reported numbers hold.
 export const EXACT_PRECISION: EvalPrecision = { gapTol: 1e-12, maxIters: 2000 };
-// DEVIATION from SPEC section 2 (which fixes gap 1e-12 / 2000 iterations). Steering
-// only ranks incumbents; the plan returned is always re-scored at EXACT_PRECISION.
+// Steering only ranks incumbents; the plan returned is always re-scored at EXACT_PRECISION.
 export const STEERING_PRECISION: EvalPrecision = { gapTol: 1e-7, maxIters: 600 };
 
 interface Inventory {

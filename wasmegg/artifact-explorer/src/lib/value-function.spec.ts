@@ -1,11 +1,5 @@
-// The alpha -> probability conversion, which is what the card prints.
-//
-// `compileInnerLp`'s own arithmetic — chains, diamond dependencies, shadow
-// prices — used to be pinned here too. The oracle re-derives that allocation
-// independently and checks it on every instance it judges, so those cases were
-// asserting a second time what a differential already covers. What is left is
-// the closed-form step between the LP's answer and a number a player reads,
-// which nothing else computes.
+// The alpha -> probability conversion, which is what the card prints: the closed-form step between the LP's
+// answer and a number a player reads, which nothing else computes.
 
 import { describe, it, expect } from 'vitest';
 import { alphaToProb } from './value-function';

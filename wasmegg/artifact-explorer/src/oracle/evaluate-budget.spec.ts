@@ -1,12 +1,5 @@
-// The judge under a golden egg cap.
-//
-// This is the half of the arena's budget support that is easy to get silently
-// wrong. The cap does not constrain an allocation — missions cost no golden
-// eggs — so nothing downstream would throw if the judge ignored it. It would
-// simply score every capped problem as though the crafts were free, credit a
-// candidate with crafts the problem forbade paying for, and then report the
-// difference as the candidate's violation. So each check below is "the same
-// allocation, judged under a tighter purse".
+// The judge under a golden egg cap. The cap does not constrain an allocation — missions cost no golden eggs
+// — so nothing would throw if the judge ignored it; each check below is the same allocation under a tighter purse.
 
 import { describe, expect, it } from 'vitest';
 
@@ -116,9 +109,8 @@ describe('the judge under a craft budget', () => {
   });
 
   it('treats a zero capacity as a real cap when the columns are priced', () => {
-    // The distinction the test below does not make on its own: an
-    // implementation that skipped a zero-capacity row entirely would pass that
-    // one and fail this. Zero means "craft nothing", not "no budget".
+    // Zero means "craft nothing", not "no budget": an implementation that skipped a zero-capacity row
+    // entirely would pass the test below and fail this one.
     const scored = evaluateAllocation(
       instance(singleDag, ['A1'], 40, { capacity: 0, unitPrices: prices(100, 25) }),
       alloc

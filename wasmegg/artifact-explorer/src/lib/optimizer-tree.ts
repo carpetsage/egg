@@ -1,6 +1,5 @@
-// Recipe-tree builders for the inventory and craft-chain panels. Only a node's
-// shallowest occurrence is expanded; the rest render inline as duplicates,
-// which is what keeps the tree finite over a cyclic DAG.
+// Recipe-tree builders for the inventory and craft-chain panels. Only a node's shallowest occurrence is
+// expanded; the rest render inline as duplicates, which is what keeps the tree finite over a cyclic DAG.
 
 import type { Inventory } from 'lib';
 import { getArtifactTierPropsFromId, iconURL } from 'lib';
@@ -147,10 +146,8 @@ function recursiveConsumption(
   return out;
 }
 
-// Craft-chain breakdown tree. The solution's craftPrimal/finalYieldVector are
-// pooled across targets, so every metric here (owned included) is scaled to
-// this target's share of demand; the root itself is never scaled. See
-// OPTIMIZER.md.
+// Craft-chain breakdown tree. `craftPrimal`/`finalYieldVector` are pooled across targets, so every metric
+// here is scaled to this target's share of demand; the root itself is never scaled. See OPTIMIZER.md.
 export function computeCraftChainTree(
   solution: OptimizerSolution,
   rootId: string,
@@ -169,7 +166,6 @@ export function computeCraftChainTree(
     }
   }
 
-  // demand_T(X) = crafts_T * (X consumed per craft of T).
   const consumptionMemo = new Map<string, Map<string, number>>();
   const totalDemand = new Map<string, number>();
   for (const target of solution.perTarget) {
@@ -205,9 +201,8 @@ export function computeCraftChainTree(
       dropped: dropped * share,
       crafted: pooledCrafts * share,
       consumed: (consumed.get(nodeId) ?? 0) * share,
-      // Price the pooled crafts once, then take this target's share of that
-      // bill. Pricing `pooledCrafts * share` instead would restart the
-      // decreasing curve for every target and overstate the total.
+      // Price the pooled crafts once, then take this target's share of that bill. Pricing `pooledCrafts * share`
+      // would restart the decreasing curve for every target and overstate the total.
       goldenEggCost: craftCostOf(nodeId, pooledCrafts, playerInventory) * share,
     };
   };

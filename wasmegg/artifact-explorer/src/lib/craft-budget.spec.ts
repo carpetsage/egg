@@ -1,11 +1,5 @@
-// The golden egg cap, from the outside.
-//
-// The cap is one linear row and it is written into three models, but only one
-// thing about that is a promise to the player: the bill the card prints has to
-// honour the number they typed. So this file states the cap the way the UI does
-// — a capacity handed to `optimize` — and checks the plan that comes back,
-// rather than checking that each model carries the row. Which model holds it is
-// the formulation's business and moves when the formulation moves.
+// The golden egg cap, from the outside: stated the way the UI states it — a capacity handed to `optimize`
+// — and checked on the plan that comes back, rather than on which model carries the row.
 
 import { describe, expect, it } from 'vitest';
 import { ei, getArtifactTierPropsFromId, Inventory, multiCraftCost, perfectShipsConfig, singleCraftCost } from 'lib';
@@ -81,12 +75,8 @@ describe('optimize', () => {
       unitPrices,
     });
 
-    // The card reports the same linear price the budget row is written in, so
-    // the reported bill honours the cap the player set — the property that makes
-    // the cap mean anything. It can land *on* the cap rather than under it, and
-    // the two sides reach the same number by different summations through
-    // HiGHS, so the comparison carries a relative epsilon rather than being
-    // exact.
+    // The bill can land *on* the cap rather than under it, and the two sides reach the same number by
+    // different summations through HiGHS, so the comparison carries a relative epsilon.
     expect(computePlanCraftingCost(capped, null).total).toBeLessThanOrEqual(capacity * (1 + 1e-9));
     expect(capped.bestProbability).toBeLessThanOrEqual(uncapped.bestProbability + 1e-9);
   }, 60_000);

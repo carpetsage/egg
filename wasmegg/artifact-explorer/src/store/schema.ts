@@ -1,6 +1,5 @@
-// Persisted config shapes, defaults, and the type guards that validate
-// localStorage values. Kept free of side effects (no localStorage or window
-// access at import time) so it can be unit tested under node.
+// Persisted config shapes, defaults, and the type guards that validate localStorage values.
+// Free of side effects at import time, so it can be unit tested under node.
 
 import { virtueShipGemCosts, ei } from 'lib';
 
@@ -68,9 +67,6 @@ export function isExtrasConfig(x: unknown): x is ExtrasConfig {
   );
 }
 
-// How much effort the player will put into relaunching missions. Lower effort
-// means a longer launch period, biasing the optimizer away from lots of tiny,
-// babysitting-heavy launches.
 export const EFFORT_LEVELS = ['low', 'medium', 'high', 'max'] as const;
 
 export type EffortLevel = (typeof EFFORT_LEVELS)[number];
@@ -127,9 +123,8 @@ export function isMissionFilters(x: unknown): x is MissionFilters {
     (m.maxGemCostEnabled === undefined || typeof m.maxGemCostEnabled === 'boolean') &&
     (m.maxGemCost === undefined || typeof m.maxGemCost === 'number') &&
     (m.maxGoldenEggCostEnabled === undefined || typeof m.maxGoldenEggCostEnabled === 'boolean') &&
-    // Finite and non-negative, not merely a number: `buildModel` reads a
-    // negative or non-finite capacity as "no cap", so a value that fails this
-    // would leave the checkbox on with nothing enforcing it.
+    // Finite and non-negative, not merely a number: `buildModel` reads a negative or non-finite capacity as
+    // "no cap", so a value that fails this would leave the checkbox on with nothing enforcing it.
     (m.maxGoldenEggCost === undefined || (Number.isFinite(m.maxGoldenEggCost) && m.maxGoldenEggCost >= 0)) &&
     (m.waitTimeDays === undefined || typeof m.waitTimeDays === 'string')
   );

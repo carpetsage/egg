@@ -1,25 +1,15 @@
-// The per-target objective g(s) = log(1 - e^-s), its derivative, and the line
-// search both Frank-Wolfe drivers run on it. A leaf module with no imports:
-// `solver/evaluator.ts` (dense arrays, `solver/simplex.ts`) and
-// `value-function.ts` (Maps, `lp.ts`) legitimately differ in how they walk the
-// craft polytope, but they must agree to the last bit on what they are
-// maximizing — `solveWith` ranks plans with the first and the card is rendered
-// from the second, and the arena's C2 honesty check holds the two to 1e-6 nats.
+// The per-target objective g(s) = log(1 - e^-s), its derivative, and the line search both Frank-Wolfe
+// drivers run on it. A leaf module: the two drivers differ in how they walk the craft polytope, but they
+// must agree to the last bit on what they are maximizing.
 
-// g(s) = log(1 - exp(-s)), computed as log(-expm1(-s)).
-//
-// The form matters. Evaluating `1 - exp(-s)` directly cancels in the s ~ 1e-13
-// regime the arena scores in, so the accurate expm1 form is the one the judge
-// computes and the one this has to match.
+// g(s) = log(1 - exp(-s)), computed as log(-expm1(-s)). The form matters: evaluating `1 - exp(-s)` directly
+// cancels in the s ~ 1e-13 regime the arena scores in.
 export function logHit(s: number): number {
   return s > 0 ? Math.log(-Math.expm1(-s)) : -Infinity;
 }
 
-// g'(s); grows like 1/s as s -> 0, capped to keep linearizations finite.
-//
-// The cut generator in `solver/milp.ts` deliberately does *not* use this — see
-// the note there. At s ~ 1e-13 the cap is active at every tangent point at
-// once, so an outer approximation built on it would carry no curvature at all.
+// g'(s); grows like 1/s as s -> 0, capped to keep linearizations finite. The cut generator in
+// `solver/milp.ts` deliberately does *not* use this — at s ~ 1e-13 the cap is active at every tangent point.
 export const GPRIME_CAP = 1e12;
 
 export function gPrime(s: number): number {

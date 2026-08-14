@@ -508,7 +508,6 @@ export function singleCraftCost(params: CraftingPriceParams, previousCrafts: num
   );
 }
 
-// Total cost of `crafts` consecutive crafts starting after `previousCrafts`.
 export function multiCraftCost(params: CraftingPriceParams, previousCrafts: number, crafts: number) {
   let total = 0;
   for (let i = previousCrafts; i < previousCrafts + crafts; i++) {

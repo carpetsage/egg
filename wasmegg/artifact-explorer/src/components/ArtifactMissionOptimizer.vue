@@ -1,6 +1,5 @@
 <template>
   <div class="lg:grid lg:grid-cols-[minmax(280px,340px)_1fr] lg:gap-6 space-y-6 lg:space-y-0">
-    <!-- Left: inputs sidebar -->
     <div class="lg:sticky lg:top-4 self-start">
       <optimizer-sidebar
         :player-id="playerId"
@@ -14,7 +13,6 @@
       />
     </div>
 
-    <!-- Right: results canvas -->
     <div class="min-w-0 space-y-4">
       <div class="border border-gray-200 rounded-lg p-4">
         <h3 class="text-base font-semibold text-gray-700 mb-3">Best Ship Set</h3>
@@ -60,15 +58,6 @@
         </div>
       </div>
 
-      <!-- One path for any number of targets: the per-target label is only
-           meaningful with more than one, and it has to sit under exactly the
-           same condition as the panel itself. OptimizerInventoryPanel renders
-           nothing without a tree and an inventory, so a heading outside it
-           leaves a bare list of artifact names with nothing under them
-           whenever no player id has been entered -- the default state. The
-           v-for is on a <template> so the single-target case still renders the
-           panel as a direct child of the layout's spacing container, exactly
-           as it did before there was anything to label. -->
       <template v-for="target in inventoryTrees" :key="'inventory-' + target.nodeId">
         <div
           v-if="inventoryTrees.length > 1 && target.tree && playerInventory"
@@ -140,8 +129,7 @@ export default defineComponent({
   setup(props) {
     const { artifactIds } = toRefs(props);
 
-    // In the store so it survives this component unmounting when the selection
-    // empties and the route falls back home.
+    // In the store so it survives this component unmounting when the selection empties.
     const waitTimeDays = computed(() => missionFilters.value.waitTimeDays);
     const maxWaitTimeSeconds = computed(() => parseDurationDays(waitTimeDays.value));
 
@@ -193,15 +181,11 @@ export default defineComponent({
       computeBaseYield(playerInventory.value, artifactIds.value, recipeDag.value)
     );
 
-    // Launch-option enumeration stays on the main thread: it is the only step
-    // needing the loot dataset, which this bundle already loads. See
-    // OPTIMIZER.md.
+    // Launch-option enumeration stays on the main thread: it is the only step needing the loot dataset, which this bundle already loads.
     const computeInputs = computed<OptimizerRequestInput | null>(() => {
       if (!timeBudgetValid.value) return null;
       const launchPeriodSeconds = EFFORT_LAUNCH_PERIOD_SECONDS[missionFilters.value.effort];
       const maxGemCost = missionFilters.value.maxGemCostEnabled ? missionFilters.value.maxGemCost : undefined;
-      // Prices are the player's own, so this recomputes when a save loads —
-      // which is also when the seeded cap changes.
       const craftBudget = missionFilters.value.maxGoldenEggCostEnabled
         ? {
             capacity: missionFilters.value.maxGoldenEggCost,
@@ -249,11 +233,8 @@ export default defineComponent({
           computing.value = false;
           return;
         }
-        // Replacement solve is queued but hasn't posted, so nothing superseded
-        // this at the worker. Leave the spinner to that solve.
         if (autoCompute.value && computeInputs.value !== input) return;
         lastComputedMaxWaitTimeSeconds.value = budget;
-        // Needs artifact metadata the worker has no reason to carry.
         computedResults.value = finalizeSolutions(solutions, input.recipeDag);
         computing.value = false;
       } catch (err) {

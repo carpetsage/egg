@@ -1,11 +1,5 @@
 // Problem construction and scoring. The only place the arena touches a solver.
-//
-// Construction (recipe DAG, option enumeration) is production behaviour, not
-// solving, so the harness owns it and hands every candidate the identical
-// `PlanProblem`. Scoring is `../evaluate.ts`, which re-derives the objective
-// from `src/lib/OPTIMIZER.md` and imports only *types* from `src/lib`. So the
-// number every invariant compares is computed by the harness from the
-// candidate's allocation, never taken from the candidate's own arithmetic.
+// Every invariant compares a number the harness computed from the candidate's allocation, never one it reported.
 
 import { getArtifactTierPropsFromId, singleCraftCost } from 'lib';
 import { buildRecipeDag } from '@/lib';
@@ -24,23 +18,14 @@ const BUDGET_TOL = 1e-9;
 // a plan of a few cheap missions can still land an absolute ulp over.
 const FUEL_ABS_TOL = 1e-6;
 
-// One predicate, called from both `feasible` here and C1 in `invariants.ts`.
-// The two have to agree exactly: C1 is what reports a plan as infeasible, and
-// `feasible` is what every k-opt move filters on, so a tolerance that drifted
-// between them would let C1 fail a plan the improvement search calls legal.
+// One predicate, called from both `feasible` here and C1 in `invariants.ts`. The two have to agree exactly,
+// or C1 fails a plan the improvement search calls legal.
 export function fuelWithinCapacity(fuel: number, capacity: number): boolean {
   return fuel <= capacity * (1 + BUDGET_TOL) + FUEL_ABS_TOL;
 }
 
-// Per-craft golden egg prices, derived here from the game's own price curve
-// rather than taken from `optimizer-cost.ts`. That module is on the
-// implementation side of `independence.spec.ts`, and the point of the arena is
-// that the numbers a candidate is graded against are the harness's own: a
-// shared pricing helper would make a mispriced curve agree with itself.
-//
-// `previousCrafts` indexes the curve; the arena builds its DAGs at a fixed
-// prior-craft count, so the price of a node is the price of every craft of it
-// the plan makes.
+// Per-craft golden egg prices, derived here from the game's price curve rather than taken from
+// `optimizer-cost.ts`: a shared pricing helper would make a mispriced curve agree with itself.
 export function craftUnitPrices(dag: RecipeDAG, previousCrafts = 0): Map<string, number> {
   const prices = new Map<string, number>();
   for (const [nodeId, node] of dag) {
@@ -88,12 +73,8 @@ function buildProblem(inst: ArenaInstance, over: SolveOverrides = {}): PlanProbl
   return {
     options,
     dag,
-    // Copied, not aliased. `options` and `dag` are built fresh for every call,
-    // so a candidate that mutates those can only damage its own problem, but
-    // `targets` would otherwise be the instance's own array: a candidate that
-    // sorted it in place would silently change every later check in the sweep
-    // instead of producing a violation. `ARENA.md` says the problem is
-    // read-only; this is the half of that the harness can enforce cheaply.
+    // Copied, not aliased. `targets` would otherwise be the instance's own array, and a candidate that
+    // sorted it in place would silently change every later check instead of producing a violation.
     targets: [...targets],
     fuelCapacity: over.fuelCapacity ?? inst.fuelCapacity,
     timeCapacity: over.timeCapacity ?? inst.timeCapacity,
@@ -105,11 +86,8 @@ function buildProblem(inst: ArenaInstance, over: SolveOverrides = {}): PlanProbl
   };
 }
 
-// Plan cache. The checks re-solve the identical problem many times per instance
-// (several A and M checks re-solve the unperturbed problem as their baseline),
-// and a `Planner` is a pure function of `PlanProblem`, so serving a repeat from
-// here changes no output — only wall clock. The key is built from nothing
-// outside `PlanProblem`, so this cannot leak instance identity into a solver.
+// Plan cache. A `Planner` is a pure function of `PlanProblem`, so serving a repeat changes no output, only
+// wall clock. The key is built from nothing outside `PlanProblem`, so this cannot leak instance identity.
 const PLAN_CACHE_MAX = 128;
 // The elapsed time is cached with the plan and replayed on a hit, so the
 // scorecard's latency reports what the planner cost on that problem rather than
@@ -118,9 +96,8 @@ interface PlanCacheEntry {
   result: PlanResult;
   elapsedMs: number;
 }
-// Per planner, not per problem: a sweep runs the whole roster in one process, so
-// a cache keyed on the problem alone would answer the second candidate with the
-// first one's plan and make every scorecard depend on roster order.
+// Per planner, not per problem: a sweep runs the whole roster in one process, so a cache keyed on the
+// problem alone would answer the second candidate with the first one's plan.
 const planCaches = new WeakMap<Planner, Map<string, PlanCacheEntry>>();
 
 function cacheFor(planner: Planner): Map<string, PlanCacheEntry> {
@@ -154,10 +131,8 @@ function problemKey(problem: PlanProblem): string {
       return `${id}~${node.isLeaf ? 1 : 0}~${node.legendaryCraftProbability}~${children}`;
     })
     .join(';');
-  // The budget belongs in the key like any other budget. Leaving it out would
-  // serve an uncapped plan for a capped problem, which is exactly the plan a
-  // budget check is trying to rule out — and it would do so silently, since a
-  // cache hit is indistinguishable from a solver that ignored the cap.
+  // The budget belongs in the key like any other. Leaving it out would serve an uncapped plan for a capped
+  // problem, and a cache hit is indistinguishable from a solver that ignored the cap.
   const budget = problem.craftBudget
     ? `${problem.craftBudget.capacity}~${sortedEntries(problem.craftBudget.unitPrices)}`
     : '';
@@ -184,22 +159,9 @@ function copyResult(result: PlanResult): PlanResult {
   };
 }
 
-// One instance per problem, not one per call. The judge caches its compiled LP
-// template — including the BigInt-rational copy the exact path builds — keyed on
-// the `OracleInstance` object identity, so handing it a fresh projection of the
-// same problem every time is a guaranteed cache miss and rebuilds the whole
-// conservation matrix per judgement. A sweep judges each problem many times over
-// (every perturbation in `invariants.ts` re-judges the base problem).
-//
-// Object identity alone is not enough to get that, and this is the part that
-// used to be missing: `buildProblem` allocates a fresh `PlanProblem` on every
-// `run`, so a WeakMap keyed on it never hit across calls and every solve — plan
-// cache hit or not — rebuilt the template it was supposed to be reusing. So the
-// shared cache is keyed structurally, on the same `problemKey` the plan cache
-// uses, which already encodes everything the judge reads (menu, DAG, targets,
-// both budgets, the golden egg cap and the inventory). The WeakMap stays in
-// front of it as the identity fast path, so a check that judges the same
-// problem object repeatedly pays no key-building at all.
+// One instance per problem, not one per call: the judge caches its compiled LP template on `OracleInstance`
+// identity. Keyed structurally on the same `problemKey` the plan cache uses, since `buildProblem` allocates
+// a fresh `PlanProblem` every run; the WeakMap stays in front as the identity fast path.
 const instanceCache = new WeakMap<PlanProblem, OracleInstance>();
 const INSTANCE_CACHE_MAX = 128;
 const instancesByKey = new Map<string, OracleInstance>();
@@ -294,10 +256,8 @@ export function budgetsOf(problem: PlanProblem, alloc: readonly number[]): Budge
   };
 }
 
-// Note what is deliberately absent: the golden egg budget. Missions cost no
-// golden eggs, so no allocation can breach it — the cap binds on the craft
-// split, which the judge chooses in `../evaluate.ts` under the same row. There
-// is nothing about a returned allocation left to check against it here.
+// The golden egg budget is deliberately absent: missions cost no golden eggs, so no allocation can breach
+// it — the cap binds on the craft split, which the judge chooses in `../evaluate.ts` under the same row.
 export function feasible(problem: PlanProblem, alloc: readonly number[]): boolean {
   const b = budgetsOf(problem, alloc);
   return fuelWithinCapacity(b.fuel, problem.fuelCapacity) && b.pack === 'packs';

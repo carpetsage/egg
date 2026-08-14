@@ -1,7 +1,3 @@
-// Every expectation here is built from lib's own singleCraftCost/multiCraftCost
-// rather than a captured number: the point is that this module reuses the game's
-// price curve, not that it reproduces some snapshot of it.
-
 import { describe, expect, it } from 'vitest';
 import { ei, getArtifactTierPropsFromId, Inventory, multiCraftCost, singleCraftCost } from 'lib';
 
@@ -67,9 +63,6 @@ describe('fractionalCraftCost', () => {
     }
   });
 
-  // The direction matters: this is the same over-statement the golden egg cap
-  // is built on, so the reported bill can never come in under the cap that
-  // produced the plan. It agrees with what the game charges at one craft only.
   it('over-states multiCraftCost past the first craft, never under-states it', () => {
     expect(fractionalCraftCost(params, 0, 1)).toBe(multiCraftCost(params, 0, 1));
     for (const n of [2, 5, 20]) {
@@ -216,25 +209,15 @@ describe('sumCraftChainCost', () => {
       ],
     });
 
-    // Each target demands half the lt2 pool, so each is billed half of the
-    // four-craft price.
     const lt3Cost = sumCraftChainCost(computeCraftChainTree(solution, lt3, null));
     const lt4Cost = sumCraftChainCost(computeCraftChainTree(solution, lt4, null));
     expect(lt3Cost).toBeCloseTo(craftCostOf(lt3, 1, null) + craftCostOf(lt2, 4, null) / 2, 9);
     expect(lt4Cost).toBeCloseTo(craftCostOf(lt4, 1, null) + craftCostOf(lt2, 4, null) / 2, 9);
 
-    // The shares reconcile with the solution card's total: no target's chain
-    // root is an ingredient of another target here, so nothing is scaled to 1
-    // twice.
     const { total } = computePlanCraftingCost(solution, null);
     expect(total).toBe(craftCostOf(lt3, 1, null) + craftCostOf(lt4, 1, null) + craftCostOf(lt2, 4, null));
     expect(lt3Cost + lt4Cost).toBeCloseTo(total, 9);
 
-    // Under the linear price the split is purely about attribution: two crafts
-    // billed twice and four billed once come to the same number, so halving the
-    // pool cannot overstate the total the way it would against the real
-    // decreasing curve. What the split still decides is *which* target carries
-    // the lt2 bill, which is what the per-target assertions above pin.
     expect(craftCostOf(lt2, 2, null) * 2).toBeCloseTo(craftCostOf(lt2, 4, null), 9);
   });
 });

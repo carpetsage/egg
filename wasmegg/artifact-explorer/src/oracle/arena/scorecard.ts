@@ -1,14 +1,5 @@
-// Sweep driver and reporting.
-//
-// Two things get measured per solver, and they are not the same thing:
-//
-//   correctness  -- invariant violations, which need no reference answer
-//   quality      -- the judged joint probability of the plan it returns on the
-//                   unperturbed instance, which is only meaningful relative to
-//                   another solver on the same instance
-//
-// Quality is reported in log10, because the values span 1e-1 to 1e-19 and an
-// arithmetic mean of those is just the largest one.
+// Sweep driver and reporting. Correctness (invariant violations) and quality (the judged joint
+// probability on the unperturbed instance) are measured apart; quality is in log10, spanning 1e-1 to 1e-19.
 
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
@@ -22,7 +13,6 @@ export interface InstanceResult {
   label: string;
   targets: number;
   options: number;
-  // Judged joint probability of the plan on the unperturbed instance.
   joint: number;
   // Wall clock of the single unperturbed solve, not of the whole check set.
   solveMs: number;
@@ -87,20 +77,12 @@ export function sweep(
   return { solverId: solver.id, description: solver.description, instances, totalMs: Date.now() - started };
 }
 
-// ---------------------------------------------------------------------------
-// Reporting
-
 const log10 = (p: number) => (p > 0 ? Math.log10(p) : -Infinity);
 
 interface InvariantTally {
   invariant: string;
   count: number;
   instances: number;
-  // Largest finite magnitude seen, signed. Infinite gaps are counted
-  // separately rather than folded in here: "this plan scores zero where a
-  // strictly more constrained one scored something" is a different kind of
-  // failure from "this plan is 1.1 nats worse", and averaging them together
-  // would let one collapse hide every measurable regression behind it.
   worstNats: number;
   collapses: number; // a positive probability became exactly 0
   rescues: number; // exactly 0 became a positive probability
@@ -165,9 +147,6 @@ export function formatScorecard(r: SweepResult): string {
     );
     for (const row of t) {
       const worst = row.worstNats === 0 ? '-' : `${row.worstNats.toFixed(4)} nats`;
-      // `p->0` is the plan collapsing to zero probability where a strictly
-      // easier instance did not; `0->p` is the reverse, a harder instance
-      // finding something the easier one missed entirely.
       const zeros =
         row.collapses === 0 && row.rescues === 0
           ? '-'
@@ -201,14 +180,12 @@ export function formatScorecard(r: SweepResult): string {
   return lines.join('\n');
 }
 
-// Head-to-head on the unperturbed instance. Positive log10 delta means `b`
-// found a better plan than `a` on that instance.
+// Head-to-head on the unperturbed instance. A positive log10 delta means `b` found the better plan.
 export function formatComparison(a: SweepResult, b: SweepResult): string {
   const lines: string[] = [];
   lines.push('');
   lines.push(`=== ${b.solverId} vs ${a.solverId} (plan quality on the unperturbed instance) ===`);
   lines.push('');
-  // Solver ids are free-form, so size the value columns to whichever is wider.
   const w = Math.max(16, a.solverId.length + 2, b.solverId.length + 2);
   lines.push(
     `    ${pad('instance', 12)}${pad('T', 4, true)}${pad('opts', 7, true)}${pad(a.solverId, w, true)}${pad(b.solverId, w, true)}${pad('delta log10', 14, true)}`
@@ -263,8 +240,6 @@ export function writeResults(dir: string, r: SweepResult): string {
   const path = resolve(dir, `${r.solverId}.json`);
   mkdirSync(dirname(path), { recursive: true });
   // JSON has no infinity, and `JSON.stringify` silently writes `null` for one.
-  // A `p->0` collapse is the most severe violation the harness reports, so
-  // losing it on the way to disk would be exactly the wrong thing to drop.
   writeFileSync(
     path,
     JSON.stringify(r, (_k, v) => (typeof v === 'number' && !Number.isFinite(v) ? String(v) : v), 2)

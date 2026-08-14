@@ -1,21 +1,5 @@
-// The arena is only worth running if the harness and the candidates cannot see
-// each other. That is a property of the import graph, so it is asserted here
-// rather than left to review.
-//
-// Three directions, and they fail for different reasons:
-//
-//   harness -> solver   would mean the harness is testing one specific
-//                       implementation again, which is the thing this branch
-//                       exists to undo
-//   solver -> judge     would let a candidate read or tune against the scoring
-//                       code and the feasibility rule it is being graded by
-//   src/lib -> arena    would make the shipped app depend on its own test
-//                       harness, which is how the planner ended up living under
-//                       `src/oracle/` in the first place
-//
-// Specifiers are resolved to real files rather than substring-matched, so a
-// renamed module cannot quietly fall out of the guard, and an entry naming a
-// module that no longer exists fails loudly instead of matching nothing.
+// The arena is only worth running if the harness and the candidates cannot see each other. That is a
+// property of the import graph, so it is asserted here rather than left to review. See ARENA.md.
 
 import { describe, expect, it } from 'vitest';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
@@ -38,9 +22,6 @@ function importsOf(source: string): string[] {
   while ((m = re.exec(source)) !== null) out.push(m[1]);
   const bare = /(?:^|\n)\s*import\s+['"]([^'"]+)['"]/g;
   while ((m = bare.exec(source)) !== null) out.push(m[1]);
-  // A dynamic import and a re-export move the same bindings a static import
-  // does. This file itself reaches `./registry` through the first form, so a
-  // candidate could reach the judge the same way and leave the guard green.
   const dynamic = /\bimport\s*\(\s*['"]([^'"]+)['"]\s*\)/g;
   while ((m = dynamic.exec(source)) !== null) out.push(m[1]);
   const reexport = /(?:^|\n)\s*export\s[^;]*?from\s+['"]([^'"]+)['"]/g;
@@ -48,12 +29,8 @@ function importsOf(source: string): string[] {
   return out;
 }
 
-// Type-only imports move no code and cannot change behaviour, so they are not
-// a coupling. This strips the two statement forms that are erased wholesale —
-// `import type { X } from ...` and `export type { X } from ...`; the second is
-// how `contract.ts` re-exports the plan types it no longer defines. An inline
-// `import { type X }` is still reported as a value import, which errs towards
-// flagging a coupling that is not one rather than missing one that is.
+// Type-only imports move no code and are not a coupling; this strips the two statement forms erased
+// wholesale. An inline `import { type X }` is still reported, erring toward over-flagging.
 function valueImportsOf(source: string): string[] {
   const withoutTypeImports = source
     .replace(/(?:^|\n)\s*import\s+type\s[^;]*?;/g, '\n')
@@ -61,10 +38,6 @@ function valueImportsOf(source: string): string[] {
   return importsOf(withoutTypeImports);
 }
 
-// Comments move no code either. Crude — a `//` inside a string literal takes
-// the rest of the line with it — which for the one thing this is used for
-// (looking for a solver id in executable code) can only over-strip, never
-// under-strip.
 function stripComments(source: string): string {
   return source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, '');
 }
@@ -79,14 +52,6 @@ function walk(dir: string): string[] {
   return out;
 }
 
-// Resolve an import specifier the way the bundler does, to an absolute file
-// under `src/`. Returns null for bare package specifiers (`lib`, `highs`,
-// `vitest`), which are outside this app and outside this guard.
-//
-// Substring matching is what let the old list rot: `'/lp'` and `'lib/lp'` were
-// two spellings of one module and `'optimizer.worker'` never appeared in any
-// specifier at all, so both an alias and a typo scored the same — zero matches,
-// silently.
 function resolveSpec(fromFile: string, spec: string): string | null {
   const bare = spec.split('?')[0];
   let base: string;
@@ -122,11 +87,6 @@ const HARNESS_FILES = [
   'scorecard.ts',
 ];
 
-// Every module under `src/lib`, split in two. The split is exhaustive by test
-// (`the src/lib classification is exhaustive` below), so adding a module to
-// `src/lib` without deciding which side it falls on fails rather than defaulting
-// to "allowed" — which is what the previous free-text list did.
-
 // The planner and everything downstream of it. The harness must not run any of
 // this: it is the thing being measured.
 const IMPLEMENTATION = [
@@ -134,10 +94,8 @@ const IMPLEMENTATION = [
   'lp.ts', // the incumbent's LP
   'optimizer-client.ts', // worker-backed entry point to the planner
   'optimizer-core.ts', // the plan pipeline; calls the planner
-  // Prices a finished plan, and derives the golden egg cap's per-craft prices
-  // from the same curve. The cap is part of a problem statement, but the arena
-  // states none with one, and everything else here reads a plan — so the module
-  // sits downstream.
+  // Prices a finished plan and derives the cap's per-craft prices from the same curve. Everything here
+  // reads a plan, so the module sits downstream.
   'optimizer-cost.ts',
   'optimizer-tree.ts', // craft-tree assembly from a plan
   'optimizer-views.ts', // render models built from a plan
@@ -157,10 +115,8 @@ const IMPLEMENTATION = [
   'value-function.ts',
 ];
 
-// Game data, problem construction and pure types. The harness needs these to
-// state a problem at all — `buildRecipeDag` and `enumerateLaunchOptions` are
-// what turn a generated instance into a `PlanProblem` — and none of them decide
-// anything about a plan.
+// Game data, problem construction and pure types. The harness needs these to state a problem at all, and
+// none of them decide anything about a plan.
 const PROBLEM_SURFACE = [
   'artifacts.ts',
   'filter.ts',
@@ -173,28 +129,14 @@ const PROBLEM_SURFACE = [
   'types.ts',
 ];
 
-// The entries allowed to import production code, because they *are* production
-// code: each is a shim around `src/lib/solver/`, so the planner users run and
-// the planner the harness measures are one module. `highs` enters it at the
-// shipped tuning; a second entry may enter the same module at a different one,
-// which is how a tuning gets A/B'd against the incumbent over the same
-// instances and the same judge.
-//
-// The exception stays narrow in the two ways that matter. Only into
-// `src/lib/solver/` — not the rest of `src/lib` — and only for a file that does
-// no solving of its own, which `the shim entries are shims and nothing more`
-// below enforces on every entry in this list. A candidate proposing a *method*
-// rather than a tuning still re-derives its own machinery; being listed here is
-// a statement that the file adds nothing to what already ships.
+// The entries allowed to import production code, because they *are* production code: each is a shim around
+// `src/lib/solver/`. The exception stays narrow — only into `src/lib/solver/`, and only for a file that does
+// no solving of its own, which the shim check below enforces on every entry in this list.
 const SHIM_ENTRIES = [join(SOLVERS, 'highs', 'index.ts')];
 const SHIMS_MAY_IMPORT = join(LIB, 'solver');
 
 describe('arena independence', () => {
   it('the src/lib classification is exhaustive and has no dead entries', () => {
-    // (a) nothing listed that does not exist, and (b) nothing existing that is
-    // not listed. Together these are what keep the guard honest as `src/lib`
-    // changes: a new module is a test failure until someone decides which side
-    // of the line it is on.
     const classified = [...IMPLEMENTATION, ...PROBLEM_SURFACE].sort();
     expect(new Set(classified).size).toBe(classified.length);
     expect(classified).toEqual(libModules());
@@ -220,12 +162,8 @@ describe('arena independence', () => {
   });
 
   it('the harness names no solver', () => {
-    // `registry.ts` is the only file allowed to know which candidates exist.
-    //
-    // Code only. A comment is allowed to cite `src/lib/solver/SPEC.md` as the
-    // document an invariant was argued in — prose about where a rule came from
-    // is not the harness branching on which candidate it is grading, which is
-    // the thing this forbids.
+    // `registry.ts` is the only file allowed to know which candidates exist. Code only: a comment may cite
+    // `src/lib/solver/SPEC.md` as the document an invariant was argued in.
     const offenders: string[] = [];
     for (const file of HARNESS_FILES) {
       const src = stripComments(readSource(file));
@@ -248,18 +186,8 @@ describe('arena independence', () => {
   });
 
   it('candidates re-derive everything: no value import from src/lib', () => {
-    // Types move no code, so `import type { LaunchOption } from ...` is fine
-    // and is how a candidate reads the problem at all. What is excluded is
-    // running any of the incumbent's machinery — its LP, its tangent grid, its
-    // packer, its search. A candidate that called into those would be measuring
-    // the incumbent's method wearing a different hat.
-    //
-    // A named list of exceptions, and it is the whole point of the current
-    // arrangement rather than a hole in it: the files in `SHIM_ENTRIES` exist to
-    // enter the *shipped* planner, so they reach into `src/lib/solver/`
-    // deliberately. Everything else under `solvers/` — including any future
-    // candidate, and including a shim's own reach outside `src/lib/solver/` —
-    // is still forbidden.
+    // Types move no code. What is excluded is running any of the incumbent's machinery — its LP, its tangent
+    // grid, its packer, its search. `SHIM_ENTRIES` is a named exception; everything else here is still forbidden.
     const offenders: string[] = [];
     for (const path of walk(SOLVERS)) {
       const rel = path.slice(SOLVERS.length + 1);
@@ -274,12 +202,8 @@ describe('arena independence', () => {
   });
 
   it('the shim entries are shims and nothing more', () => {
-    // The exception above is only safe while the files it exempts contain no
-    // solving of their own — otherwise "the shipped planner" would quietly
-    // become "the shipped planner plus whatever this file does on top", and the
-    // arena would stop measuring what ships. A shim is an import list and a
-    // registration; this pins that, on every exempted file rather than on the
-    // first one, so adding an entry to the list cannot smuggle logic in with it.
+    // The exception above is only safe while the files it exempts contain no solving of their own. Pinned on
+    // every exempted file rather than the first, so adding an entry cannot smuggle logic in with it.
     for (const entry of SHIM_ENTRIES) {
       expect(existsSync(entry), `${entry} is listed as a shim but does not exist`).toBe(true);
       const code = readFileSync(entry, 'utf8')
@@ -295,14 +219,6 @@ describe('arena independence', () => {
   });
 
   it('production never imports the arena', () => {
-    // The inversion this file exists to protect. `src/lib` is what ships; the
-    // arena is a test harness that grades it. A production module importing
-    // anything under `src/oracle/` — even a type — would make the shipped app a
-    // dependent of its own test rig, which is exactly the state the solver's
-    // move out of `solvers/highs/` corrected.
-    //
-    // Specs under `src/lib` are exempt: they are tests, and generating a problem
-    // from `arena/instances` is a legitimate thing for one to do.
     const offenders: string[] = [];
     for (const path of walk(LIB)) {
       if (path.endsWith('.spec.ts')) continue;
@@ -323,7 +239,6 @@ describe('arena independence', () => {
   });
 
   it('every registered solver has a distinct id', () => {
-    // Imported lazily so this file stays runnable if a candidate fails to load.
     return import('./registry').then(({ SOLVERS: registered }) => {
       const ids = registered.map(s => s.id);
       expect(new Set(ids).size).toBe(ids.length);

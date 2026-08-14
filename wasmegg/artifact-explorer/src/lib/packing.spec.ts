@@ -4,9 +4,8 @@ import { packWitness } from './packing';
 const NUM_SLOTS = 3;
 const TOL = 1e-9;
 
-// Independent oracle: expand the multiset into individual missions and try
-// every mission in every slot. No DP, no memo, no symmetry breaking — nothing
-// shared with packWitness, so agreement is real evidence.
+// Independent oracle: expand the multiset into individual missions and try every mission in every slot.
+// Nothing is shared with `packWitness`, so agreement is real evidence.
 function bruteForcePacks(durations: number[], counts: number[], capacity: number): boolean {
   const items: number[] = [];
   for (let j = 0; j < durations.length; j++) {
@@ -137,7 +136,6 @@ describe('packWitness', () => {
 
   it('rejects four missions each longer than half capacity', () => {
     expect(packWitness([60], [4], 100)).toBeNull();
-    // Three of them still fit, one per slot.
     const w = packWitness([60], [3], 100);
     expect(w).not.toBeNull();
     expectValidWitness(w!, [60], [3], 100);
@@ -186,7 +184,6 @@ describe('packWitness', () => {
   });
 
   it('still answers from the prefilters when the budget is tiny', () => {
-    // Prefilter rejections happen before any node is spent.
     expect(packWitness([500], [1], 100, 1)).toBeNull();
   });
 });

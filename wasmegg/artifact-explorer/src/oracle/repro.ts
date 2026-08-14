@@ -1,17 +1,7 @@
-// Reproduction tool for oracle findings: dumps the exact optimizeFull inputs
-// behind a finding plus the solver's plan and the oracle's plan.
-//
-//   pnpm repro random-single:1234
-//
-// Not a spec. It asserts nothing and there is nothing here to regress; it used
-// to be one only so it could borrow vitest's module resolution, which cost it a
-// permanently-skipped entry in every test run.
-//
-// It still borrows the *config*: `pnpm repro` runs it under `vitest.config.ts`
-// rather than `vite.config.ts`, because the app config sets `base` and
-// `highs/runtime?url` then resolves to a prefixed path the wasm loader cannot
-// open outside a browser. That is a property of the app's asset base, not of
-// this script, so it is worked around here rather than in `highs.ts`.
+// Reproduction tool for oracle findings: dumps the exact `optimizeFull` inputs behind a finding, plus the
+// solver's plan and the oracle's (`pnpm repro random-single:1234`). Run under `vitest.config.ts` rather than
+// `vite.config.ts`, because the app config's `base` makes `highs/runtime?url` resolve to a prefixed path the
+// wasm loader cannot open outside a browser.
 
 import { optimizeFull } from '../lib/optimizer-core';
 import { bruteForceBest } from './enumerate';

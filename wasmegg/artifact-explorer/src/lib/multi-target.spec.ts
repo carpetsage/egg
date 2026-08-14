@@ -1,9 +1,5 @@
-// What a player's existing stock does to a multi-target plan.
-//
-// How the inner LP routes a shared ingredient between two sinks is checked by
-// the oracle's own independent evaluator, which re-derives that split for every
-// instance it judges. What is here instead is the question a player asks: I own
-// some of these already — which of them change my plan, and which cannot?
+// What a player's existing stock does to a multi-target plan: which of the items they already own change
+// the plan, and which cannot.
 
 import { describe, it, expect } from 'vitest';
 import { ei, Inventory } from 'lib';
@@ -16,7 +12,6 @@ const Name = ei.ArtifactSpec.Name;
 const Level = ei.ArtifactSpec.Level;
 const Rarity = ei.ArtifactSpec.Rarity;
 
-// 4 common + 1 legendary T1, 2 rare T2, 3 common T4.
 function totemInventory(): Inventory {
   return new Inventory({
     inventoryItems: [
@@ -31,9 +26,8 @@ function totemInventory(): Inventory {
 describe('computeBaseYield', () => {
   it('keeps a target that another target consumes, and counts every rarity of it', () => {
     const base = computeBaseYield(totemInventory(), [lt4, lt2], totemDag());
-    // lt2 is an ingredient of lt4, so the owned copies are spendable there.
-    // All 2 are counted even though they are rare: rarity is irrelevant to
-    // crafting, and this stock never feeds the legendary side of the objective.
+    // lt2 is an ingredient of lt4, so the owned copies are spendable there. All 2 count even though they are
+    // rare: rarity is irrelevant to crafting, and this stock never feeds the legendary side of the objective.
     expect(base.get(lt2)).toBe(2);
     expect(base.get(lt1)).toBe(5);
   });

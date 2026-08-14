@@ -130,12 +130,10 @@ export const playerShipsConfig = ref<ShipsConfig | null>(null);
 export const playerInventory = shallowRef<Inventory | null>(null);
 export const playerTotalCraftingXp = ref<number | null>(null);
 export const playerTankLevel = ref<number | null>(null);
-// Golden eggs the player can actually spend: lifetime earned less lifetime
-// spent, the same balance the rockets tracker reports.
+// Golden eggs the player can actually spend: lifetime earned less lifetime spent.
 export const playerGoldenEggs = ref<number | null>(null);
 
-// Set by ArtifactMissionOptimizer so the settings UI can show the prior craft
-// count of every selected target.
+// Set by ArtifactMissionOptimizer; read by the settings UI.
 export const currentOptimizerArtifactIds = ref<string[]>([]);
 
 export const playerCraftingLevel = computed<number | null>(() => {
@@ -162,7 +160,6 @@ export const playerPreviousCrafts = computed<number | null>(() => {
   return playerPreviousCraftsByArtifact.value.get(id) ?? null;
 });
 
-// Effective values consumed by the optimizer.
 export const effectiveCraftingLevel = computed<number>(() => {
   const player = playerCraftingLevel.value;
   if (player == null) return extras.value.craftingLevel;
@@ -183,8 +180,6 @@ export const effectiveTankLevel = computed<number>(() => {
 
 export const effectiveFuelTankCapacity = computed<number>(() => fuelTankSizes[effectiveTankLevel.value]);
 
-// What the optimizer reads: the manual config when no player data is loaded,
-// otherwise player data with overridden fields taken from the manual config.
 export const effectiveConfig = computed<ShipsConfig>(() => {
   const player = playerShipsConfig.value;
   if (!player) return config.value;
@@ -208,10 +203,6 @@ export const effectiveConfig = computed<ShipsConfig>(() => {
   };
 });
 
-// Copy the loaded save's values into the manual (override) values, so that
-// turning on an override starts from the player's real value rather than a
-// default or one left over from another account. Called by setPlayerData when
-// the save belongs to an EID we haven't seeded from before.
 function seedOverrideValuesFromPlayerData(): void {
   const player = playerShipsConfig.value;
   if (player) {
@@ -246,7 +237,6 @@ export function setPlayerData(backup: ei.IBackup): void {
 
   const base = newShipsConfig(backup.game);
 
-  // Accumulate launch points per ship from completed missions.
   const launchPoints: Partial<Record<Spaceship, number>> = {};
   const hasLaunched: Partial<Record<Spaceship, boolean>> = {};
 
@@ -265,7 +255,6 @@ export function setPlayerData(backup: ei.IBackup): void {
 
   for (const shipType of spaceshipList) {
     base.shipLevels[shipType] = computeShipLevelFromPoints(shipType, launchPoints[shipType] ?? 0);
-    // Chicken One is always available; other ships require completed missions.
     base.shipVisibility[shipType] = shipType === Spaceship.CHICKEN_ONE ? true : (hasLaunched[shipType] ?? false);
   }
 
@@ -284,11 +273,8 @@ export function setPlayerData(backup: ei.IBackup): void {
   playerTankLevel.value = backup.artifacts?.tankLevel ?? null;
   playerGoldenEggs.value = Math.max(0, (backup.game.goldenEggsEarned ?? 0) - (backup.game.goldenEggsSpent ?? 0));
 
-  // The golden egg cap tracks the save's balance for as long as it is off, so
-  // ticking it on means "what I can afford right now" without typing a number.
-  // Once it is on the value is the user's, and reloading a save leaves it be —
-  // unlike the seeded overrides below, which are per-EID, because a balance
-  // goes stale on every craft rather than only on a change of account.
+  // The cap tracks the save's balance for as long as it is off, so ticking it on means "what I can
+  // afford right now". Once on the value is the user's, and reloading a save leaves it be.
   if (!missionFilters.value.maxGoldenEggCostEnabled) {
     missionFilters.value.maxGoldenEggCost = playerGoldenEggs.value;
   }
@@ -418,10 +404,8 @@ export function setMaxGoldenEggCostEnabled(enabled: boolean): void {
   missionFilters.value.maxGoldenEggCostEnabled = enabled;
 }
 
-// Non-finite is dropped rather than clamped: `Math.max(0, NaN)` is NaN, and a
-// NaN or Infinity capacity reads downstream as "no cap" — the checkbox would
-// stay on with nothing enforcing it. Keeping the previous value is the safe
-// reading of an unusable input.
+// Non-finite is dropped rather than clamped: `Math.max(0, NaN)` is NaN, and a NaN or Infinity capacity
+// reads downstream as "no cap" — the checkbox would stay on with nothing enforcing it.
 export function setMaxGoldenEggCost(cost: number): void {
   if (!Number.isFinite(cost)) return;
   missionFilters.value.maxGoldenEggCost = Math.max(0, cost);

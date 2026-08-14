@@ -15,7 +15,6 @@ import { getMissionLootData, MIN_LEGENDARY_OBSERVATIONS } from '@/lib';
 import { sum } from '@/utils';
 import { Ingredient } from 'lib/artifacts/data-json';
 
-// Recursively add `id` and its whole crafting tree to `recipeDag`.
 export function generateRecipeDag(id: string, recipeDag: RecipeDAG) {
   if (recipeDag.has(id)) return;
 
@@ -42,9 +41,8 @@ export function generateRecipeDag(id: string, recipeDag: RecipeDAG) {
   }
 }
 
-// Every visible ship crossed with its applicable mission targets, costed per
-// single ship. launchPeriodSeconds floors each mission's effective duration,
-// penalising short missions without banning them.
+// Every visible ship crossed with its applicable mission targets, costed per single ship.
+// `launchPeriodSeconds` floors each mission's effective duration, penalising short missions without banning them.
 export function enumerateLaunchOptions(
   playerConfig: ShipsConfig,
   dag: RecipeDAG,

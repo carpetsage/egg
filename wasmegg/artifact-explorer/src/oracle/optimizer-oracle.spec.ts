@@ -1,16 +1,3 @@
-// Brute-force oracle harness for the outer solver: the one place a plan is
-// compared against a *proven* optimum rather than against properties of one.
-//
-// Instances are small enough to enumerate exhaustively, so `bruteForceBestJoint`
-// returns the true best allocation and the plan is scored against it. That is
-// the whole reason to keep a second harness alongside the arena — the arena runs
-// production-scale instances where no reference answer exists, and everything it
-// can check without one (feasibility, honesty, monotonicity, local optimality)
-// is checked there rather than duplicated here.
-//
-// Calibration probes and smoke fuzz always run; the deep fuzz campaign runs
-// with RUN_ORACLE=1 (pnpm test:oracle), time-boxed by ORACLE_TIME_BUDGET_MS.
-
 import { describe, expect, test } from 'vitest';
 
 import { optimizeFull } from '../lib/optimizer-core';
@@ -21,7 +8,6 @@ import { evaluateAllocation, evaluateAllocationJoint, OracleInstance, targetQ } 
 import { FAMILIES, Family, generateInstance } from './generate';
 
 const GAP_TOL = Number(process.env.ORACLE_GAP_TOL ?? 1e-3);
-// the smoke tier only guards against catastrophic gaps
 const SMOKE_GAP_TOL = Math.max(GAP_TOL, 0.05);
 const DEEP = process.env.RUN_ORACLE === '1';
 const BUDGET_MS = Number(process.env.ORACLE_TIME_BUDGET_MS ?? 25 * 60_000);
@@ -77,9 +63,6 @@ function reconstructAllocation(inst: OracleInstance, solution: OptimizerSolution
   return allocation;
 }
 
-// Second opinion on an oracle-found allocation: collapse it into one synthetic
-// take-it-or-leave-it option and let the solver price it, so a reported gap
-// cannot be an oracle-model artifact.
 async function solverPricesAllocation(inst: OracleInstance, allocation: number[]): Promise<number> {
   const yields = new Map<string, number>();
   const legendary = new Map<string, number>();
@@ -118,15 +101,6 @@ async function checkInstance(inst: OracleInstance, gapTol = GAP_TOL): Promise<In
     return { family: inst.label, seed: inst.seed, gap: NaN, failures };
   }
 
-  // Feasibility and honesty are deliberately not re-checked here. The arena
-  // states them as C1 and C2/C3 and runs them over production-scale instances
-  // against its own packer and its own judge; asserting them a second time on
-  // these toy instances only means two places to edit when either rule moves.
-  //
-  // What this harness has and the arena structurally cannot is a *reference
-  // answer*: these instances are small enough to enumerate exhaustively, so the
-  // plan can be compared against the proven optimum rather than against
-  // properties of the optimum. That is the whole reason the file exists.
   const planEval = evaluateAllocationJoint(inst, allocation);
   const oracle = bruteForceBestJoint(inst);
   const gap = Math.max(0, oracle.bestJointProbability - planEval.jointProbability);
@@ -214,8 +188,6 @@ function assertNoFailures(outcomes: InstanceOutcome[]): void {
   expect(failures.length).toBe(0);
 }
 
-// Calibration probes: instances so small the optimum is unambiguous, checked
-// against closed-form arithmetic. A failure here voids the fuzz results.
 describe('oracle calibration', () => {
   test('inventory-only crafting matches closed form', async () => {
     const p = 0.5;
@@ -333,8 +305,6 @@ describe('oracle calibration', () => {
   });
 
   test('multi-target allocation balances instead of favoring the higher-value target (joint/AND objective)', async () => {
-    // The true continuous optimum, found independently by calculus on
-    // g(Q0*c0) + g(Q1*(2-c0)), balances at c0~1.16, c1~0.84, joint ~0.4095.
     const inst: OracleInstance = {
       label: 'probe',
       seed: 0,
@@ -357,8 +327,6 @@ describe('oracle calibration', () => {
   });
 
   test('three-target joint plan matches the independent oracle (n=3, exercises N-general Frank-Wolfe)', async () => {
-    // Three targets sharing ingredient 'a': the search must split the
-    // inventory three ways, since zeroing any target zeroes the AND.
     const inst: OracleInstance = {
       label: 'probe-n3',
       seed: 0,
@@ -417,7 +385,6 @@ describe('oracle calibration', () => {
   });
 });
 
-// Smoke fuzz: a deterministic handful of instances per family.
 describe('oracle smoke fuzz', () => {
   test('optimizer within tolerance on smoke instances', async () => {
     const outcomes: InstanceOutcome[] = [];
@@ -435,7 +402,6 @@ describe('oracle smoke fuzz', () => {
   }, 120_000);
 });
 
-// Deep fuzz: time-boxed campaign, gated behind RUN_ORACLE=1.
 describe.skipIf(!DEEP)('oracle deep fuzz', () => {
   test(
     'optimizer within tolerance across the full campaign',
@@ -444,8 +410,6 @@ describe.skipIf(!DEEP)('oracle deep fuzz', () => {
       const outcomes: InstanceOutcome[] = [];
       let seed = SEED_BASE;
       let skipped = 0;
-      // round-robin the families so an early exhaustion of the time budget
-      // still leaves balanced coverage
       outer: for (;;) {
         for (const family of FAMILIES) {
           if (Date.now() - started > BUDGET_MS) {
@@ -459,8 +423,6 @@ describe.skipIf(!DEEP)('oracle deep fuzz', () => {
             }
             outcomes.push(await checkInstance(inst));
           } catch (err) {
-            // a crash on one instance must not sink a half-hour campaign,
-            // but it is still a reportable defect of harness or solver
             outcomes.push({
               family,
               seed,

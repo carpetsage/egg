@@ -1,8 +1,5 @@
-// Independent evaluator: compute the legendary probability of an integer
-// launch allocation from first principles, derived from the optimizer's
-// documented objective (see optimizer-core.ts) rather than its implementation.
-// A float simplex ranks the brute-force candidates cheaply; an exact
-// BigInt-rational simplex produces the numbers that get asserted or reported.
+// Independent evaluator: the legendary probability of an integer launch allocation, re-derived from the
+// documented objective. A float simplex ranks candidates; an exact BigInt-rational simplex produces the asserted numbers.
 
 import type { CraftBudget, LaunchOption, RecipeDAG } from '../lib/types';
 import { Frac } from './rational';
@@ -13,26 +10,17 @@ export interface OracleInstance {
   seed: number;
   options: LaunchOption[];
   dag: RecipeDAG;
-  targets: string[]; // desired node ids; [0] is the primary target
+  targets: string[];
   fuelCapacity: number;
   timeCapacity: number;
   baseYield: Map<string, number>;
-  // Golden egg cap on the crafts, when the instance has one.
-  //
-  // Unlike fuel and time, this does not constrain the *allocation* — missions
-  // cost no golden eggs — so it cannot be checked after the fact against a
-  // returned plan. It constrains the craft split, which this evaluator chooses
-  // itself, so the only way for the judge to score a capped problem correctly
-  // is to solve its own polytope with the cap in it. Without that, the judge
-  // would credit a candidate with crafts the problem forbade paying for and
-  // then report the shortfall as the candidate's failure.
   craftBudget?: CraftBudget;
 }
 
 export interface OracleEvaluation {
   score: number; // Q-weighted crafts + direct legendary drops
   lpScore: number; // Q-weighted crafts only
-  drops: number; // total direct legendary drops
+  drops: number;
   probability: number; // 1 - exp(-score)
   expectedCrafts: number | null; // single-target instances only
 }
@@ -45,14 +33,10 @@ export function targetQ(inst: OracleInstance, target: string): number {
   return -Math.log(1 - node.legendaryCraftProbability);
 }
 
-// Shared across allocations of one instance: only the right-hand side (the
-// inventory) changes.
 interface LpTemplate {
   craftables: string[];
   items: string[];
-  // One row per item, then the golden egg row when the instance is capped. The
-  // budget row is last so that `items` still indexes the conservation rows
-  // one-for-one and only the RHS builders below know about the extra one.
+  // The budget row is last, so `items` still indexes the conservation rows one-for-one.
   A: number[][];
   c: number[];
   budgetCapacity: number | null; // RHS of that row; null when uncapped
@@ -113,18 +97,6 @@ function lpTemplate(inst: OracleInstance): LpTemplate {
     c[j] += targetQ(inst, target);
   }
 
-  // sum_n price_n * craft_n <= capacity. Prices come from the instance, so this
-  // evaluator never has to know how the game charges for a craft — only that a
-  // craft has a price and the plan has a purse.
-  //
-  // An unusable capacity throws rather than being read as "no cap". The judge
-  // grades candidates, so quietly dropping the row here would credit craft
-  // splits the instance asked to forbid and then report the difference as the
-  // candidate's failure — the one outcome a harness must never produce. This is
-  // deliberately stricter than `solver/model.ts`, which treats the same value as
-  // uncapped: that path takes a number typed into a field and must not crash a
-  // worker over it, and the store validates it before it gets there. Here the
-  // value is harness-constructed, so a bad one is a bug and should say so.
   let budgetCapacity: number | null = null;
   const budget = inst.craftBudget;
   if (budget) {
@@ -135,8 +107,7 @@ function lpTemplate(inst: OracleInstance): LpTemplate {
       const price = budget.unitPrices.get(id) ?? 0;
       return Number.isFinite(price) && price > 0 ? price : 0;
     });
-    // No priced column is not a cap of zero: nothing in this instance is known
-    // to cost anything, so nothing can consume the purse.
+    // No priced column is not a cap of zero: nothing here is known to cost anything, so nothing can consume the purse.
     if (row.some(p => p > 0)) {
       A.push(row);
       budgetCapacity = budget.capacity;
@@ -148,8 +119,6 @@ function lpTemplate(inst: OracleInstance): LpTemplate {
   return template;
 }
 
-// The LP right-hand side: the inventory over the item rows, plus the budget's
-// capacity when the template carries that row.
 function rhsFloat(template: LpTemplate, inv: ReadonlyMap<string, number>): number[] {
   const b = template.items.map(item => inv.get(item) ?? 0);
   if (template.budgetCapacity !== null) b.push(template.budgetCapacity);
@@ -193,7 +162,6 @@ function directDrops(inst: OracleInstance, allocation: number[]): number {
   return drops;
 }
 
-// Cheap ranking path; ~1e-9 accuracy against gaps asserted at 1e-3 scale.
 export function evaluateAllocationFloat(inst: OracleInstance, allocation: number[]): number {
   const template = lpTemplate(inst);
   const inv = new Map<string, number>();
@@ -232,11 +200,6 @@ export function evaluateAllocation(inst: OracleInstance, allocation: number[]): 
   };
 }
 
-// ---------------------------------------------------------------------------
-// Joint (product) probability evaluator. Solves the TRUE objective directly --
-// no LP relaxation, no tangent lines -- so it can catch bugs in production's
-// tangent-envelope approximation rather than repeating its logic.
-
 export interface OracleJointTargetResult {
   nodeId: string;
   score: number; // Q_T * craftCount_T + direct-drop lambda_T
@@ -245,7 +208,7 @@ export interface OracleJointTargetResult {
 }
 
 export interface OracleJointEvaluation {
-  jointProbability: number; // product over targets of bestProbability
+  jointProbability: number;
   perTarget: OracleJointTargetResult[];
 }
 
@@ -257,8 +220,6 @@ function directDropsFor(inst: OracleInstance, allocation: number[], target: stri
   return drops;
 }
 
-// Re-derived rather than imported, to keep this evaluator independent of
-// production code.
 function logHitProbability(s: number): number {
   return s > 0 ? Math.log(-Math.expm1(-s)) : -Infinity;
 }
@@ -306,12 +267,10 @@ function goldenSectionArgmax(f: (x: number) => number, iters = 80): number {
 }
 
 interface FrontierVertexFloat {
-  scores: number[]; // Q_i * primal[idx_i] for each target
+  scores: number[];
   primal: number[];
 }
 
-// Maximize the weighted-sum craft objective sum_i weights_i * Q_i * craft_i over
-// the conservation polytope (RHS b), for an arbitrary number of targets.
 function solveWeightedFloat(
   template: LpTemplate,
   b: number[],
@@ -328,8 +287,6 @@ function solveWeightedFloat(
   return { scores, primal };
 }
 
-// g'(s); grows like 1/s as s -> 0, so it is capped to keep the linearized
-// objective finite at zero score.
 function jointGPrime(s: number): number {
   const CAP = 1e12;
   return s <= 0 ? CAP : Math.min(1 / Math.expm1(s), CAP);
@@ -337,14 +294,10 @@ function jointGPrime(s: number): number {
 
 interface JointOptimum {
   scores: number[]; // s_i = Q_i * craft_i + lambda_i, per target
-  crafts: number[]; // expected legendary crafts per target
+  crafts: number[];
   logProb: number; // sum_i logHitProbability(s_i)
 }
 
-// Maximize the exact joint objective sum_i g(s_i), s_i = Q_i*craft_i + lambda_i,
-// over the craft-conservation polytope at a fixed inventory, for any number of
-// targets. The simplex, polytope build and objective are all independent
-// re-derivations, so agreement with production is genuine corroboration.
 function optimizeJointFloat(
   template: LpTemplate,
   b: number[],
@@ -353,10 +306,6 @@ function optimizeJointFloat(
   lambdas: number[]
 ): JointOptimum {
   const n = idxs.length;
-  // AWAY-STEP Frank-Wolfe, not plain FW: plain FW zig-zags to ~5e4 iterations
-  // when the optimum lies in the interior of a face. Seeded at the centroid of
-  // the per-target max-craft vertices, since a corner seed leaves n-1 targets
-  // at zero crafts where g(0) = -Infinity pins the line search.
   interface ActiveVertex {
     crafts: number[];
     weight: number;
@@ -384,7 +333,7 @@ function optimizeJointFloat(
   const GAP_TOL = 1e-12;
   for (let iter = 0; iter < 2000; iter++) {
     const scores = crafts.map((craft, i) => Qs[i] * craft + lambdas[i]);
-    const grad = scores.map((s, i) => jointGPrime(s) * Qs[i]); // d/d(craft_i) sum g
+    const grad = scores.map((s, i) => jointGPrime(s) * Qs[i]);
     const c = new Array<number>(template.craftables.length).fill(0);
     for (let i = 0; i < n; i++) c[idxs[i]] = grad[i];
     const { primal } = simplexMaximizeFloatFull(template.A, b, c);
@@ -395,7 +344,6 @@ function optimizeJointFloat(
     const gap = dot(grad, fwVertex) - gDotX;
     if (gap < GAP_TOL) break;
 
-    // The active vertex the gradient likes least.
     let awayIdx = 0;
     let awayDotVal = Infinity;
     for (let k = 0; k < active.length; k++) {
@@ -423,7 +371,6 @@ function optimizeJointFloat(
     };
     const gamma = goldenSectionArgmax(phi, 100) * gammaMax;
 
-    // Reweight the active set for the chosen step, then fold in / drop vertices.
     if (useFw) {
       for (const av of active) av.weight *= 1 - gamma;
       const hit = active.find(av => sameVertex(av.crafts, fwVertex));
@@ -453,8 +400,7 @@ function jointContext(inst: OracleInstance): {
   Qs: number[];
   targets: string[];
 } {
-  // n=1 never reaches here: both entry points short-circuit to the union
-  // evaluator, whose single-target arithmetic is exact.
+  // n=1 never reaches here: both entry points short-circuit to the union evaluator.
   if (inst.targets.length < 2) {
     throw new Error(
       `jointContext requires 2+ targets (got ${inst.targets.length}); n=1 short-circuits to the union evaluator`
@@ -470,7 +416,6 @@ function jointContext(inst: OracleInstance): {
   return { template, idxs, Qs, targets: inst.targets };
 }
 
-// Cheap ranking path; evaluateAllocationFloat's counterpart.
 export function evaluateAllocationJointFloat(inst: OracleInstance, allocation: number[]): number {
   if (inst.targets.length === 1) {
     return 1 - Math.exp(-evaluateAllocationFloat(inst, allocation));
@@ -504,8 +449,6 @@ export function evaluateAllocationJoint(inst: OracleInstance, allocation: number
   const b = rhsFloat(template, inv);
   const lambdas = targets.map(t => directDropsFor(inst, allocation, t));
 
-  // Float FW reaches ~1e-12, far inside the 1e-6 honesty tolerance, and the
-  // optimum is usually interior to a face so no vertex is exactly reportable.
   const opt = optimizeJointFloat(template, b, idxs, Qs, lambdas);
   let jointProbability = 1;
   const perTarget: OracleJointTargetResult[] = targets.map((nodeId, i) => {

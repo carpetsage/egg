@@ -1,18 +1,5 @@
-// The mission-plan pipeline: option filtering, objective evaluation, and the
-// assembly of a renderable solution around whatever plan the planner returned.
-//
-// The planner itself is not here. It is a mixed-integer program handed to HiGHS
-// (`./solver/`), the same module the invariant arena enters as its one candidate
-// (`src/oracle/arena/solvers/highs/index.ts` is a shim around it) — so the
-// planner users run and the planner the harness measures are one code path, and
-// a change to it is proved before it ships. See OPTIMIZER.md for the objective
-// and ARENA.md for what "proved" means.
-//
-// What lives here is everything either side of the search: `optimizeFull`
-// compiles the inner craft LP the objective is defined over, and
-// `assembleFullSolution` turns an allocation into the numbers the UI renders,
-// via the exact objective and the craft-split refinement. The MILP never grades
-// itself — nothing it reports about its own plan reaches the screen.
+// The mission-plan pipeline: option filtering, objective evaluation, and the assembly of a renderable
+// solution around whatever plan the planner (`./solver/`) returned. See OPTIMIZER.md for the objective.
 
 import type { CraftBudget, LaunchOption, LaunchSolution, OptimizerSolution, RecipeDAG, SlotSummary } from './types';
 import { ei } from 'lib';
@@ -34,17 +21,11 @@ export interface OptimizeArgs {
   timeCapacity: number;
   maximumCost: number | undefined;
   baseYield: Map<string, number>;
-  // Golden egg cap on the plan's crafts, or absent for no cap. It has to reach
-  // both the MILP and the inner LPs: the MILP decides which ingredients get
-  // gathered, but the craft counts that are priced and displayed come out of
-  // `assembleFullSolution` below, so a cap the inner LPs did not see would not
-  // bind on the number the card shows.
+  // Golden egg cap on the plan's crafts, or absent for no cap. It has to reach both the MILP and the inner
+  // LPs, or the cap does not bind on the craft counts the card actually prints.
   craftBudget?: CraftBudget;
 }
 
-// Everything `assembleFullSolution` reads, in one place. It used to be half a
-// struct and half loose arguments, which meant two places to look for the state
-// one function needs.
 interface Assembly {
   options: LaunchOption[];
   recipeDag: RecipeDAG;
@@ -59,21 +40,15 @@ function qByTarget(recipeDag: RecipeDAG, targets: string[]): Map<string, number>
   const QByTarget = new Map<string, number>();
   for (const t of targets) {
     const pCraft = recipeDag.get(t)?.legendaryCraftProbability ?? 0;
-    // Q = -log(1 - p) is +Infinity at certainty, which no LP matrix can carry.
-    // Same proxy the MILP steers by, so the two matrices agree on what a certain
-    // craft is worth; see SPEC.md section 4.
+    // Q = -log(1 - p) is +Infinity at certainty, which no LP matrix can carry. Same proxy the MILP steers by,
+    // so the two matrices agree on what a certain craft is worth; see SPEC.md section 4.
     QByTarget.set(t, pCraft <= 0 ? 0 : pCraft >= 1 ? Q_CERTAIN_PROXY : -Math.log(1 - pCraft));
   }
   return QByTarget;
 }
 
-// Per-slot occupancy of a chosen allocation.
-//
-// The MILP places missions in slots itself — that is what makes its plans packed
-// by construction rather than packed by repair — but the seam it returns through
-// carries only totals. Repacking here is cheap and keeps this function honest
-// about what it reports: if the exact packer cannot place the plan, the makespan
-// shown is a best-fit estimate rather than a claim.
+// Per-slot occupancy of a chosen allocation. Repacked here because the seam the MILP returns through carries
+// only totals; if the exact packer cannot place the plan, the makespan shown is a best-fit estimate, not a claim.
 function slotsOfAllocation(options: LaunchOption[], alloc: Map<number, number>, capacity: number): SlotSummary[] {
   const idx = [...alloc.keys()].filter(i => (alloc.get(i) ?? 0) > 0);
   if (idx.length === 0) return [];
@@ -95,9 +70,8 @@ function slotsOfAllocation(options: LaunchOption[], alloc: Map<number, number>, 
   if (witness) {
     for (let j = 0; j < idx.length; j++) for (const slot of witness[j]) place(j, slot);
   } else {
-    // No witness (provably unpackable, or the node budget ran out). Longest
-    // first into the emptiest slot, so the summary at least describes a real
-    // arrangement of these missions even where it overfills.
+    // No witness (provably unpackable, or the node budget ran out). Longest first into the emptiest slot, so
+    // the summary still describes a real arrangement of these missions even where it overfills.
     const order = idx.map((_, j) => j).sort((a, b) => durations[b] - durations[a]);
     for (const j of order) {
       for (let k = 0; k < counts[j]; k++) {
@@ -115,10 +89,8 @@ function slotsOfAllocation(options: LaunchOption[], alloc: Map<number, number>, 
   }));
 }
 
-// The whole plan, start to finish.
-//
-// Async because the solver is a WebAssembly module that has to be fetched and
-// instantiated once; every call after the first resolves off a cached promise.
+// The whole plan, start to finish. Async because the solver is a WebAssembly module instantiated once;
+// every call after the first resolves off a cached promise.
 export async function optimizeFull(args: OptimizeArgs): Promise<OptimizerSolution> {
   const {
     options,
@@ -136,17 +108,9 @@ export async function optimizeFull(args: OptimizeArgs): Promise<OptimizerSolutio
   const R = Number.isFinite(rawR) && rawR > 0 ? rawR : 0;
   const S = Number.isFinite(rawS) && rawS > 0 ? rawS : 0;
 
-  // Missions that cannot be launched even once are dropped before indices are
-  // assigned, so an allocation index means the same thing here and inside the
-  // solver. A mission is unlaunchable if it cannot fit a single slot, if one
-  // copy alone would overrun the fuel tank, or if its ship costs more gems than
-  // the player is willing to spend.
-  //
-  // Fuel is bounded from above only. A zero-fuel mission is legitimate — it is
-  // pure time — and the fuel row it lands in normalises by `fuelCapacity`, so
-  // when that clamps to 0 every mission's fuel coefficient becomes 0 and the
-  // row stops constraining anything; `actualFuel <= R` is what still holds a
-  // NaN fuel budget to the zero-fuel missions.
+  // Dropped before indices are assigned, so an allocation index means the same thing here and inside the solver.
+  // Fuel is bounded from above only — a zero-fuel mission is legitimate — and `actualFuel <= R` is what still
+  // holds a NaN fuel budget to the zero-fuel missions.
   const feasibleOptions = options.filter(
     o =>
       ZERO_TOL < o.actualTime &&

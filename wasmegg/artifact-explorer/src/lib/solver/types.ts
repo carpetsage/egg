@@ -80,20 +80,16 @@ export interface MilpLimits {
 
 export type MilpSolve = (model: MilpModel, limits: MilpLimits) => MilpSolution;
 
-// Options pinned on every solve, so a plan is a function of the model and the limits
-// and of nothing else. See SPEC.md sections 3 and 7.
-//
-// The wasm binding sets a numeric option through `Highs_setDoubleOptionValue` and
-// falls back to the int setter only when the value is integral, so a non-integral or
-// non-finite `threads`/`random_seed`/`mip_max_nodes` is *silently ignored*.
+// Options pinned on every solve, so a plan is a function of the model and the limits and of nothing else.
+// The wasm binding sets a numeric option through `Highs_setDoubleOptionValue` and falls back to the int setter
+// only when the value is integral, so a non-integral or non-finite option is *silently ignored*.
 export const SOLVER_OPTIONS: Readonly<Record<string, boolean | number | string>> = {
   output_flag: false,
   log_to_console: false,
   threads: 1,
   parallel: 'off',
   random_seed: 0,
-  // Off, and measured that way rather than assumed; see SPEC.md section 8
-  // ("Presolve, and the throw it used to cause").
+  // Off, and measured that way rather than assumed; see SPEC.md section 8.
   presolve: 'off',
   primal_feasibility_tolerance: 1e-9,
   // Two orders below HiGHS's 1e-6 default: HiGHS may satisfy a slot row only to this

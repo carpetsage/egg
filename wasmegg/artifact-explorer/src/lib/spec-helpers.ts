@@ -1,13 +1,5 @@
-// Shared fixtures for the optimizer specs: hand-built DAG nodes and launch
-// options with small controlled numbers so tests can assert exact arithmetic,
-// plus the in-process planner entry point the pipeline specs drive.
-//
-// `optimize` lives here rather than in `index.ts` because the app never calls
-// it — components plan through the worker — and `index.ts` is the barrel every
-// component imports. Keeping the only path from that barrel to `optimizer-core`
-// out of it keeps the solver and its 3.4MB of Emscripten glue out of the main
-// chunk by module graph rather than by a lazy import nothing would notice
-// losing.
+// Shared fixtures for the optimizer specs, plus the in-process planner entry point the pipeline specs drive.
+// `optimize` lives here rather than in `index.ts` to keep the solver and its Emscripten glue out of the main chunk.
 
 import { ei, MissionType, type ShipsConfig } from 'lib';
 import type { CraftBudget, DAGNode, LaunchOption, OptimizerConfig, OptimizerSolution, RecipeDAG } from './types';
@@ -24,17 +16,15 @@ export function makeNode(id: string, isLeaf: boolean, children: [string, number]
   };
 }
 
-// Real lunar totem ids, because anything that resolves a node through
-// `getArtifactTierPropsFromId` — base yields, craft prices, tree icons — needs
-// ids the game actually knows.
+// Real lunar totem ids, because anything resolving a node through `getArtifactTierPropsFromId` — base yields,
+// craft prices, tree icons — needs ids the game actually knows.
 export const lt1 = 'lunar-totem-1';
 export const lt2 = 'lunar-totem-2';
 export const lt3 = 'lunar-totem-3';
 export const lt4 = 'lunar-totem-4';
 
-// lt4 = 2x lt3 + 1x lt2, lt3 = 3x lt1, lt2 = 2x lt1; lt1 only drops. Both
-// intermediates share the lt1 leaf, which is what makes it a DAG rather than a
-// tree and gives the specs a shared ingredient to route.
+// lt4 = 2x lt3 + 1x lt2, lt3 = 3x lt1, lt2 = 2x lt1; lt1 only drops. Both intermediates share the lt1 leaf,
+// which is what makes it a DAG rather than a tree.
 export function totemDag(): RecipeDAG {
   return new Map([
     [
@@ -50,9 +40,8 @@ export function totemDag(): RecipeDAG {
   ]);
 }
 
-// The smallest DAG with something to decide: craftable root 'A' needing one
-// leaf ingredient 'B'. With pCraft > 0, missions yielding B produce positive
-// score, so the optimizer has a reason to launch.
+// The smallest DAG with something to decide: craftable root 'A' needing one leaf ingredient 'B'.
+// With pCraft > 0, missions yielding B produce positive score, so the optimizer has a reason to launch.
 export function craftDag(pCraft = 0.1): RecipeDAG {
   return new Map([
     ['A', makeNode('A', false, [['B', 1]], pCraft)],
@@ -91,8 +80,6 @@ export function makeOpt(
   };
 }
 
-// Plan in-process, the way the worker does on the other side of the seam.
-// Async because the planner is a WebAssembly module loaded on first use.
 export async function optimize(
   config: OptimizerConfig,
   playerConfig: ShipsConfig,

@@ -1,18 +1,12 @@
-// Inner crafting LPs over the recipe-conservation polytope. Every node consumed
-// by some parent gets a conservation row; a final target has none, so dropped
-// copies of it do not count as crafts. See OPTIMIZER.md.
+// Inner crafting LPs over the recipe-conservation polytope. Every node consumed by some parent gets a
+// conservation row; a final target has none, so dropped copies of it do not count as crafts.
 
 import type { CraftBudget, RecipeDAG } from './types';
 import { gPrime, goldenSectionArgmax, logHit } from './concave';
 import { solveLp } from './lp';
 
-// The budget's row, over the craft columns of an inner LP:
-//   sum_n price_n * c_n <= capacity
-//
-// Returns null when the budget cannot bind — no cap, or no priced column — so
-// callers add no row at all rather than a vacuous one. An unpriced craftable
-// keeps coefficient 0, which is the honest reading: nothing is known about what
-// it costs, so it cannot consume the budget.
+// Returns null when the budget cannot bind — no cap, or no priced column — so callers add no row at all
+// rather than a vacuous one. An unpriced craftable keeps coefficient 0: it cannot consume the budget.
 function craftBudgetRow(
   nonLeafNodes: readonly string[],
   totalVars: number,
@@ -94,8 +88,6 @@ export function compileInnerLp(
     }
   }
 
-  // One constraint per consumed node:
-  //   sum_parents q * p_parent - (p_n if non-leaf) <= inventory[n]
   const constraintNodes: string[] = [];
   for (const id of recipeDag.keys()) {
     const parents = parentsOf.get(id);
@@ -183,9 +175,6 @@ export interface ProbabilityFields {
   dropProbability: number;
 }
 
-//   craft = 1 - (1 - pCraft)^alpha
-//   drop  = 1 - e^(-lambda)   (Poisson on direct legendary drops)
-//   best  = 1 - (1 - craft)(1 - drop)
 export function alphaToProb(
   alpha: number,
   legendaryYield: Map<string, number>,
@@ -214,10 +203,8 @@ export function alphaToProb(
   return { bestProbability, craftProbability: craftProbability, dropProbability };
 }
 
-// Tangent points for the epigraph relaxation of g(s) = log(1 - e^-s). The
-// envelope OVER-estimates g: safe for search ranking only, never for reporting.
-// (Geometric from 1e-5 to 35, 26 points; transcribed rather than generated so
-// the seed LP's matrix does not move under a refactor.)
+// Tangent points for the epigraph relaxation of g(s). The envelope OVER-estimates g: safe for search
+// ranking only, never for reporting. Transcribed rather than generated, so the seed LP's matrix does not move.
 const JOINT_TANGENT_BREAKPOINTS: readonly number[] = [
   1e-5, 1.8271e-5, 3.3383e-5, 6.09941e-5, 0.000111443, 0.000203617, 0.000372029, 0.000679734, 0.00124194, 0.00226916,
   0.00414598, 0.00757513, 0.0138405, 0.0252881, 0.0462038, 0.0844191, 0.154242, 0.281816, 0.514907, 0.940788, 1.71892,
@@ -229,15 +216,13 @@ interface Tangent {
   beta: number;
 }
 
-// beta_k = g'(s_k) = 1/(e^s_k - 1); alpha_k = g(s_k) - beta_k*s_k.
 const JOINT_TANGENTS: readonly Tangent[] = JOINT_TANGENT_BREAKPOINTS.map(s => {
   const beta = 1 / Math.expm1(s);
   return { alpha: logHit(s) - beta * s, beta };
 });
 
-// z_T can be negative (g(s) < 0 below s = ln 2) but lp.ts assumes x >= 0, so
-// every z_T is shifted up by this much. Only the LP's *primal* is read, and the
-// shift does not move the argmax, so nothing has to undo it.
+// z_T can be negative (g(s) < 0 below s = ln 2) but lp.ts assumes x >= 0, so every z_T is shifted up by
+// this much. Only the LP's primal is read and the shift does not move the argmax, so nothing undoes it.
 const EPIGRAPH_SHIFT = 50;
 
 export interface JointAlphaResult {
@@ -315,9 +300,6 @@ export function compileJointInnerLp(
     A.push(row);
   }
 
-  // One row per (target, tangent breakpoint): z_T - beta_k*Q_T*craft_T <=
-  // alpha_k + EPIGRAPH_SHIFT + beta_k*lambda_T, the lambda term folded into b
-  // at solve time.
   const rowTargetIdx: number[] = [];
   const rowTangentIdx: number[] = [];
   for (let ti = 0; ti < nt; ti++) {
@@ -382,9 +364,8 @@ export function compileJointInnerLp(
   };
 }
 
-// Recover the per-target craft split maximizing the EXACT objective
-// sum_T g(Q_T*craft_T + lambda_T) at a fixed inventory, by Frank-Wolfe with an
-// exact line search. Runs once per returned solution, never in the search loop.
+// Recovers the per-target craft split maximizing the EXACT objective at a fixed inventory.
+// Runs once per returned solution, never in the search loop.
 export function refineJointCraftSplit(
   recipeDag: RecipeDAG,
   targets: readonly string[],
@@ -421,9 +402,6 @@ export function refineJointCraftSplit(
       const s = Q(t) * (currentCraft.get(t) ?? 0) + lam(t);
       weights.set(t, gPrime(s) * Q(t));
     }
-    // The same budget the seed was solved under: every iterate is a convex
-    // combination of the current point and this LP's vertex, and the budget row
-    // is linear, so the whole segment stays inside it.
     const lp = compileInnerLp(recipeDag, [...craftTargets], weights, budget);
     const nonLeafNodes = lp.nonLeafNodes;
     const vertex = lp.solve(inventory);

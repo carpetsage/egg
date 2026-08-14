@@ -1,16 +1,5 @@
-// Instance generation for the arena.
-//
-// An instance here is whatever a player could actually configure in the UI:
-// target set, ship levels and visibility, epic research, tank, effort level,
-// horizon, crafting level, previous crafts. The sampling is uniform over that
-// space on purpose — no structure is designed in, because hand-shaped instances
-// only ever catch bugs someone already thought of.
-//
-// The consequence, measured on the default 40-seed sweep, is that a third of
-// instances come back at or near zero probability (chiefly four-target ones on
-// a weak fleet). Those are real configurations a player can enter, so they stay
-// in the sample; the log-space comparisons in `invariants.ts` are what keep them
-// informative instead of silently inert.
+// Instance generation for the arena. An instance is whatever a player could actually configure in the UI,
+// sampled uniformly on purpose: hand-shaped instances only ever catch bugs someone already thought of.
 
 import { ei, fuelTankSizes, newShipsConfig, shipMaxLevel, spaceshipList, type ShipsConfig } from 'lib';
 import { EFFORT_LEVELS, type EffortLevel } from '@/store/schema';

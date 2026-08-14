@@ -1,15 +1,5 @@
-// What `optimizeFull` owes its caller, rather than what the search does inside.
-//
-// The plan's shape — which options it picks, how it splits a budget between
-// them, whether it beats a hand-computed optimum on a three-option fixture — is
-// the arena's subject, over 40 production instances and against invariants that
-// hold without a reference answer. C1 checks feasibility, D1/D2 check that no
-// small edit improves the returned plan, A1/A2 check that relaxing a budget
-// cannot hurt. Restating any of that here as an expected allocation pins one
-// formulation's output and has to be rewritten whenever the formulation moves.
-//
-// What is left is the part the arena never generates: inputs that come from the
-// UI rather than from a solver, and reported numbers a user reads.
+// What `optimizeFull` owes its caller, rather than what the search does inside. The plan's shape is the
+// arena's subject; what is left here is input that comes from the UI and numbers a user reads.
 
 import { describe, it, expect } from 'vitest';
 import { ei } from 'lib';
@@ -36,11 +26,8 @@ describe('optimizeFull', () => {
     expect(sol.fuelUsed).toBeCloseTo(0, 9);
   });
 
-  // The gem cap used to prune the menu inside enumerateLaunchOptions; it now
-  // rides on the option as `cost` and is applied here, where the budgets are.
-  // It is a UI setting rather than a solver parameter — the arena never states a
-  // problem with one — and a cap that failed to bind tells the player to fly a
-  // ship they cannot afford.
+  // The gem cap rides on the option as `cost` and is applied here, where the budgets are. It is a UI setting
+  // rather than a solver parameter, and a cap that failed to bind tells the player to fly a ship they cannot afford.
   it('drops an option whose ship costs more gems than maximumCost', async () => {
     // The dear ship is the better mission — half the fuel for the same yield —
     // so a cap that failed to bind would show up as it being launched.
@@ -115,10 +102,8 @@ describe('optimizeFull', () => {
   });
 
   it('treats a NaN or negative budget as zero (no launches)', async () => {
-    // An empty input field upstream arrives as NaN; degrade to the no-launch
-    // baseline rather than leak it into the solve. The arena only ever states
-    // well-formed budgets, so this path is reachable from the UI and nowhere
-    // else.
+    // An empty input field upstream arrives as NaN; degrade to the no-launch baseline rather than leak it
+    // into the solve. Reachable from the UI and nowhere else.
     const opts = [makeOpt(10, 10, [['B', 1]]), makeOpt(0, 3, [['B', 1]])];
     for (const timeCapacity of [NaN, -5, Infinity]) {
       const sol = await optimizeFull({

@@ -1,6 +1,5 @@
-// The pipeline must not depend on the order targets were selected in, with a
-// save loaded: each target's legendary craft probability comes from its own
-// crafted count, not from whichever target happened to be first.
+// The pipeline must not depend on the order targets were selected in: each target's legendary craft
+// probability comes from its own crafted count, not from whichever target happened to be first.
 
 import { describe, it, expect } from 'vitest';
 import { ei, Inventory } from 'lib';
@@ -52,11 +51,8 @@ describe('buildRecipeDag with a save loaded', () => {
   });
 });
 
-// That the answer itself does not move is arena B2's job, over instances that
-// can actually make a truncated branch-and-bound diverge. What is left here is
-// the part B2 does not look at: `perTarget` is parallel to the caller's target
-// list, so the seam has to map back out of the sorted order the model works in.
-// Getting that wrong mislabels which artifact each probability belongs to.
+// `perTarget` is parallel to the caller's target list, so the seam has to map back out of the sorted order
+// the model works in. Getting that wrong mislabels which artifact each probability belongs to.
 
 // Two targets over one shared ingredient, with different craft probabilities so
 // their per-target factors are distinguishable.
@@ -88,9 +84,8 @@ describe('the model is a function of the target set, not its order', () => {
     expect(reversed.allocation).toEqual(forward.allocation);
     expect(reversed.reported!.jointProbability).toBe(forward.reported!.jointProbability);
 
-    // ...but `perTarget` is parallel to the caller's list, so it flips. Asserted
-    // as a real permutation: the two factors differ, so a seam that forgot to
-    // map back would return them the wrong way round and this would catch it.
+    // ...but `perTarget` is parallel to the caller's list, so it flips. The two factors differ, so a seam
+    // that forgot to map back would return them the wrong way round and this would catch it.
     const [a1, a2] = forward.reported!.perTarget;
     expect(a1).not.toBe(a2);
     expect(reversed.reported!.perTarget).toEqual([a2, a1]);

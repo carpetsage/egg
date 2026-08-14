@@ -1,23 +1,5 @@
-// Every check below asserts a property that must hold *without knowing the
-// optimum*: grow the feasible set and the answer cannot get worse, relabel the
-// inputs and it cannot move at all, and whatever comes back has to be a plan
-// that actually fits. That is what makes them usable as an arena — a candidate
-// solver needs no reference answer to be graded against, only itself under
-// perturbation.
-//
-// Nothing here imports a solver. The planner arrives as an argument.
-//
-// Comparisons are in log space. The joint probability of a four-target plan on
-// a mediocre fleet is routinely 1e-13 or smaller. Relative comparisons with an absolute floor (the shape this
-// harness originally used, floored at 1e-9) treat every one of those as
-// unmeasurable and skip it: on the default 40-seed sweep that silently disabled
-// 13 instances, including 10 of the 15 four-target ones — precisely the regime
-// multi-target support exists for.
-//
-// In log space a drop from 1e-13 to 1e-14 is 2.30 nats and reads exactly as
-// loudly as 0.5 -> 0.05. So every comparison here is a difference of logs
-// against a tolerance in nats, and probability 0 is -Infinity: a solver that
-// returns nothing where another returns 1e-13 fails, as it should.
+// Arena invariant checks: properties a candidate must satisfy without knowing the optimum.
+// Every comparison is a difference of logs, in nats; probability 0 is -Infinity.
 
 import { ei, spaceshipList } from 'lib';
 import { EFFORT_LAUNCH_PERIOD_SECONDS, EFFORT_LEVELS } from '@/store/schema';
@@ -38,43 +20,26 @@ import type { ArenaInstance } from './instances';
 import { evaluateAllocationJoint, evaluateAllocationJointFloat } from '../evaluate';
 import { mulberry32 } from '../generate';
 
-// Float LP work drifts by a few ulps; below this a difference is arithmetic,
-// not behaviour. 1e-9 nats is ~1e-9 relative.
 const EXACT_NATS = 1e-9;
-// Perturbations that pass through the arithmetic (rescaling, duplicating an
-// option) get a wider band than pure relabelings.
 const REBUILT_NATS = 1e-6;
-// Ordering checks. Anything smaller than this is not a real regression.
 const ORDER_NATS = 1e-6;
 
-// How many times a check that has to repeat itself does so. Both are a
-// tradeoff between sweep time and how much of a rare non-determinism or a rare
-// order sensitivity one instance gets to expose.
 const SHUFFLE_SEEDS = 3;
 const DETERMINISM_REPEATS = 3;
 
-// Add-side width for the 4-opt pass. The loop is O(held^2 * candidates^2) with
-// a joint LP solve at each point, so this is the number that decides whether
-// the tier is minutes or hours.
 const KOPT4_MAX_CANDIDATES = 32;
-// How many copies of one option a single k-opt move may add or drop. Beyond a
-// couple the move stops being local, and the loops below are already the
-// tier's cost driver.
 const KOPT_MAX_DELTA = 2;
 
 const lg = (p: number): number => (p > 0 ? Math.log(p) : -Infinity);
 
-// `to` is worse than `from` by more than `tol` nats.
 function dropped(from: number, to: number, tol = ORDER_NATS): boolean {
   return lg(to) < lg(from) - tol;
 }
 
-// `candidate` beats `base` by more than `tol` nats.
 function improved(base: number, candidate: number, tol = ORDER_NATS): boolean {
   return lg(candidate) > lg(base) + tol;
 }
 
-// The two differ by more than `tol` nats.
 function differs(a: number, b: number, tol: number): boolean {
   const la = lg(a);
   const lb = lg(b);
@@ -83,22 +48,13 @@ function differs(a: number, b: number, tol: number): boolean {
 }
 
 export interface Violation {
-  invariant: string; // 'A1-fuel', 'B1-option-order', ...
+  invariant: string;
   instance: string;
   detail: string;
-  // Signed size of the failure in nats, when the check is a comparison. Lets
-  // the scorecard rank a 12-nat collapse above a 1e-5-nat wobble instead of
-  // counting both as one violation.
   nats?: number;
 }
 
-// `toFixed(6)` on a percentage runs out of digits at 0.000001%, i.e. a
-// probability of 1e-8: anything below that renders as "0.000000%", which makes a
-// violation line unreadable exactly where the numbers are most suspect. So the
-// switch to exponential sits at that probability, and the same constant is what
-// the predicate tests. (The percentage and the probability differ by the factor
-// of 100 between them; the constant below is in probability, like every other
-// number this file compares.)
+// In probability, not percentage: `toFixed(6)` on a percentage bottoms out at 1e-8 probability.
 const PCT_FIXED_FLOOR = 1e-8;
 const pct = (x: number) => (x < PCT_FIXED_FLOOR ? `${(x * 100).toExponential(3)}%` : `${(x * 100).toFixed(6)}%`);
 const gap = (from: number, to: number) => `${(lg(to) - lg(from)).toFixed(4)} nats`;
@@ -111,30 +67,14 @@ export interface CheckContext {
 
 const solve = (c: CheckContext, over: SolveOverrides = {}): Solved => run(c.planner, c.inst, over);
 
-// Record a violation whose size is the log gap between two probabilities.
-//
-// The argument order is the one `dropped`/`improved`/`gap` already take — `from`
-// is what the check compared against, `to` is what the perturbed solve returned
-// — so the signed `nats` the scorecard ranks on and the `(${gap(from, to)})`
-// these details print are the same pair by construction. Written out at each
-// site, the two drifted apart silently whenever a new check got the order
-// backwards.
 function report(c: CheckContext, invariant: string, from: number, to: number, detail: string) {
   c.out.push({ invariant, instance: c.inst.label, detail, nats: lg(to) - lg(from) });
 }
 
-// Record a violation with no comparison behind it: the contract, feasibility and
-// budget-exhaustion checks fail on a fact, not on a gap.
 function reportFlat(c: CheckContext, invariant: string, detail: string) {
   c.out.push({ invariant, instance: c.inst.label, detail });
 }
 
-// ---------------------------------------------------------------------------
-// A. Monotonicity. Growing the feasible set cannot lower the optimum.
-// ---------------------------------------------------------------------------
-
-// Shared driver: solve along an axis ordered most- to least-constrained and
-// require the judged joint probability to be non-decreasing.
 function monotone(id: string, c: CheckContext, axis: { label: string; over: SolveOverrides }[]) {
   let prev = -1;
   let prevLabel = '';
@@ -176,27 +116,6 @@ export function checkA2Time(c: CheckContext) {
   );
 }
 
-// The golden egg budget, which is the one budget that does not constrain the
-// allocation. Missions cost no golden eggs; the cap binds on the craft split,
-// which the judge solves for itself under the same row (`../evaluate.ts`). So
-// this is a pure monotonicity check and there is no C1-style feasibility twin
-// for it — there is nothing about a returned allocation left to verify.
-//
-// The axis is anchored on the baseline plan's own bill for its target crafts,
-// not on an absolute figure: golden egg prices span several decades across the
-// artifact tiers, so a fixed capacity would be slack on every cheap instance
-// and crushing on every dear one, and the check would measure the tier of the
-// target rather than the solver. The anchor understates the true bill, which
-// consumes intermediate tiers too, so the tight end of the axis genuinely bites.
-//
-// One caveat this axis shares with the rest of the A family, worth knowing
-// before reading a violation as a bug in the cap. A budget large enough to be
-// provably redundant can still change the plan at the shipped node budget:
-// measured on tachyon-deflector-4, a cap at 100x the plan's own bill returned a
-// different — and slightly better — plan than no cap at all, the two converging
-// once `maxNodes` reached 50. So a violation here can be branch-and-bound
-// truncation rather than anything about golden eggs, which is what
-// `solver/RESULTS.md` says about the A family generally.
 export function checkA9GoldenEggs(c: CheckContext) {
   const base = solve(c);
   const prices = craftUnitPrices(base.problem.dag, c.inst.previousCrafts);
@@ -204,9 +123,6 @@ export function checkA9GoldenEggs(c: CheckContext) {
   for (const t of base.judged.perTarget) {
     anchor += (prices.get(t.nodeId) ?? 0) * Math.max(0, t.expectedCrafts);
   }
-  // A plan that crafts nothing prices at nothing, and every capacity on the
-  // axis would be zero. Nothing to learn, and the axis would read as trivially
-  // monotone; the zero-probability instances the sweep is full of land here.
   if (!(anchor > 0)) return;
 
   monotone('A9-golden-eggs', c, [
@@ -214,9 +130,6 @@ export function checkA9GoldenEggs(c: CheckContext) {
       label: `golden eggs x${m}`,
       over: { craftBudget: { capacity: anchor * m, unitPrices: prices } } as SolveOverrides,
     })),
-    // The cap removed altogether is the loosest point on the axis, and it is
-    // also the problem every other check in this file solves — so this step ties
-    // the budget axis back to the rest of the sweep.
     { label: 'no golden egg cap', over: {} as SolveOverrides },
   ]);
 }
@@ -242,10 +155,6 @@ export function checkA3Menu(c: CheckContext) {
   }
 }
 
-// The nodes some recipe in the DAG actually eats. Stocking anything else is
-// unrepresentable in the model — `computeBaseYield` drops it for exactly this
-// reason — so a "lopsided inventory" test has to draw its single item from here
-// or it risks asserting monotonicity over a no-op.
 function consumedNodeIds(dag: RecipeDAG): string[] {
   const consumed = new Set<string>();
   for (const node of dag.values()) {
@@ -258,19 +167,6 @@ function consumedNodeIds(dag: RecipeDAG): string[] {
 export function checkA4Inventory(c: CheckContext) {
   const bare = solve(c);
 
-  // Two shapes of inventory, because they fail differently.
-  //
-  // Uniform: stock every non-target node. A solver that handles inventory at
-  // all passes this, since it lifts the floor under every conservation row at
-  // once and rarely changes which plan is best.
-  //
-  // Lopsided: stock exactly one consumed component and nothing else. This is
-  // the discriminating case — it does not raise the computation floor
-  // uniformly, it makes one branch of the recipe cheaper than its siblings, so
-  // a solver that models inventory as a global slack (or that only re-plans
-  // when *every* row moved) can pass the uniform case and fail here. Both are
-  // still pure relaxations of the conservation rows, so neither may lower the
-  // judged joint.
   const consumed = consumedNodeIds(bare.problem.dag);
 
   const uniform = new Map<string, number>();
@@ -281,8 +177,6 @@ export function checkA4Inventory(c: CheckContext) {
 
   const axis: { label: string; over: SolveOverrides }[] = [];
   if (consumed.length > 0) {
-    // Deterministic pick from a sorted list, varied across the sweep by the
-    // instance seed so the sample covers more than one node shape.
     const solo = consumed[c.inst.seed % consumed.length];
     axis.push({ label: `owning 25x ${solo} alone`, over: { baseYield: new Map([[solo, 25]]) } });
   }
@@ -303,8 +197,6 @@ export function checkA4Inventory(c: CheckContext) {
 }
 
 export function checkA5Effort(c: CheckContext) {
-  // Ordered least to most effort: the launch period floor shrinks, so every
-  // option costs no more time than before.
   const byPeriod = [...EFFORT_LEVELS].sort((a, b) => EFFORT_LAUNCH_PERIOD_SECONDS[b] - EFFORT_LAUNCH_PERIOD_SECONDS[a]);
   monotone(
     'A5-effort',
@@ -324,13 +216,7 @@ export function checkA6Capacity(c: CheckContext) {
   );
 }
 
-// Doubling from the floor, capped at the game's max, with 29 spliced in so the
-// top pair is a single level apart.
-//
-// The craft-rarity multiplier moves fastest at the low end, so the geometric
-// prefix keeps that region densely sampled. 29 -> 30 is the tightest increment
-// the parameter admits, so passing it means monotone in the level itself
-// rather than in some bucketing of it.
+// Doubling from the floor to the game's max of 30, with 29 spliced in so the top pair is one level apart.
 const A7_CRAFTING_LEVELS = [1, 2, 4, 8, 16, 29, 30];
 
 export function checkA7CraftingLevel(c: CheckContext) {
@@ -347,8 +233,6 @@ export function checkA8Targets(c: CheckContext) {
   for (let i = 0; i < c.inst.targets.length; i++) {
     const fewer = c.inst.targets.filter((_, k) => k !== i);
     const p = solve(c, { targets: fewer }).joint;
-    // Dropping a target removes a factor <= 1 from the product and frees
-    // budget, so it can only help.
     if (dropped(full, p)) {
       report(
         c,
@@ -361,27 +245,6 @@ export function checkA8Targets(c: CheckContext) {
   }
 }
 
-// ---------------------------------------------------------------------------
-// B. Invariance. Relabelings and rescalings must not move the answer.
-// ---------------------------------------------------------------------------
-
-// Seeded PRNG, not `Math.random` — `mulberry32`, the same generator
-// `../generate.ts` builds the instances with.
-//
-// Not for randomness quality — a Fisher-Yates shuffle of a menu does not need a
-// good generator. For reproducibility, which the arena depends on twice over:
-//
-//  - B5-determinism asserts the *planner* returns the same plan for the same
-//    problem. If the perturbations the other B checks feed it were themselves
-//    unrepeatable, a B1 failure would be a permutation nobody can reconstruct,
-//    and "run it again" would neither confirm nor clear it.
-//  - A sweep writes its violations to `results/` and they get compared across
-//    runs and across candidates. With `Math.random` the menu order would differ
-//    per run and per solver, so two scorecards would not be measuring the same
-//    perturbation and a diff between them would mean nothing.
-//
-// Seeded from the instance seed and the shuffle index, so the whole sweep is a
-// pure function of `ARENA_SEED_BASE`.
 export function checkB1OptionOrder(c: CheckContext) {
   const base = solve(c).joint;
   for (let s = 1; s <= SHUFFLE_SEEDS; s++) {
@@ -423,35 +286,9 @@ export function checkB2TargetOrder(c: CheckContext) {
   }
 }
 
-// B3 is a units check, and it is the only one in the file.
-//
-// Multiplying every fuel cost *and* the tank by the same k is a change of unit,
-// nothing else: the feasible set is literally the same set of allocations, and
-// the objective never mentions fuel. So any k-dependence is a solver reading an
-// absolute fuel figure as if it meant something. Concretely, what this catches:
-//
-//  - an absolute epsilon on the fuel row (`slack > 1e-6`, `cost < 1`), which
-//    silently prunes or admits different options once fuel figures move by 4x.
-//    Real fuel runs from ~1e3 to ~1e18 across the instance space, so a constant
-//    that looks safe on one instance is nonsense on another;
-//  - a hardcoded scaling/conditioning factor, or an LP handed raw 1e18
-//    coefficients without normalisation, where the simplex tolerance starts
-//    deciding feasibility;
-//  - a heuristic ranking options by a fuel figure compared against a literal
-//    rather than against the budget.
-//
-// Nothing else here can see that. A1-fuel moves the tank while the costs stay
-// put, which is a genuine relaxation and a monotonicity question; B3 moves both
-// together, so the answer must not move at all. A solver can pass every A check
-// and still be quietly unit-dependent.
-//
-// The incumbent passes exactly, not within tolerance, because it normalises fuel
-// to a budget of 1 before modelling (see `src/lib/solver/SPEC.md`) — which is the
-// property this invariant exists to keep true of future candidates too.
 export function checkB3FuelScale(c: CheckContext) {
   const base = solve(c).joint;
-  // Powers of two so the rescale is exact in binary floating point and a
-  // failure means conditioning, not rounding.
+  // Powers of two, so the rescale is exact in binary floating point and a failure means conditioning, not rounding.
   for (const k of [0.25, 4]) {
     const p = solve(c, {
       fuelCapacity: c.inst.fuelCapacity * k,
@@ -474,20 +311,10 @@ export function checkB3FuelScale(c: CheckContext) {
   }
 }
 
-// There is no B4, and there never was one — `git log -p` on this file shows the
-// numbering landing with the gap already in it. It is not a retired check whose
-// coverage went missing.
-//
-// The slot is left empty rather than closed up because the ids are the arena's
-// public vocabulary: they are what `results/*.json` keys violations by, what the
-// scorecard tables in `ARENA.md` are written against, and what
-// `src/lib/solver/SPEC.md` cites when it argues which invariants the model holds
-// structurally. Renumbering B5 -> B4 and B6 -> B5 would silently re-point every
-// one of those at a different check, which is a worse outcome than a gap in a
-// sequence. New invariances take the next free number (B7); B4 stays vacant.
+// There is no B4 and there never was. The ids are the arena's public vocabulary, so the slot stays
+// vacant rather than renumbering every check `results/*.json` and ARENA.md are written against.
 export function checkB5Determinism(c: CheckContext) {
-  // `fresh` on every call: a cached plan compared against itself would report
-  // any planner deterministic, which is the one thing this check must not do.
+  // `fresh` on every call: a cached plan compared against itself reports any planner deterministic.
   const first = solve(c, { fresh: true });
   const sig = signature(first);
   for (let k = 1; k < DETERMINISM_REPEATS; k++) {
@@ -510,8 +337,6 @@ export function checkB6DuplicateOption(c: CheckContext) {
   if (base.problem.options.length === 0) return;
   const target = base.problem.options[Math.floor(base.problem.options.length / 2)];
   const duplicated = solve(c, {
-    // A second copy of a mission already on the menu is the same choice; it
-    // must not change what the plan achieves.
     transformOptions: options => [...options, { ...target, id: `${target.id}::dup` }],
   });
   if (differs(base.joint, duplicated.joint, REBUILT_NATS)) {
@@ -525,13 +350,6 @@ export function checkB6DuplicateOption(c: CheckContext) {
   }
 }
 
-// ---------------------------------------------------------------------------
-// C. Self-consistency. No oracle needed, and free at any instance size.
-// ---------------------------------------------------------------------------
-
-// C0 is about the contract itself rather than the optimisation: a candidate
-// that returns a wrong-length or fractional allocation is broken in a way worth
-// separating from one that returns an infeasible or suboptimal plan.
 export function checkC0Contract(c: CheckContext) {
   const s = solve(c);
   for (const b of s.breaches) {
@@ -549,13 +367,6 @@ export function checkC1Feasibility(c: CheckContext) {
       `plan burns ${b.fuel.toExponential(4)} fuel against a ${s.problem.fuelCapacity.toExponential(4)} tank`
     );
   }
-  // `undecided` is the *judge* running out of nodes, not a statement about the
-  // plan — and it happens on tightly-packed plans, which is where a good
-  // candidate lands. Charging it to `C1-feasibility` would make that count
-  // anti-correlated with the thing being measured, so it gets its own id, the
-  // same way `kOpt` separates a truncated search from a clean bill of health.
-  // It still gates (`HARD_FAIL` in `invariants.spec.ts`): the node budget exists
-  // so this does not happen, and hitting it is a goalpost that moved.
   if (b.pack === 'undecided') {
     reportFlat(
       c,
@@ -573,7 +384,7 @@ export function checkC1Feasibility(c: CheckContext) {
 
 export function checkC2Honesty(c: CheckContext) {
   const s = solve(c);
-  if (!s.result.reported) return; // opt-in
+  if (!s.result.reported) return;
   const claimed = s.result.reported.jointProbability;
   const expected = s.joint;
   if (differs(claimed, expected, REBUILT_NATS)) {
@@ -589,9 +400,9 @@ export function checkC2Honesty(c: CheckContext) {
 
 export function checkC3JointIsProduct(c: CheckContext) {
   const s = solve(c);
-  if (!s.result.reported) return; // opt-in
+  if (!s.result.reported) return;
   const r = s.result.reported;
-  if (r.perTarget.length !== s.problem.targets.length) return; // C0 reported it
+  if (r.perTarget.length !== s.problem.targets.length) return;
   const product = r.perTarget.reduce((a, p) => a * p, 1);
   if (differs(product, r.jointProbability, EXACT_NATS)) {
     report(
@@ -604,20 +415,9 @@ export function checkC3JointIsProduct(c: CheckContext) {
   }
 }
 
-// ---------------------------------------------------------------------------
-// M. Cross-path. Bound the multi-target answer using the single-target path.
-// ---------------------------------------------------------------------------
-
-// M2: the joint plan is itself a feasible single-target plan, so a solo solve
-// at the same budget must do at least as well on that target. M1 (joint <=
-// product of solos) follows by multiplying, and is reported from the same
-// solves.
 export function checkM1M2SoloDominance(c: CheckContext) {
   if (c.inst.targets.length < 2) return;
   const joint = solve(c);
-  // `perTarget` is positional against the instance's target list. That is the
-  // judge's contract, but reading it by index without saying so would turn a
-  // future reordering into a silently wrong M2 rather than a failure.
   if (joint.judged.perTarget.length !== c.inst.targets.length) {
     throw new Error(
       `arena: judged perTarget has ${joint.judged.perTarget.length} entries for ${c.inst.targets.length} target(s)`
@@ -650,37 +450,6 @@ export function checkM1M2SoloDominance(c: CheckContext) {
   }
 }
 
-// M3: solve each target alone on its own slice of the budget. The union of
-// those plans is feasible at the full budget -- fuel sums exactly, and the
-// packings concatenate slot-wise since each sub-plan loads a slot by at most
-// its share of the horizon. So the joint search must not lose to it.
-//
-// This is the regression guard for the ALL-of objective: if the joint search
-// ever collapses onto one target, this construction beats it.
-//
-// It is the only check in the file that can catch that, and the reason is the
-// direction of the bound. M3 is the file's one *lower* bound on the joint
-// objective — it fails when the answer is too small. Everything nearby fails for
-// the opposite reason or for a different reason entirely:
-//
-//  - M1/M2 are upper bounds. They fail when the joint claims more than the solos
-//    can justify. A solver that abandons three of four targets and returns
-//    ~0 satisfies both trivially — it never claims anything.
-//  - A8-targets is monotonicity under dropping a target, not a bound on the
-//    answer. A uniformly collapsed solver is still monotone, so A8 stays green.
-//  - D1/D2 also fail on "too small", but only for a plan the k-opt neighbourhood
-//    can reach: at most two lines (four for D2) moved by at most two missions.
-//    The union of per-target plans is usually nowhere near that ball — it can
-//    differ from the returned plan on every line at once — so a solver stuck in
-//    a wide local optimum is locally optimal and still loses to M3.
-//
-// The `continue` on an infeasible union is what keeps this sound rather than
-// what weakens it: the concatenation argument above guarantees feasibility only
-// when each sub-plan really did stay inside its slice, and a sub-solve that
-// overran (or an option the joint menu lacks, skipped above) can push the union
-// over. Judging one of those would report a violation against a plan the solver
-// was never allowed to return. Feasible unions are the common case; skipping the
-// rest costs coverage on an instance, never correctness.
 export function checkM3UnionLowerBound(c: CheckContext) {
   const n = c.inst.targets.length;
   if (n < 2) return;
@@ -688,8 +457,6 @@ export function checkM3UnionLowerBound(c: CheckContext) {
   const oracleInst = oracleInstanceOf(joint.problem);
 
   const splits: number[][] = [new Array(n).fill(1 / n)];
-  // One skewed split as well, so the check is not blind to plans that want an
-  // uneven division of the budget.
   const skew = new Array(n).fill(0.5 / (n - 1));
   skew[c.inst.seed % n] = 0.5;
   splits.push(skew);
@@ -708,12 +475,10 @@ export function checkM3UnionLowerBound(c: CheckContext) {
         const k = joint.problem.options.findIndex(
           q => q.ship.missionTypeId === o.ship.missionTypeId && q.targetAfxId === o.targetAfxId
         );
-        // A sub-solve may use an option the joint menu lacks only if the DAGs
-        // differ; skipping it keeps the union a strict lower bound.
         if (k >= 0) union[k] += count;
       });
     }
-    if (!feasible(joint.problem, union)) continue; // the bound only applies when it lands feasible
+    if (!feasible(joint.problem, union)) continue;
     const p = evaluateAllocationJoint(oracleInst, union).jointProbability;
     if (improved(joint.joint, p)) {
       report(
@@ -728,30 +493,18 @@ export function checkM3UnionLowerBound(c: CheckContext) {
   }
 }
 
-// ---------------------------------------------------------------------------
-// D. Local optimality. No improving feasible move may exist.
-// ---------------------------------------------------------------------------
-
-// Shared engine for D1/D2. `arity` is how many option lines a single move may
-// touch: 2 is the classic exchange, 4 reaches the two-simultaneous-exchange
-// moves that sit behind a downhill valley.
 function kOpt(id: string, c: CheckContext, arity: 2 | 4, thresholdNats: number, maxEvals: number) {
   const s = solve(c);
   const alloc = s.allocation;
   const oracleInst = oracleInstanceOf(s.problem);
   const base = s.joint;
-  if (!(base > 0)) return; // nothing to improve on, in log space or otherwise
+  if (!(base > 0)) return;
 
   const options = s.problem.options;
   const held: number[] = [];
   alloc.forEach((n, i) => n > 0 && held.push(i));
   if (held.length === 0) return;
 
-  // 2-opt can afford every targeted option on the add side. 4-opt cannot: that
-  // set runs to ~200 on a production instance and the quadruple loop is
-  // O(held^2 * addable^2), which does not finish. Narrow it to the options
-  // *adjacent* to the plan's own support -- same ship in another duration, or
-  // same target on another ship -- which is where a real substitution lives.
   const heldShips = new Set(held.map(i => options[i].ship.shipType));
   const heldTargets = new Set(held.map(i => options[i].targetAfxId));
   const adjacency = (i: number) =>
@@ -762,9 +515,6 @@ function kOpt(id: string, c: CheckContext, arity: 2 | 4, thresholdNats: number, 
       .map((_, i) => i)
       .filter(i => alloc[i] > 0 || options[i].targetAfxId !== ei.ArtifactSpec.Name.UNKNOWN);
   } else {
-    // Filtering to adjacency is not enough on its own -- on a wide instance it
-    // still leaves ~100 options against a squared loop. Rank and cap: held
-    // lines first, then the doubly-adjacent, then the singly-adjacent.
     addable = options
       .map((_, i) => i)
       .filter(i => alloc[i] > 0 || adjacency(i) > 0)
@@ -774,13 +524,6 @@ function kOpt(id: string, c: CheckContext, arity: 2 | 4, thresholdNats: number, 
 
   let evals = 0;
   let exhausted = false;
-  // Ranked in floats, reported exactly. `evaluateAllocationJoint` runs the
-  // BigInt-rational simplex on a single-target instance — 35-50x the cost of
-  // the float path, and this loop calls it up to `maxEvals` times, where
-  // `evaluate.ts`'s own design is that floats rank candidates and the exact
-  // judge produces the number that gets asserted. Float Frank-Wolfe converges
-  // to ~1e-12 against thresholds of 1e-3/5e-3 nats, so no verdict turns on the
-  // difference; only the surviving winner is re-judged exactly, below.
   let best = { p: evaluateAllocationJointFloat(oracleInst, alloc), alloc, detail: '' };
   const describe = (moves: [number, number][]) =>
     moves
@@ -792,20 +535,15 @@ function kOpt(id: string, c: CheckContext, arity: 2 | 4, thresholdNats: number, 
       exhausted = true;
       return;
     }
-    // Charged before the feasibility test, not after. `feasible` runs the full
-    // packing search, so it is the expensive part of a candidate; charging only
-    // the ones that pass let an instance whose candidates are mostly infeasible
-    // run the loops to completion regardless of the budget.
+    // Charged before the feasibility test, not after: `feasible` runs the full packing search, so
+    // charging only the candidates that pass leaves `maxEvals` bounding nothing.
     evals++;
     if (!feasible(s.problem, a)) return;
     const p = evaluateAllocationJointFloat(oracleInst, a);
     if (improved(best.p, p, thresholdNats)) best = { p, alloc: a, detail: describe(moves) };
   };
 
-  // Pairs: -k of a held line, +m of anything.
-  // `exhausted` has to unwind every level: `tryAlloc` setting it is not enough
-  // on its own, and the nests below run to billions of iterations on a wide
-  // instance, each one still paying for `alloc.slice()`.
+  // `exhausted` has to unwind every level; `tryAlloc` setting it is not enough on its own.
   pairs: for (const i of held) {
     for (let k = 1; k <= Math.min(alloc[i], KOPT_MAX_DELTA); k++) {
       for (const j of addable) {
@@ -825,8 +563,6 @@ function kOpt(id: string, c: CheckContext, arity: 2 | 4, thresholdNats: number, 
   }
 
   if (arity === 4 && !exhausted) {
-    // Two simultaneous exchanges. Restricted to the plan's own support on the
-    // drop side, which is what keeps this tractable.
     quads: for (let x = 0; x < held.length; x++) {
       for (let y = x + 1; y < held.length; y++) {
         const i1 = held[x];
@@ -836,11 +572,7 @@ function kOpt(id: string, c: CheckContext, arity: 2 | 4, thresholdNats: number, 
             if (j1 === j2) continue;
             for (let k1 = 1; k1 <= Math.min(alloc[i1], KOPT_MAX_DELTA); k1++) {
               for (let k2 = 1; k2 <= Math.min(alloc[i2], KOPT_MAX_DELTA); k2++) {
-                // (j1, j2) and (j2, j1) build the *same* allocation when the two
-                // exchanges move the same count, so half of those pairs are a
-                // duplicate — about a third of the whole enumeration, each one
-                // paying a full packing search and burning an evaluation the
-                // budget could spend on coverage instead.
+                // (j1, j2) and (j2, j1) build the same allocation when the two exchanges move the same count.
                 if (k1 === k2 && j2 < j1) continue;
                 const a = alloc.slice();
                 a[i1] -= k1;
@@ -864,13 +596,9 @@ function kOpt(id: string, c: CheckContext, arity: 2 | 4, thresholdNats: number, 
   }
 
   if (best.detail) {
-    // Re-judged exactly: `base` is the harness's exact valuation of the plan, so
-    // the number reported against it has to come from the same judge.
     const exact = evaluateAllocationJoint(oracleInst, best.alloc).jointProbability;
     report(c, id, base, exact, `${best.detail} improves ${pct(base)} to ${pct(exact)} (${gap(base, exact)})`);
   } else if (exhausted) {
-    // Not a violation, but the absence of one is now uninformative: say so
-    // rather than let a truncated search read as a clean bill of health.
     reportFlat(
       c,
       `${id}-inconclusive`,
@@ -880,17 +608,13 @@ function kOpt(id: string, c: CheckContext, arity: 2 | 4, thresholdNats: number, 
 }
 
 export function checkD1LocalOptimality(c: CheckContext) {
-  // 1e-3 nats ~ 0.1% relative, the old threshold.
+  // 1e-3 nats ~ 0.1% relative.
   kOpt('D1-2opt', c, 2, 1e-3, 20_000);
 }
 
 export function checkD2DeepLocalOptimality(c: CheckContext) {
   kOpt('D2-4opt', c, 4, 5e-3, 25_000);
 }
-
-// ---------------------------------------------------------------------------
-// Runner
-// ---------------------------------------------------------------------------
 
 export type Check = (c: CheckContext) => void;
 

@@ -4,7 +4,6 @@
       Probability breakdown<template v-if="heading"> — {{ heading }}</template>
     </summary>
 
-    <!-- Formula decomposition -->
     <div class="mt-2 text-xs bg-gray-50 rounded p-2 space-y-0.5">
       <div class="font-medium text-gray-700">
         P(legendary) = {{ (bestProbability * 100).toFixed(2) }}%
@@ -24,7 +23,6 @@
       <div class="pl-6 text-gray-500">λ = {{ lambda.toFixed(3) }} expected direct legendary drops</div>
     </div>
 
-    <!-- Craft chain -->
     <template v-if="craftChainTree">
       <div class="text-xs font-medium text-gray-500 uppercase tracking-wide mt-3 mb-1">
         Craft chain<template v-if="craftChainCost > 0.5"> — {{ formatGoldenEggs(craftChainCost) }} GE</template>
@@ -35,8 +33,6 @@
       <ul class="text-xs">
         <optimizer-recipe-tree-row :node="craftChainTree">
           <template #metrics="{ node }">
-            <!-- the cost always sits on its own line under `used`, right-aligned
-                 with it, at every width -->
             <span class="font-mono text-xs inline-flex flex-col items-end">
               <span class="whitespace-nowrap">
                 <template v-if="hasInventory && node.metrics.owned > 0.005">
@@ -68,7 +64,6 @@
       </ul>
     </template>
 
-    <!-- Per-mission legendary contributions -->
     <template v-if="missionLegendarySources.length > 0">
       <div class="text-xs font-medium text-gray-500 uppercase tracking-wide mt-3 mb-1">
         Direct legendary sources (λ = {{ lambda.toFixed(3) }})

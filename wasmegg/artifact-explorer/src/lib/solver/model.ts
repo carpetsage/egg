@@ -84,9 +84,8 @@ function craftUpperBounds(
     dropped[i] = Number.isFinite(total) ? total : Infinity;
   }
 
-  // Post-order. Reverse first-visit order is NOT enough: with two targets sharing an
-  // ingredient, the second is discovered after the shared node and would read a bound
-  // that had not been computed yet.
+  // Post-order. Reverse first-visit order is NOT enough: with two targets sharing an ingredient, the second
+  // is discovered after the shared node and would read a bound that had not been computed yet.
   const caps = new Array<number>(craftables.length).fill(Infinity);
   const seen = new Set<string>();
   const order: number[] = [];
@@ -125,9 +124,8 @@ function craftUpperBounds(
 export function buildModel(problem: PlanProblem): Model {
   const dag: RecipeDAG = problem.dag;
 
-  // Sorted so the model is a function of the target *set*: the closure below visits
-  // targets in order, so permuting the caller's list permutes every row and column,
-  // and a node-limited search then returns a different plan for a relabeled problem.
+  // Sorted so the model is a function of the target *set*: the closure below visits targets in order, so
+  // permuting the caller's list permutes every row and column and a node-limited search then diverges.
   const requested = [...problem.targets];
   const requestedOrder = requested
     .map((_, i) => i)

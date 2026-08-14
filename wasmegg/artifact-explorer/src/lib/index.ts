@@ -114,9 +114,8 @@ function computeFuelByEgg(solution: OptimizerSolution): Map<ei.Egg, number> {
   return totals;
 }
 
-// Presentation-only fields, applied on the main thread after the worker
-// returns. `optimize` in `spec-helpers.ts` — the in-process path the tests
-// use — calls this too, so the two produce identical solutions.
+// Presentation-only fields, applied on the main thread after the worker returns. `optimize` in
+// `spec-helpers.ts` calls this too, so the in-process path and the worker path produce identical solutions.
 export function finalizeSolutions(solutions: OptimizerSolution[], dag: RecipeDAG): OptimizerSolution[] {
   for (const solution of solutions) {
     solution.choiceHistory.sort((a: LaunchSolution, b: LaunchSolution) => a.ship.shipType - b.ship.shipType);

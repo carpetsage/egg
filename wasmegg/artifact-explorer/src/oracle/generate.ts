@@ -1,8 +1,5 @@
-// Seeded instance generator for the oracle harness. Instances are built from
-// real game data (production recipe DAGs, launch options, and crafting-level
-// legendary probabilities); the generator only chooses the target(s), the
-// option subset, the budgets, and the owned inventory. Each family targets a
-// spot where a heuristic search could plausibly go wrong.
+// Seeded instance generator for the oracle harness. Instances are built from real game data; the
+// generator chooses only the targets, the option subset, the budgets and the owned inventory.
 
 import { perfectShipsConfig } from 'lib';
 import type { LaunchOption, RecipeDAG } from '../lib/types';
@@ -64,8 +61,6 @@ function sample<T>(rng: Rng, items: T[], count: number): T[] {
 }
 
 // Real artifacts that can actually come out legendary from a craft.
-// Exported for the invariant harness, which samples the same target space but
-// builds production-sized instances rather than enumerable ones.
 let candidateTargetsMemo: string[] | null = null;
 export function candidateTargets(): string[] {
   if (candidateTargetsMemo === null) {
@@ -138,7 +133,6 @@ function pickLevel(rng: Rng, targets: string[]): number {
 function maybeBaseYield(rng: Rng, dag: RecipeDAG, targets: string[]): Map<string, number> {
   const base = new Map<string, number>();
   if (rng() < 0.5) {
-    // owned inventory: whole items, on real ingredient nodes only
     const roots = new Set(targets);
     const items = [...dag.keys()].filter(id => !roots.has(id));
     for (const item of sample(rng, items, randInt(rng, 1, Math.min(3, items.length)))) {

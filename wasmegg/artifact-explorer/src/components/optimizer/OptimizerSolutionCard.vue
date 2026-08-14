@@ -110,17 +110,15 @@ export default defineComponent({
     solution: { type: Object as PropType<OptimizerSolution>, required: true },
     maxWaitTimeSeconds: { type: Number, required: true },
     hasInventory: { type: Boolean, required: true },
-    // The player's spendable golden eggs, or null with no save loaded — in
-    // which case there is no balance to measure the bill against and the cost
-    // is never marked.
+    // The player's spendable golden eggs, or null with no save loaded — in which case there is no balance to
+    // measure the bill against and the cost is never marked.
     goldenEggBalance: { type: Number as PropType<number | null>, default: null },
     targets: { type: Array as PropType<TargetView[]>, required: true },
     planCost: { type: Object as PropType<PlanCost>, required: true },
   },
   setup(props) {
-    // One row per target for any count, so the markup below needs no n=1 arm.
-    // targets can be empty, in which case the solution's own top-level fields
-    // (which mirror perTarget[0]) stand in for the single row.
+    // One row per target for any count. `targets` can be empty, in which case the solution's own top-level
+    // fields (which mirror `perTarget[0]`) stand in for the single row.
     const rows = computed<TargetView[]>(() =>
       props.targets.length > 0
         ? props.targets

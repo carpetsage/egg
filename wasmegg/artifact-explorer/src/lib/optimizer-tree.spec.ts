@@ -28,10 +28,8 @@ function totemInventory(): Inventory {
   });
 }
 
-// The unit price straight from lib, so the tree's cost metric is never checked
-// against a number this file made up. Every craft goes at the player's next
-// craft price, matching the golden egg cap's own pricing — see
-// `fractionalCraftCost`.
+// The unit price straight from lib, so the tree's cost metric is never checked against a number this file
+// made up: every craft at the player's next craft price, matching the golden egg cap's own pricing.
 function libCost(nodeId: string, previousCrafts: number, crafts: number): number {
   const params = getArtifactTierPropsFromId(nodeId).recipe!.crafting_price;
   return crafts * singleCraftCost(params, previousCrafts);
@@ -97,8 +95,6 @@ describe('computeInventoryTree', () => {
   });
 
   it('walks the DAG, summing owned counts across rarities, root included', () => {
-    // Structure and metrics only. Display names and icon URLs come from `lib`
-    // and change with the shared workspace rather than with anything here.
     const tree = computeInventoryTree(lt4, totemDag(), totemInventory())!;
     const flat = new Map<string, { depth: number; qty: number; dup: boolean; have: number }>();
     const walk = (n: typeof tree, key: string) => {
@@ -256,7 +252,6 @@ describe('computeCraftChainTree', () => {
       ],
     });
 
-    // totemInventory holds 5 T1 totems (4 common + 1 legendary).
     const ownedViaLt3 = computeCraftChainTree(solution, lt3, totemInventory())!.children.find(c => c.nodeId === lt1)!
       .metrics.owned;
     const ownedViaLt2 = computeCraftChainTree(solution, lt2, totemInventory())!.children.find(c => c.nodeId === lt1)!
@@ -302,10 +297,6 @@ describe('computeCraftChainTree', () => {
   });
 });
 
-// All four builders walk the same DAG and hit the same three degenerate inputs.
-// Stated once, over every builder, rather than once per builder: the behaviour
-// is a property of the walk, and writing it out four times meant four edits
-// whenever the walk changed.
 describe('every builder survives a malformed DAG', () => {
   // lt2 names an ingredient the DAG does not contain.
   const missingChild: RecipeDAG = new Map([
