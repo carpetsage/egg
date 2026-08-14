@@ -169,7 +169,11 @@ export function advanceTimeWithBoundaries(
       const toggleSale = createSimAction('toggle_sale', {
         saleType: 'research',
         active: isSaleNow,
-        multiplier: 0.35,
+        multiplier: 0.3, // 70% off — matches every other toggle_sale creator (commonResearch.ts's
+        // getDiscountedVirtuePrice is the actual price authority and is independently hardcoded to
+        // the same 0.3; this field is purely descriptive/display, but 0.35 here was inconsistent
+        // with it and with every other call site (ResearchActions.vue, ShiftActions.vue,
+        // WaitForEventActions.vue, useEventExpiry.ts, actionHelpers.ts).
       });
       currentState = applyAction(currentState, toggleSale);
       toggleSale.endState = computeSnapshot(currentState, context, { skipGrowth: true });
