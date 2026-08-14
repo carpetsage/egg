@@ -37,11 +37,12 @@ interface LpTemplate {
   craftables: string[];
   items: string[];
   // The budget row is last, so `items` still indexes the conservation rows one-for-one.
-  A: number[][];
-  c: number[];
+  constraintMatrix: number[][];
+  objectiveCoefficients: number[];
   budgetCapacity: number | null; // RHS of that row; null when uncapped
-  AFrac: Frac[][] | null;
-  cFrac: Frac[] | null;
+  // The same two in exact arithmetic, built on first use.
+  constraintMatrixFrac: Frac[][] | null;
+  objectiveCoefficientsFrac: Frac[] | null;
 }
 
 const templateCache = new WeakMap<OracleInstance, LpTemplate>();
@@ -68,7 +69,7 @@ function lpTemplate(inst: OracleInstance): LpTemplate {
   }
   const items = [...ingredients];
 
-  const A = items.map(item => {
+  const constraintMatrix = items.map(item => {
     const row = new Array<number>(craftables.length).fill(0);
     for (const node of inst.dag.values()) {
       if (node.isLeaf) {
@@ -88,13 +89,13 @@ function lpTemplate(inst: OracleInstance): LpTemplate {
     return row;
   });
 
-  const c = new Array<number>(craftables.length).fill(0);
+  const objectiveCoefficients = new Array<number>(craftables.length).fill(0);
   for (const target of inst.targets) {
     const j = varIndex.get(target);
     if (j === undefined) {
       throw new Error(`target ${target} is not craftable`);
     }
-    c[j] += targetQ(inst, target);
+    objectiveCoefficients[j] += targetQ(inst, target);
   }
 
   let budgetCapacity: number | null = null;
@@ -109,12 +110,20 @@ function lpTemplate(inst: OracleInstance): LpTemplate {
     });
     // No priced column is not a cap of zero: nothing here is known to cost anything, so nothing can consume the purse.
     if (row.some(p => p > 0)) {
-      A.push(row);
+      constraintMatrix.push(row);
       budgetCapacity = budget.capacity;
     }
   }
 
-  template = { craftables, items, A, c, budgetCapacity, AFrac: null, cFrac: null };
+  template = {
+    craftables,
+    items,
+    constraintMatrix,
+    objectiveCoefficients,
+    budgetCapacity,
+    constraintMatrixFrac: null,
+    objectiveCoefficientsFrac: null,
+  };
   templateCache.set(inst, template);
   return template;
 }
@@ -176,19 +185,22 @@ export function evaluateAllocationFloat(inst: OracleInstance, allocation: number
       inv.set(item, (inv.get(item) ?? 0) + allocation[i] * qty);
     }
   });
-  return simplexMaximizeFloat(template.A, rhsFloat(template, inv), template.c) + directDrops(inst, allocation);
+  return (
+    simplexMaximizeFloat(template.constraintMatrix, rhsFloat(template, inv), template.objectiveCoefficients) +
+    directDrops(inst, allocation)
+  );
 }
 
 export function evaluateAllocation(inst: OracleInstance, allocation: number[]): OracleEvaluation {
   const template = lpTemplate(inst);
-  if (!template.AFrac || !template.cFrac) {
-    template.AFrac = template.A.map(row => row.map(x => Frac.fromNumber(x)));
-    template.cFrac = template.c.map(x => Frac.fromNumber(x));
+  if (!template.constraintMatrixFrac || !template.objectiveCoefficientsFrac) {
+    template.constraintMatrixFrac = template.constraintMatrix.map(row => row.map(x => Frac.fromNumber(x)));
+    template.objectiveCoefficientsFrac = template.objectiveCoefficients.map(x => Frac.fromNumber(x));
   }
   const inv = inventoryFor(inst, allocation);
   const b = rhsFrac(template, inv);
 
-  const lpScore = simplexMaximize(template.AFrac, b, template.cFrac).toNumber();
+  const lpScore = simplexMaximize(template.constraintMatrixFrac, b, template.objectiveCoefficientsFrac).toNumber();
   const drops = directDrops(inst, allocation);
   const score = lpScore + drops;
   return {
@@ -282,7 +294,7 @@ function solveWeightedFloat(
   for (let i = 0; i < idxs.length; i++) {
     c[idxs[i]] = weights[i] * Qs[i];
   }
-  const { primal } = simplexMaximizeFloatFull(template.A, b, c);
+  const { primal } = simplexMaximizeFloatFull(template.constraintMatrix, b, c);
   const scores = idxs.map((idx, i) => Qs[i] * primal[idx]);
   return { scores, primal };
 }
@@ -336,7 +348,7 @@ function optimizeJointFloat(
     const grad = scores.map((s, i) => jointGPrime(s) * Qs[i]);
     const c = new Array<number>(template.craftables.length).fill(0);
     for (let i = 0; i < n; i++) c[idxs[i]] = grad[i];
-    const { primal } = simplexMaximizeFloatFull(template.A, b, c);
+    const { primal } = simplexMaximizeFloatFull(template.constraintMatrix, b, c);
     const fwVertex = idxs.map(idx => primal[idx]);
 
     // FW duality gap: an upper bound on distance to the optimum.

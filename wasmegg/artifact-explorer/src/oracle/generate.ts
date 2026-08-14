@@ -87,7 +87,7 @@ interface RealPool {
   dag: RecipeDAG;
   targets: string[];
   options: LaunchOption[]; // all real options, as production would offer them
-  useful: LaunchOption[]; // options that can contribute anything at all
+  contributingOptions: LaunchOption[]; // options that can contribute anything at all
 }
 
 const poolCache = new Map<string, RealPool>();
@@ -111,7 +111,7 @@ function getPool(targets: string[], craftingLevel: number): RealPool {
       dag,
       targets,
       options,
-      useful: options.filter(o => o.yieldVector.size > 0 || o.legendaryYieldVector.size > 0),
+      contributingOptions: options.filter(o => o.yieldVector.size > 0 || o.legendaryYieldVector.size > 0),
     };
     poolCache.set(key, pool);
   }
@@ -219,13 +219,13 @@ function basketBudgets(rng: Rng, options: LaunchOption[]): [number, number] {
 // Sample within a fuel-cost band of a random pivot: real missions span many
 // orders of magnitude, and an unbanded sample leaves most of the subset
 // unaffordable under any enumerable budget.
-function bandSample(rng: Rng, useful: LaunchOption[], count: number): LaunchOption[] {
-  const positive = useful.filter(o => o.actualFuel > 0);
+function bandSample(rng: Rng, contributingOptions: LaunchOption[], count: number): LaunchOption[] {
+  const positive = contributingOptions.filter(o => o.actualFuel > 0);
   if (positive.length === 0) {
-    return sample(rng, useful, count);
+    return sample(rng, contributingOptions, count);
   }
   const pivot = pick(rng, positive);
-  const band = useful.filter(
+  const band = contributingOptions.filter(
     o => o.actualFuel === 0 || (o.actualFuel >= pivot.actualFuel / 32 && o.actualFuel <= pivot.actualFuel * 32)
   );
   return sample(rng, band, count);
@@ -239,10 +239,14 @@ export function generateInstance(family: Family, seed: number): OracleInstance |
     case 'random-multi': {
       const targets = family === 'random-multi' ? sample(rng, candidateTargets(), 2) : [pick(rng, candidateTargets())];
       const pool = getPool(targets, pickLevel(rng, targets));
-      if (pool.useful.length < 2) {
+      if (pool.contributingOptions.length < 2) {
         return null;
       }
-      const options = bandSample(rng, pool.useful, randInt(rng, 3, Math.min(5, pool.useful.length)));
+      const options = bandSample(
+        rng,
+        pool.contributingOptions,
+        randInt(rng, 3, Math.min(5, pool.contributingOptions.length))
+      );
       if (options.length < 2) {
         return null;
       }
@@ -254,7 +258,7 @@ export function generateInstance(family: Family, seed: number): OracleInstance |
       // budget leaves a remainder only the cheap mission can use
       const targets = [pick(rng, candidateTargets())];
       const pool = getPool(targets, pickLevel(rng, targets));
-      const byFuel = pool.useful.filter(o => o.actualFuel > 0).sort((a, b) => a.actualFuel - b.actualFuel);
+      const byFuel = pool.contributingOptions.filter(o => o.actualFuel > 0).sort((a, b) => a.actualFuel - b.actualFuel);
       if (byFuel.length < 3) {
         return null;
       }
@@ -279,7 +283,7 @@ export function generateInstance(family: Family, seed: number): OracleInstance |
       // the two real missions with the closest fuel costs
       const targets = [pick(rng, candidateTargets())];
       const pool = getPool(targets, pickLevel(rng, targets));
-      const byFuel = pool.useful.filter(o => o.actualFuel > 0).sort((a, b) => a.actualFuel - b.actualFuel);
+      const byFuel = pool.contributingOptions.filter(o => o.actualFuel > 0).sort((a, b) => a.actualFuel - b.actualFuel);
       if (byFuel.length < 3) {
         return null;
       }
@@ -307,7 +311,7 @@ export function generateInstance(family: Family, seed: number): OracleInstance |
       // searches that assume approximate concavity
       const targets = [pick(rng, candidateTargets())];
       const pool = getPool(targets, pickLevel(rng, targets));
-      const byFuel = pool.useful.filter(o => o.actualFuel > 0).sort((a, b) => a.actualFuel - b.actualFuel);
+      const byFuel = pool.contributingOptions.filter(o => o.actualFuel > 0).sort((a, b) => a.actualFuel - b.actualFuel);
       if (byFuel.length < 4) {
         return null;
       }
@@ -320,7 +324,7 @@ export function generateInstance(family: Family, seed: number): OracleInstance |
     case 'edge': {
       const targets = [pick(rng, candidateTargets())];
       const pool = getPool(targets, pickLevel(rng, targets));
-      if (pool.useful.length < 2) {
+      if (pool.contributingOptions.length < 2) {
         return null;
       }
       const variant = seed % 5;
@@ -333,11 +337,20 @@ export function generateInstance(family: Family, seed: number): OracleInstance |
             base.set(item, randInt(rng, 1, 30));
           }
         }
-        return finalize(family, seed, pool, sample(rng, pool.useful, 1), 0, minTime(pool.useful) * 4, base, 0);
+        return finalize(
+          family,
+          seed,
+          pool,
+          sample(rng, pool.contributingOptions, 1),
+          0,
+          minTime(pool.contributingOptions) * 4,
+          base,
+          0
+        );
       }
       if (variant === 1) {
         // budgets positive but below every option's cost
-        const options = sample(rng, pool.useful, 2);
+        const options = sample(rng, pool.contributingOptions, 2);
         return finalize(
           family,
           seed,
@@ -353,7 +366,7 @@ export function generateInstance(family: Family, seed: number): OracleInstance |
         // single mission, fuel budget an exact multiple of its cost
         const opt = pick(
           rng,
-          pool.useful.filter(o => o.actualFuel > 0)
+          pool.contributingOptions.filter(o => o.actualFuel > 0)
         );
         return finalize(
           family,
@@ -368,15 +381,15 @@ export function generateInstance(family: Family, seed: number): OracleInstance |
       }
       if (variant === 3) {
         // prefer a mission with observed direct legendary drops
-        const droppy = pool.useful.filter(o => o.legendaryYieldVector.size > 0);
-        const first = droppy.length > 0 ? pick(rng, droppy) : pick(rng, pool.useful);
-        const second = pick(rng, pool.useful);
+        const droppy = pool.contributingOptions.filter(o => o.legendaryYieldVector.size > 0);
+        const first = droppy.length > 0 ? pick(rng, droppy) : pick(rng, pool.contributingOptions);
+        const second = pick(rng, pool.contributingOptions);
         const options = first === second ? [first] : [first, second];
         const [fuel, time] = basketBudgets(rng, options);
         return finalize(family, seed, pool, options, fuel, time, maybeBaseYield(rng, pool.dag, targets), 0);
       }
       // time budget binding, fuel effectively unconstrained
-      const options = bandSample(rng, pool.useful, Math.min(3, pool.useful.length));
+      const options = bandSample(rng, pool.contributingOptions, Math.min(3, pool.contributingOptions.length));
       const fuel = options.reduce((total, o) => total + o.actualFuel, 0) * 100;
       const time = minTime(options) * dyadic(rng, 1, 6);
       return finalize(family, seed, pool, options, fuel, time, maybeBaseYield(rng, pool.dag, targets), 0);

@@ -65,7 +65,8 @@ export function packFeasible(
     return true;
   };
 
-  const greedyPack = (order: readonly number[], bestFit: boolean): boolean => {
+  // First-fit-decreasing and best-fit-decreasing over the same order.
+  const greedyPack = (order: readonly number[], fit: 'first' | 'best'): boolean => {
     const loads = new Array<number>(slots).fill(0);
     for (const it of order) {
       if (!chargeNode()) return false;
@@ -74,7 +75,7 @@ export function packFeasible(
       for (let s = 0; s < slots; s++) {
         const room = capacity - loads[s];
         if (room + EPS < it) continue;
-        if (!bestFit) {
+        if (fit === 'first') {
           choice = s;
           break;
         }
@@ -90,9 +91,9 @@ export function packFeasible(
   };
 
   const descending = items.slice().sort((a, b) => b - a);
-  if (greedyPack(descending, true)) return 'packs';
+  if (greedyPack(descending, 'best')) return 'packs';
   if (exhausted) return 'undecided';
-  if (greedyPack(descending, false)) return 'packs';
+  if (greedyPack(descending, 'first')) return 'packs';
   if (exhausted) return 'undecided';
 
   let seed = 0x2545f491;
@@ -110,7 +111,7 @@ export function packFeasible(
       const k = Math.floor(nextRand() * (i + 1));
       [shuffled[i], shuffled[k]] = [shuffled[k], shuffled[i]];
     }
-    if (greedyPack(shuffled, true)) return 'packs';
+    if (greedyPack(shuffled, 'best')) return 'packs';
     if (exhausted) return 'undecided';
   }
 
