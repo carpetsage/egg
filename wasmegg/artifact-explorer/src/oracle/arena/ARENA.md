@@ -5,21 +5,14 @@ where you plug in a mission planner. The point is to let several very different
 optimisation methodologies be tried against the same bar without any of them
 being able to move the bar.
 
-If you are here to write a candidate solver, you need three things: **the
-contract** (`contract.ts`), **the objective** (below, and `src/lib/OPTIMIZER.md`
-for the long version), and **the rules** (below). You do not need to read the
+To write a candidate you need the contract (`contract.ts`), the objective
+(`src/lib/OPTIMIZER.md`), and the rules below. You do not need to read the
 harness, and you must not import it.
 
 ## The problem
 
 Pick how many of each available mission to launch, so as to maximise the
 probability of getting a legendary of **every** target artifact.
-
-```ts
-export type Planner = (problem: PlanProblem) => PlanResult;
-```
-
-You are given:
 
 | field | meaning |
 | --- | --- |
@@ -31,21 +24,17 @@ You are given:
 | `slots` | how many missions can be in flight at once. Always 3. |
 | `baseYield` | copies of each node the player already owns. |
 
-You return:
+You return an `allocation` parallel to `problem.options`, plus an optional
+`reported` (see below).
 
-```ts
-{
-  allocation: number[],        // parallel to problem.options, non-negative integers
-  reported?: {                 // optional; see "self-reporting" below
-    jointProbability: number,
-    perTarget: number[],
-  },
-}
-```
+The objective is the **product** over targets of `1 - exp(-s_T)`, not the sum and
+not the max. ALL-of rather than ANY-of deliberately: maximising ANY collapses
+onto whichever target is cheapest. `src/oracle/evaluate.ts` is the harness's
+independent implementation and is what scores you. It re-optimises the inner
+craft split for whatever allocation you hand back, so you are never penalised for
+reporting a plan whose craft accounting you did not work out yourself.
 
 ### Feasibility
-
-A plan is feasible when both hold:
 
 - **Fuel.** `sum_i allocation[i] * options[i].actualFuel <= fuelCapacity`.
 - **Packing.** The missions partition into `slots` groups, each with summed
@@ -57,169 +46,81 @@ The harness decides this with its own packer (`pack-feasibility.ts`), which
 imports nothing and which no candidate may import. Returning an infeasible plan
 is a hard failure, not a low score.
 
-**The golden egg budget is not part of this.** `craftBudget`, when a problem
-carries one, caps what the plan's *crafts* may cost:
+**The golden egg budget is not part of this.** Missions cost no golden eggs, so
+no allocation can breach `craftBudget` and there is nothing here for a
+feasibility check to test. It binds on the craft split, which the judge chooses
+for itself, so the judge solves its craft polytope with the row in it and a
+candidate that ignored the cap simply scores worse. That is why the budget
+appears under **A9** and has no C1 twin. Generated instances carry no budget; A9
+introduces one as a perturbation, the way the other A checks perturb fuel and
+time, so every recorded sweep result still measures the problems it always did.
 
-```text
-sum_n unitPrices[n] * crafts[n] <= capacity
-```
+Prices are the harness's own, derived from the game's price curve in `harness.ts`
+rather than shared with `optimizer-cost.ts`: a pricing helper used by both the
+planner and its judge would agree with itself no matter what it computed.
 
-Missions cost no golden eggs, so no allocation can breach that row and there is
-nothing here for a feasibility check to test. It binds on the craft split, which
-the judge chooses for itself — so the judge solves its craft polytope with the
-row in it (`../evaluate.ts`), and a candidate that ignored the cap simply scores
-worse rather than being ruled infeasible. That is why the budget appears under
-**A9** below and has no C1 twin.
+## Rules
 
-Prices are the harness's own, derived from the game's price curve in
-`harness.ts` rather than shared with `optimizer-cost.ts`: a pricing helper used
-by both the planner and its judge would agree with itself no matter what it
-computed.
-
-Generated instances carry no budget. A9 introduces one as a perturbation, the
-way the other A checks perturb fuel and time, so every recorded sweep result
-still measures the problems it always did.
-
-### The objective
-
-For each target `T`, the plan produces a score
-
-```
-s_T = Q_T * (expected legendary crafts of T) + (direct legendary drops of T)
-```
-
-where `Q_T = -log(1 - legendaryCraftProbability(T))`, and the chance of landing
-at least one legendary of `T` is `1 - exp(-s_T)`. Crafts are limited by the
-ingredient conservation structure in the DAG: crafting a parent consumes its
-children, and a fixed inventory of drops has to be split across whichever
-targets want it. So the crafts themselves are the solution of an inner
-allocation problem, not a closed form.
-
-The objective is the **product** over targets:
-
-```
-maximise   prod_T (1 - exp(-s_T))
-```
-
-ALL-of, not ANY-of, deliberately: maximising ANY collapses onto whichever
-target is cheapest. Equivalently, maximise `sum_T log(1 - exp(-s_T))`, which is
-concave in `s` and is the form the incumbent solvers work in.
-
-`src/oracle/evaluate.ts` is the harness's independent implementation of exactly
-this, and is what scores you. It re-optimises the inner craft split for whatever
-allocation you hand back, so you are never penalised for reporting a plan whose
-craft accounting you did not work out yourself — hand back the allocation and
-the judge will extract the best value it admits.
-
-## Writing a candidate
-
-1. Create `solvers/<your-id>.ts` exporting an `ArenaSolver`.
-2. Register it in `registry.ts`.
-3. Run `pnpm arena:check` — the independence guard — then `pnpm arena`.
-
-```ts
-import type { ArenaSolver, PlanProblem, PlanResult } from '../contract';
-
-function plan(problem: PlanProblem): PlanResult {
-  const allocation = new Array(problem.options.length).fill(0);
-  // ... your methodology here ...
-  return { allocation };
-}
-
-export const mySolver: ArenaSolver = {
-  id: 'my-solver',
-  description: 'one line for the scorecard',
-  plan,
-};
-```
-
-`solvers/highs/index.ts` is the worked example of the seam — a shim over the
-shipped planner in `src/lib/solver/`, described in `src/lib/solver/SPEC.md`. If
-your methodology does not produce an allocation vector directly, the adapting
-step is yours to write: map whatever your solver returns onto counts indexed
-against `problem.options`.
-
-### Rules
-
-- **Do not import the harness.** Not `evaluate.ts`, not `pack-feasibility.ts`,
-  not `invariants.ts`, `harness.ts`, `instances.ts` or `scorecard.ts`.
+- **Do not import the harness.** Not `evaluate.ts`, `pack-feasibility.ts`,
+  `invariants.ts`, `harness.ts`, `instances.ts` or `scorecard.ts`.
   `independence.spec.ts` enforces this. Deriving your own copy of the objective
   or of a packing routine is fine and expected — sharing the harness's is not,
   because then the grader and the candidate are the same code.
-- **Re-derive everything: no value import from `src/lib`.** `@/lib/lp`,
-  `@/lib/value-function`, `@/lib/packing`, `@/lib/optimizer-core` and the rest
-  are all off limits. `import type { LaunchOption, RecipeDAG } from '...'` is
+- **Re-derive everything: no value import from `src/lib`.** `import type` is
   fine and is how you read the problem at all; the bare `lib` workspace package
-  (egg, ship and artifact enums and tables) is game data rather than solver
-  code and stays available.
+  (egg, ship and artifact enums and tables) is game data rather than solver code
+  and stays available. Calling into the incumbent's LP, tangent grid, packer or
+  search would measure the incumbent's method wearing a different hat.
 
-  This is the point of the experiment. Calling into the incumbent's LP, tangent
-  grid, packer or search would measure the incumbent's method wearing a
-  different hat. Build your own — the objective is fully specified above and in
-  `src/lib/OPTIMIZER.md`, and you are free to model it however your methodology
-  wants. Reading `src/lib` for reference is encouraged; importing it is not.
-
-  There is one exception, and it is narrow: `solvers/highs/index.ts` is a shim
-  around `src/lib/solver/`, the planner the app itself runs, so that one file may
-  import `src/lib/solver/` and nothing else out of `src/lib`.
-  `independence.spec.ts` encodes the exception by name. It buys nothing else —
-  that file, like every candidate, still may not touch the judge, the feasibility
-  rule or the checks.
-
-  Note the direction that leaves. Production calls the planner
-  (`src/lib/optimizer-core.ts` calls the same `solveWith` on the same loaded
-  module the shim does), so the shipped planner and the measured one are one code
-  path. A candidate importing `src/lib` would close that loop the other way and
-  measure the app grading itself.
+  There is one exception, encoded by name in `independence.spec.ts`:
+  `solvers/highs/index.ts` is a shim around `src/lib/solver/`, the planner the
+  app itself runs, so that one file may import `src/lib/solver/` and nothing else
+  out of `src/lib`. It buys nothing else — it still may not touch the judge, the
+  feasibility rule or the checks. Note the direction that leaves: production
+  calls the same `solveWith` on the same loaded module the shim does, so the
+  shipped planner and the measured one are one code path. A candidate importing
+  `src/lib` would close that loop the other way and measure the app grading
+  itself.
 - **Be deterministic.** Same problem in, same allocation out. If your method is
   stochastic, seed it from the problem, not from a clock or a global. You do not
-  need to memoize: the harness caches plans by problem content, so the repeated
-  solves the checks perform reach you once.
-- **Do not read the seed, the instance label, or anything outside `PlanProblem`.**
-  It is the whole input.
-- **Do not mutate `problem`.** It is shared across the checks in a sweep.
+  need to memoize: the harness caches plans by problem content.
+- **Do not read the seed, the instance label, or anything outside `PlanProblem`**,
+  and do not mutate `problem` — it is shared across the checks in a sweep.
 
 ### Self-reporting
 
-`reported` is optional. Supplying it opts you into two extra checks:
-
-- **C2-honesty** — your `jointProbability` must match what the judge computes
-  for your own allocation. Failing this means your search is steering by a
-  number that is not the objective.
-- **C3-joint-product** — your `perTarget` factors must multiply to your
-  `jointProbability`.
-
-Omitting `reported` is legal and costs nothing else. Nothing you report is ever
-used as your score.
+`reported` is optional and nothing in it is ever used as your score. Supplying it
+opts you into **C2-honesty** (your `jointProbability` must match what the judge
+computes for your own allocation — failing it means your search is steering by a
+number that is not the objective) and **C3-joint-product** (your `perTarget`
+factors must multiply to your `jointProbability`).
 
 ## What gets measured
 
 **Correctness**, as invariant violations. Every invariant is a property that
-holds without knowing the optimum, so none of them needs a reference answer:
+holds without knowing the optimum, so none needs a reference answer:
 
 | group | asserts |
 | --- | --- |
 | **C0** contract | the returned allocation has one entry per option, and every entry is a non-negative whole number |
 | **C1** feasibility | the plan fits the fuel tank and packs into the slots |
 | **C2/C3** honesty | the probability you report is the one the judge computes for the allocation you returned, and your per-target factors multiply to it (opt-in) |
-| **A** monotonicity | relaxing the problem cannot make your answer worse. More fuel, more time, more ships on the menu, more inventory, a higher crafting level, a shorter launch-period floor, one fewer target, a larger golden egg budget (**A9**, ending with the cap removed entirely): each of those is solved alongside the original, and the relaxed solve must not score below it |
-| **B** invariance | restating the same problem must not move the answer at all. Shuffling the menu, reversing the target list, multiplying every fuel cost and the tank by the same constant, appending a duplicate of an option already on the menu, or simply solving twice |
-| **M** cross-path | the joint answer must not beat the product of the per-target optima (M1); a solo solve of one target must reach at least what the joint plan already reaches on that target (M2); and the joint answer must not lose to the union of per-target plans solved on split budgets (M3) |
-| **D** local optimality | your plan cannot be improved by a small edit to itself. D1 tries every *pair* — remove up to 2 launches of one option in the plan, add up to 2 of some other option — and D2 tries two such pairs at once. If any of those edits is feasible and scores better, the returned plan was not even a local optimum |
+| **A1-A9** monotonicity | relaxing the problem cannot make your answer worse. More fuel, more time, more ships on the menu, more inventory, a higher crafting level, a shorter launch-period floor, one fewer target, a larger golden egg budget (**A9**, ending with the cap removed entirely): each is solved alongside the original, and the relaxed solve must not score below it |
+| **B1-B6** invariance | restating the same problem must not move the answer at all. Shuffling the menu, reversing the target list, multiplying every fuel cost and the tank by the same constant, appending a duplicate of an option already on the menu, or simply solving twice. There is no B4 and never was; the ids are the arena's public vocabulary, so the slot stays vacant rather than renumbering. |
+| **M1-M3** cross-path | the joint answer must not beat the product of the per-target optima (M1); a solo solve of one target must reach at least what the joint plan already reaches on that target (M2); and the joint answer must not lose to the union of per-target plans solved on split budgets (M3) |
+| **D1/D2** local optimality | your plan cannot be improved by a small edit to itself. D1 tries every *pair* — remove up to 2 launches of one option, add up to 2 of another — and D2 tries two such pairs at once. Deep tier only. |
 
 **Quality**, as the judged joint probability on the unperturbed instance,
-reported in log10 and compared head-to-head against the other entries. This is
-the only relative measure; everything else is absolute.
-
+reported in log10 and compared head-to-head. This is the only relative measure.
 **Latency**, as median/p90/max of a single solve.
 
 ### Comparisons are in log space
 
-A four-target plan on a mediocre fleet lands around `1e-13`. The tolerance in
-this harness is an absolute number of **nats** on `log(joint)`, so a drop from
-`1e-13` to `1e-14` is 2.30 nats and reads exactly as loudly as `0.5 -> 0.05`.
-Probability zero is `-Infinity`, so returning nothing where another solver
-returns `1e-13` is a failure rather than a rounding artefact.
+A four-target plan on a mediocre fleet lands around `1e-13`. The tolerance is an
+absolute number of **nats** on `log(joint)`, so a drop from `1e-13` to `1e-14` is
+2.30 nats and reads exactly as loudly as `0.5 -> 0.05`. Probability zero is
+`-Infinity`, so returning nothing where another solver returns `1e-13` is a
+failure rather than a rounding artefact.
 
 ## Running it
 
@@ -232,49 +133,46 @@ ARENA_INSTANCES=80 ARENA_SEED_BASE=9000 ARENA=sweep pnpm arena
 pnpm arena:check                            # independence guard only
 ```
 
-The sweep is opt-in and `pnpm test` does not run it: every tier here is minutes
-at best, and the suite people run before a commit has to stay usable. `ARENA` is
-the switch — `pnpm arena` sets it, and `vitest.config.ts` drops
-`invariants.spec.ts` from the selection when it is unset, so the default suite
-does not even pay to import the roster's wasm. `arena:check` is static and fast,
-so the independence guard does run with the rest of the tests.
+| variable | default | meaning |
+| --- | --- | --- |
+| `ARENA` | `smoke` | tier; also the switch that makes the suite run at all |
+| `ARENA_INSTANCES` | 4 smoke / 40 otherwise | instance count |
+| `ARENA_SEED_BASE` | 2000 | first seed |
+| `SOLVER` | whole roster | run one entry |
+| `ARENA_GATE` | — | `all` promotes every invariant to a hard failure |
 
-Per-solver JSON lands in `results/<solver-id>.json`, which is gitignored — every
-sweep rewrites it, so re-run rather than expecting a committed reference.
+The sweep is opt-in and `pnpm test` does not run it: every tier here is minutes
+at best. `vitest.config.ts` drops `invariants.spec.ts` from the selection when
+`ARENA` is unset, so the default suite does not even pay to import the roster's
+wasm. `arena:check` is static and fast, so the independence guard does run with
+the rest of the tests. Per-solver JSON lands in `results/<solver-id>.json`, which
+is gitignored — every sweep rewrites it, so re-run rather than expecting a
+committed reference.
 
 **Gating.** `C0-contract`, `C1-feasibility` and `C1-inconclusive` hard-fail: a
 plan that is not a plan is broken outright, and that is not a matter of degree.
 `C1-inconclusive` is the harness's own packer exhausting its node budget rather
 than a verdict on the plan — it gates all the same, because that budget is sized
 so it does not happen, but it is counted separately so the scorecard never reads
-a judge timeout as an infeasible plan. Every other
-invariant is reported rather than thrown, because what the arena measures is how
-far a candidate is from holding them — a suite that aborts on the first
-monotonicity wobble stops producing a scorecard and starts producing a stack
-trace. `ARENA_GATE=all` promotes the rest to failures, for a candidate that is
-meant to hold them.
+a judge timeout as an infeasible plan. Every other invariant is reported rather
+than thrown, because what the arena measures is how far a candidate is from
+holding them — a suite that aborts on the first monotonicity wobble stops
+producing a scorecard and starts producing a stack trace.
 
-**Cost.** A 40-instance cheap sweep is at least 15 minutes (heavily dependent on
-solver runtime); the deep tier adds substantially more. Instances range from 63
-to 285 options and from 1 to 4 targets.
+**Cost.** A 40-instance cheap sweep is at least 15 minutes, heavily dependent on
+solver runtime; the deep tier adds substantially more. Instances range from 63 to
+285 options and from 1 to 4 targets.
 
 ## The roster
 
-| id | what it is |
-| --- | --- |
-| `highs` |The currently shipped solution. See `src/lib/solver/SPEC.md` for more details|
+`highs` — the shipped planner, `src/lib/solver/SPEC.md`.
 
 The arena is not a bake-off between methodologies. It is the bar a change to the
-shipped planner has to clear before it lands.
-
-A proposed change to the shipped planner may be registered alongside it for as
-long as it takes to decide: the harness already runs every entry over the same
-instances against the same judge and prints the head-to-head, so A/B'ing a tuning
-costs one line in `registry.ts` rather than a bespoke script. Such an entry ships
-or it is deleted — the roster is not where alternatives accumulate. The roster is
-one row for that reason and not because nothing has been tried: the shipped
-single-pass tuning was chosen over five registered arms, and all five were
-deleted once it was.
-
-What each entry actually scored is written up alongside that entry rather than
-here, so a candidate's brief stays a statement of the rules.
+shipped planner has to clear before it lands. A proposed change may be registered
+alongside it for as long as it takes to decide, since the harness already runs
+every entry over the same instances against the same judge and prints the
+head-to-head — A/B'ing a tuning costs one line in `registry.ts` rather than a
+bespoke script. Such an entry ships or it is deleted; the roster is not where
+alternatives accumulate. It is one row for that reason and not because nothing
+has been tried: the shipped single-pass tuning was chosen over five registered
+arms, and all five were deleted once it was.
