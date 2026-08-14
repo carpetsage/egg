@@ -37,7 +37,7 @@ export function runC2(startState: EngineState, context: SimulationContext): Shif
 
   let currentState = shifted.state;
   let elapsedSeconds = 0;
-  const actions = [shifted.action];
+  const actions = shifted.saleToggleAction ? [shifted.action, shifted.saleToggleAction] : [shifted.action];
 
   const remainingBudget = () => C2_TIME_LIMIT_SECONDS - elapsedSeconds;
 
