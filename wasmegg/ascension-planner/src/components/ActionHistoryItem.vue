@@ -474,7 +474,12 @@ const absoluteEndTime = computed(() => {
   const offset = actionsStore.planStartOffset;
   const simTime = props.action.endState.lastStepTime || 0;
 
-  return new Date(startTime + (simTime - offset) * 1000);
+  // `Math.round`, not a bare `new Date(...)` — see `secondsToDate`'s doc comment: `simTime` is the
+  // sum of hundreds of accumulated purchase/wait durations and routinely lands a sub-microsecond
+  // residue short of a whole second even when it's "really" exactly on a boundary; `new Date`
+  // truncates rather than rounds, which was displaying e.g. an exact sale-start toggle as one minute
+  // early.
+  return new Date(Math.round(startTime + (simTime - offset) * 1000));
 });
 
 /**

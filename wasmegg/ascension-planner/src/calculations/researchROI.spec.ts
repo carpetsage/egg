@@ -1,6 +1,11 @@
 import { describe, expect, test } from 'vitest';
-import { getSaleAwareTimeToSave, computeShowBuyNowRoiWarning, computeShowFullRoiWarning } from './researchROI';
-import { getNextSaleStart, getNextSaleEnd, isResearchSaleActive } from '@/lib/events';
+import {
+  getSaleAwareTimeToSave,
+  computeShowBuyNowRoiWarning,
+  computeShowFullRoiWarning,
+  findEventCrossings,
+} from './researchROI';
+import { getNextSaleStart, getNextSaleEnd, isResearchSaleActive, BOUNDARY_EPSILON_SECONDS } from '@/lib/events';
 import type { CommonResearch, ResearchCostModifiers } from './commonResearch';
 import type { CalculationsSnapshot } from '@/types';
 
@@ -240,6 +245,37 @@ describe('computeShowFullRoiWarning (Gate B)', () => {
     const completesAt = 1000;
     const fullRoiDeadline = completesAt + 50;
     expect(computeShowFullRoiWarning(0, 100, completesAt, fullRoiDeadline)).toBe(true);
+  });
+});
+
+describe('findEventCrossings (boundary-landing tolerance)', () => {
+  // Real exported plans have shown `lastStepTime` values like `1673837.899709117` — ordinary
+  // sub-second float noise from accumulated addition across many purchases/waits, not a bug of its
+  // own. A purchase timed to land EXACTLY on a sale boundary computes its own wait duration by
+  // working backward from that boundary, then this function re-derives the SAME boundary via a
+  // fresh, independent calendar lookup — the two must still agree despite that noise, or the
+  // boundary is missed silently (see `BOUNDARY_EPSILON_SECONDS`'s doc comment).
+  const anchor = Date.UTC(2024, 0, 1, 0, 0, 0) / 1000;
+  const saleStart = getNextSaleStart(anchor);
+
+  test('a wait undershooting the true boundary by sub-second float noise still reports the crossing', () => {
+    const secondsToBuy = saleStart - anchor - 0.0004; // a hair short, like real accumulated noise
+    const crossings = findEventCrossings(anchor, secondsToBuy, false, false);
+    expect(crossings.sale).toHaveLength(1);
+    expect(crossings.sale[0].togglesTo).toBe(true);
+  });
+
+  test('a wait landing exactly on the boundary reports the crossing', () => {
+    const secondsToBuy = saleStart - anchor;
+    const crossings = findEventCrossings(anchor, secondsToBuy, false, false);
+    expect(crossings.sale).toHaveLength(1);
+    expect(crossings.sale[0].togglesTo).toBe(true);
+  });
+
+  test('a wait genuinely short of the boundary (beyond the tolerance) reports no crossing', () => {
+    const secondsToBuy = saleStart - anchor - (BOUNDARY_EPSILON_SECONDS + 1);
+    const crossings = findEventCrossings(anchor, secondsToBuy, false, false);
+    expect(crossings.sale).toHaveLength(0);
   });
 });
 

@@ -5,6 +5,28 @@ import staticPacificTimeTable from './pacificTimeTable.json' with { type: 'json'
 
 export const PACIFIC_TIMEZONE = 'America/Los_Angeles';
 
+/**
+ * Tolerance for "does this computed time land on that calendar boundary" comparisons throughout the
+ * codebase (`walkEventCrossings` in calculations/researchROI.ts, `advanceTimeWithBoundaries` in
+ * auto/shifts/helpers/advanceTime.ts). A purchase/wait that's timed to land EXACTLY on a real sale
+ * or earnings-boost boundary (the common "saved up just enough right as the sale starts" case)
+ * computes that landing instant via one arithmetic path (e.g. subtracting from the boundary to get
+ * a wait duration, then re-adding that duration to the original starting time elsewhere) while the
+ * boundary itself is re-derived independently via a fresh calendar lookup — both intend the SAME
+ * instant, but floating-point round-trip through two different call paths can leave them a
+ * fractional-second residue apart (confirmed in the wild: real `lastStepTime` values carry
+ * sub-second noise, e.g. `1673837.899709117`, from nothing more exotic than ordinary accumulated
+ * float addition across many purchases). A strict `<`/`>` has zero tolerance for that: landing on
+ * the wrong side of the comparison by even a fraction of a second silently treats "we just reached
+ * the sale" as "still one instant away" — which, since the state that gets read back later trusts
+ * whatever got recorded rather than re-deriving it, doesn't just mis-time that one instant, it can
+ * leave downstream reads stuck on the wrong answer. This tolerance is many orders of magnitude
+ * larger than that realistic float noise, while still utterly negligible next to the day/week scale
+ * of real sale cycles — nothing legitimate ever needs to stop within 5 seconds of a boundary without
+ * actually reaching it.
+ */
+export const BOUNDARY_EPSILON_SECONDS = 5;
+
 // Precomputed, flat, sorted table of every occurrence of a given (weekday, hour) in Pacific Time,
 // across a fixed, generous calendar window — built once per (day, hour) key, on first use, then
 // reused forever via binary search.

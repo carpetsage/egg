@@ -99,7 +99,10 @@ const showTeModal = ref(false);
 
 function formatDateOnly(timestampSeconds: number, tz: string): string {
   if (!timestampSeconds) return 'N/A';
-  const date = new Date(timestampSeconds * 1000);
+  // `Math.round`, not a bare `new Date(...)` — see `secondsToDate`'s doc comment (lib/format.ts):
+  // `timestampSeconds` routinely lands a sub-microsecond residue short of a whole second, which
+  // could (rarely) tip a midnight-boundary date to the wrong day.
+  const date = new Date(Math.round(timestampSeconds * 1000));
   if (isNaN(date.getTime())) return 'N/A';
   const options: Intl.DateTimeFormatOptions = {
     weekday: 'short', month: 'short', day: 'numeric', timeZone: tz,
