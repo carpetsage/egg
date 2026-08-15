@@ -16,6 +16,7 @@ export interface AutoPlannerScheduleCache {
   startDate: string;
   startTime: string;
   targetTE: string;
+  siloMode?: boolean;
 }
 
 export function loadAutoPlannerSchedule(): Partial<AutoPlannerScheduleCache> | null {

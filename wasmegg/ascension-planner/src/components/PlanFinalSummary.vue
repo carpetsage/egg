@@ -221,6 +221,7 @@ import { useVirtueStore } from '@/stores/virtue';
 import { type CalculationsSnapshot, type VirtueEgg } from '@/types';
 import { countTEThresholdsPassed } from '@/lib/truthEggs';
 import { formatNumber } from '@/lib/format';
+import { isTestingEnvironment } from '@/lib/isTestingEnvironment';
 import { iconURL } from 'lib';
 import TeBreakdownModal from '@/components/TeBreakdownModal.vue';
 
@@ -240,11 +241,7 @@ const showTeModal = ref(false);
 
 // Only surfaced on localhost and the staging deploy — these are testing/bug-reporting tools, not
 // something regular production users should see or need.
-const showTestingTools =
-  typeof window !== 'undefined' &&
-  (window.location.hostname === 'localhost' ||
-    window.location.hostname === '127.0.0.1' ||
-    window.location.hostname === 'ascension-planner--wasmegg-carpet.netlify.app');
+const showTestingTools = isTestingEnvironment;
 
 /**
  * Clears any service worker registrations and Cache Storage entries, then reloads with a
