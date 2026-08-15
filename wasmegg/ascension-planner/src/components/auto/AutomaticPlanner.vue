@@ -42,17 +42,28 @@
               </div>
               <div class="space-y-1.5">
                 <label class="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1">Target TE(s)</label>
-                <div class="relative">
-                  <input
-                    ref="targetInput"
-                    v-model="targetTE"
-                    @input="handleTargetTEInput"
-                    @keydown.enter="runGenerate()"
-                    type="text"
-                    class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm font-black text-slate-900 outline-none focus:border-indigo-500/50 transition-all pr-10"
-                    placeholder="e.g. 300 400 490"
-                  />
-                  <div class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 font-black text-[10px]">TE</div>
+                <div class="flex items-center gap-3">
+                  <div class="relative flex-1">
+                    <input
+                      ref="targetInput"
+                      v-model="targetTE"
+                      @input="handleTargetTEInput"
+                      @keydown.enter="runGenerate()"
+                      type="text"
+                      class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm font-black text-slate-900 outline-none focus:border-indigo-500/50 transition-all pr-10"
+                      placeholder="e.g. 300 400 490"
+                    />
+                    <div class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 font-black text-[10px]">TE</div>
+                  </div>
+                  <button
+                    v-if="siloMode"
+                    type="button"
+                    title="Silo mode is on — click to turn it off"
+                    class="flex-shrink-0 w-9 h-9 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center hover:bg-indigo-100 transition-colors"
+                    @click="siloMode = false"
+                  >
+                    <img :src="iconURL('egginc-extras/silo.png', 64)" class="w-5 h-5 object-contain" alt="silo" />
+                  </button>
                 </div>
                 <p class="text-[10px] font-bold text-slate-400 leading-relaxed px-1 mt-2">
                   Enter a sequence of target TEs separated by spaces to generate an entire multi-ascension chain at once.
@@ -226,6 +237,8 @@ import { useTruthEggsStore } from '@/stores/truthEggs';
 import { useAscensionGenerator } from '@/auto/useAscensionGenerator';
 import { useEarningsClothedTE } from '@/composables/useEarningsClothedTE';
 import { loadAutoPlannerSchedule, saveAutoPlannerSchedule } from '@/lib/autoPlannerFormCache';
+import { isTestingEnvironment } from '@/lib/isTestingEnvironment';
+import { iconURL } from 'lib';
 import SchedulingInputs from './SchedulingInputs.vue';
 import VirtueProgressSection from './VirtueProgressSection.vue';
 import ChainSummaryBar from './ChainSummaryBar.vue';
@@ -251,6 +264,7 @@ const showLowClothedTEWarning = computed(() => earningsClothedTe.value !== null 
 
 const targetInput = ref<HTMLInputElement | null>(null);
 const isCollapsed = ref(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
+const siloMode = ref(false);
 
 // Restore a cached form (start date/time/timezone, target TE) from a previous visit, if any,
 // so a page reload doesn't wipe out what the user had entered. This runs before the defaulting
@@ -261,6 +275,7 @@ if (cachedSchedule) {
   if (cachedSchedule.startDate) startDate.value = cachedSchedule.startDate;
   if (cachedSchedule.startTime) startTime.value = cachedSchedule.startTime;
   if (cachedSchedule.targetTE) targetTE.value = cachedSchedule.targetTE;
+  if (cachedSchedule.siloMode && isTestingEnvironment) siloMode.value = true;
 }
 
 // Initialize timezone default
@@ -295,13 +310,14 @@ watch(
   { immediate: true }
 );
 
-// Persist the form (start date/time/timezone, target TE) so it survives a page reload.
-watch([timezone, startDate, startTime, targetTE], () => {
+// Persist the form (start date/time/timezone, target TE, silo mode) so it survives a page reload.
+watch([timezone, startDate, startTime, targetTE, siloMode], () => {
   saveAutoPlannerSchedule({
     timezone: timezone.value,
     startDate: startDate.value,
     startTime: startTime.value,
     targetTE: targetTE.value,
+    siloMode: siloMode.value,
   });
 });
 
@@ -334,6 +350,9 @@ const runGenerate = () => {
 
 const handleTargetTEInput = (e: Event) => {
   const input = e.target as HTMLInputElement;
+  if (isTestingEnvironment && /g/i.test(input.value)) {
+    siloMode.value = true;
+  }
   const formatted = input.value.replace(/\D+/g, ' ');
   targetTE.value = formatted.replace(/^\s+/, '').replace(/\s{2,}/g, ' ');
 };
