@@ -121,7 +121,13 @@
     <!-- Expanded content (summary + action details) -->
     <div v-if="isExpanded" class="border-t border-slate-300">
       <!-- Egg Summary (for the egg we were ON during this period) -->
-      <component :is="summaryComponent" :header-action="headerAction" :actions="actions" :compact="compact" />
+      <component
+        :is="summaryComponent"
+        :header-action="headerAction"
+        :actions="actions"
+        :compact="compact"
+        @scroll-to-action="handleScrollToAction"
+      />
 
       <div ref="scrollContainer" class="max-h-[400px] overflow-y-auto bg-white">
         <!-- Compact multi-day shift: consolidate each calendar day behind its own summary -->
@@ -135,6 +141,8 @@
             :summary-component="summaryComponent"
             :total-cost="day.totalCost"
             :eggs-delivered="day.eggsDelivered"
+            :expanded="expandedDayKeys.has(day.key)"
+            @update:expanded="value => setDayExpanded(day.key, value)"
             @undo="handleDayUndo"
           />
         </template>
@@ -163,6 +171,7 @@ import type { Action, VirtueEgg, StartAscensionPayload, ShiftPayload } from '@/t
 import { VIRTUE_EGG_NAMES } from '@/types';
 import { formatNumber, formatDuration } from '@/lib/format';
 import { safeAsyncComponent } from '@/lib/import';
+import { scrollToAndHighlight } from '@/lib/scrollToAndHighlight';
 import ActionHistoryItem from './ActionHistoryItem.vue';
 import DayGroup from './DayGroup.vue';
 
@@ -434,4 +443,30 @@ const dayGroups = computed<DayGroupItem[]>(() => {
  * than one calendar day — otherwise a single day-group would just add a redundant layer.
  */
 const useDayGrouping = computed(() => !!props.compact && dayGroups.value.length > 1);
+
+// Which days (by DayGroupItem.key) are currently expanded. Owned here — rather than as local
+// state inside each DayGroup — so a curiosity summary link click (see handleScrollToAction) can
+// force open whichever day contains its target action.
+const expandedDayKeys = ref(new Set<string>());
+
+function setDayExpanded(key: string, value: boolean) {
+  if (value) {
+    expandedDayKeys.value.add(key);
+  } else {
+    expandedDayKeys.value.delete(key);
+  }
+}
+
+/**
+ * Handles a curiosity summary link click whose target action wasn't found in the DOM — meaning
+ * it's inside a collapsed day (compact view). Expand that day, wait for it to render, then scroll.
+ */
+async function handleScrollToAction(actionId: string) {
+  const day = dayGroups.value.find(d => d.actions.some(a => a.id === actionId));
+  if (day) {
+    expandedDayKeys.value.add(day.key);
+    await nextTick();
+  }
+  scrollToAndHighlight(actionId);
+}
 </script>

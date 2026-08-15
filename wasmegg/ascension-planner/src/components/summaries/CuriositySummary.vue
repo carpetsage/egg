@@ -98,6 +98,7 @@ import { computed } from 'vue';
 import type { Action, BuyResearchPayload } from '@/types';
 import { getResearchById, getResearchByTier } from '@/calculations/commonResearch';
 import { formatGemPrice, formatNumber } from '@/lib/format';
+import { scrollToAndHighlight } from '@/lib/scrollToAndHighlight';
 import { iconURL } from 'lib';
 
 import { useActionsStore } from '@/stores/actions';
@@ -107,6 +108,13 @@ const props = defineProps<{
   actions: Action[];
   compact?: boolean;
   hideHeader?: boolean;
+}>();
+
+const emit = defineEmits<{
+  // Fired instead of scrolling directly when the target action isn't in the DOM yet —
+  // e.g. it's inside a collapsed day in compact view. The ancestor ActionGroup is
+  // responsible for expanding the containing day and retrying the scroll.
+  'scroll-to-action': [actionId: string];
 }>();
 
 const actionsStore = useActionsStore();
@@ -144,12 +152,12 @@ interface SummaryItem {
 
 const scrollToAction = (actionId?: string) => {
   if (!actionId) return;
-  const el = document.getElementById(actionId);
-  if (el) {
-    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    // Highlight effect
-    el.classList.add('bg-amber-100/50');
-    setTimeout(() => el.classList.remove('bg-amber-100/50'), 2000);
+  if (document.getElementById(actionId)) {
+    scrollToAndHighlight(actionId);
+  } else {
+    // Not rendered yet — most likely its day is collapsed in compact view. Ask the
+    // ancestor ActionGroup to expand it, then retry.
+    emit('scroll-to-action', actionId);
   }
 };
 
