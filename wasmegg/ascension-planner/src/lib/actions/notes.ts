@@ -109,6 +109,27 @@ export function buildSaleEndsBuyNotePayload(
 }
 
 /**
+ * Builds the inline-note payload `auto/shifts/c3.ts`'s final-sale gap fill inserts ahead of its
+ * purchases — see `simulateFinalSaleGapBuy`'s own doc comment (smartBuyPreview.ts) for what this
+ * sweep actually buys and why. Manual-planner-only counterpart: none — this is auto-engine-only,
+ * since it only makes sense against a ride's own known `buildPhaseEnd`.
+ *
+ * Returns null when the sweep bought nothing.
+ */
+export function buildFinalSaleGapBuyNotePayload(
+  purchaseCount: number,
+  elapsedSeconds: number,
+  totalGemsSpent: number
+): NotificationPayload | null {
+  if (purchaseCount <= 0) return null;
+
+  return {
+    message: 'Final Sale Gap Buy',
+    submessage: `${formatPurchasesOverDuration(purchaseCount, elapsedSeconds, totalGemsSpent)}, before final sale`,
+  };
+}
+
+/**
  * Builds the inline-note payload the Milestone view's "Buy Entire Chain" button inserts ahead of
  * its purchases — `ResearchActions.vue`'s `handleBuyMilestoneChain`. `targetLabel` is a caller-built
  * description of what was targeted (e.g. "Unlock Tier 8" or "Graviton Coupling (Lv 5/20)") —
