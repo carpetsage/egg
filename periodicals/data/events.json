@@ -28222,5 +28222,32 @@
     "startTimestamp": 1786550400,
     "type": "piggy-boost",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1786723200,
+    "id": "event-8-13",
+    "message": "2x GIFTS!",
+    "multiplier": 2,
+    "startTimestamp": 1786636800,
+    "type": "gift-boost",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1786723200,
+    "id": "ultra-8-13",
+    "message": "4x DRONE REWARDS!",
+    "multiplier": 4,
+    "startTimestamp": 1786636800,
+    "type": "drone-boost",
+    "ultra": true
+  },
+  {
+    "endTimestamp": 1786809600,
+    "id": "event-8-14",
+    "message": "70% OFF RESEARCH!",
+    "multiplier": 0.3,
+    "startTimestamp": 1786723200,
+    "type": "research-sale",
+    "ultra": false
   }
 ]
