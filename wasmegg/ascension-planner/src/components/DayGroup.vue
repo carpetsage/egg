@@ -3,12 +3,12 @@
     <!-- Day header: always-visible compact summary, click to expand/collapse details -->
     <button
       class="w-full px-3 py-1.5 flex items-center justify-between gap-2 bg-slate-100/80 hover:bg-slate-100 transition-colors text-left"
-      @click="expanded = !expanded"
+      @click="emit('update:expanded', !props.expanded)"
     >
       <div class="flex items-center gap-2 min-w-0">
         <svg
           class="w-3 h-3 text-slate-400 transition-transform duration-200 flex-shrink-0"
-          :class="{ 'rotate-90': expanded }"
+          :class="{ 'rotate-90': props.expanded }"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -35,7 +35,7 @@
     </button>
 
     <!-- Details: full egg summary + raw action rows, only when expanded -->
-    <template v-if="expanded">
+    <template v-if="props.expanded">
       <component
         :is="summaryComponent"
         v-if="summaryComponent"
@@ -56,7 +56,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { computed } from 'vue';
 import { iconURL } from 'lib';
 import type { Action } from '@/types';
 import { formatNumber, formatGemPrice } from '@/lib/format';
@@ -69,14 +69,16 @@ const props = defineProps<{
   summaryComponent?: unknown;
   totalCost: number;
   eggsDelivered: number;
+  // Collapsed by default — the header row above is the "daily summary" this consolidates down to.
+  // Owned by the parent ActionGroup so it can force a specific day open (e.g. when a curiosity
+  // summary link is clicked for an action that lives inside this day).
+  expanded: boolean;
 }>();
 
 const emit = defineEmits<{
   undo: [action: Action, options: { skipConfirmation: boolean }];
+  'update:expanded': [value: boolean];
 }>();
-
-// Collapsed by default — the header row above is the "daily summary" this consolidates down to.
-const expanded = ref(false);
 
 // Only research purchases count here — other action types (waits, events, etc.) are noise for
 // the collapsed header's badge. Falls back to a plain action count for research-free groups
