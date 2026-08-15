@@ -11,8 +11,12 @@ import { applyShiftAction } from './helpers/actionHelpers';
 import { advanceTimeWithBoundaries } from './helpers/advanceTime';
 import { computeSnapshot } from '../../engine/compute';
 import { calculateArtifactModifiers } from '../../lib/artifacts';
-import { simulateSaleAwareBuy, simulateSaleEndsBuy } from '../../calculations/smartBuyPreview';
-import { buildSaleAwareBuyNotePayload, buildSaleEndsBuyNotePayload } from '@/lib/actions/notes';
+import { simulateSaleAwareBuy, simulateSaleEndsBuy, simulateFinalSaleGapBuy } from '../../calculations/smartBuyPreview';
+import {
+  buildSaleAwareBuyNotePayload,
+  buildSaleEndsBuyNotePayload,
+  buildFinalSaleGapBuyNotePayload,
+} from '@/lib/actions/notes';
 import {
   isResearchSaleActive,
   getNextSaleStart,
@@ -67,6 +71,15 @@ const MULTI_LAYERING_TARGET_LEVEL = 2;
  *    commitment to riding out every sale between now and then, passed as `fullRoiDeadline` — so a
  *    purchase doesn't need to fully pay for itself by any one sale along the way, only by the end of
  *    the whole ride.
+ * 3a. Whenever a step-3 cycle's target is the ride's FINAL sale specifically, and that cycle's own
+ *    two-gated buying runs out of qualifying candidates before actually reaching that sale's start,
+ *    fill whatever's left of that gap with delivery-relevant research that's economical to buy now
+ *    rather than defer — see `buyFinalSaleGap`/`simulateFinalSaleGapBuy`'s own doc comments for the
+ *    full "why" (short version: some of what step 4 below buys for its delivery impact also raises
+ *    earnings, and step 4 never gates on ROI at all, so it's worth pulling forward into otherwise-
+ *    idle time whenever doing so pays for itself before the final sale even starts). Only applies to
+ *    the cycle immediately before the final sale — every earlier cycle's own idle gap has no
+ *    equivalent "what does the eventual delivery buy look like" to weigh a pre-buy against.
  * 4. Buy delivery research until nothing more is worth buying (not necessarily until the sale
  *    itself ends — once purchasing stalls out, C3 stops there rather than padding the clock the
  *    rest of the way to `buildPhaseEnd`; K3, the next shift, already waits out any remaining time
@@ -260,6 +273,37 @@ export function runC3(
     );
   };
 
+  // Fills the idle gap — if any — between wherever `buyUntilSaleWarning` stopped and the ride's
+  // FINAL sale's own start (`finalSaleStart`, always this call's own `nextSaleStart` from the loop
+  // below, and always equal to `getSaleStartForEnd(buildPhaseEnd)`) with delivery-relevant research
+  // that's economical to buy now rather than wait for. Only ever called for the cycle immediately
+  // before the final sale — see `simulateFinalSaleGapBuy`'s own doc comment (smartBuyPreview.ts) for
+  // the full "why" and why this doesn't generalize to gaps before any of the ride's earlier sales
+  // (only the final sale's own eventual `buyUntilSaleEnds` outcome is known this far ahead).
+  const buyFinalSaleGap = (finalSaleStart: number) => {
+    const snapshot = computeSnapshot(currentState, context, { skipGrowth: true });
+    const absTime = getAbsTime();
+    const plan = simulateFinalSaleGapBuy(
+      currentState.researchLevels,
+      snapshot,
+      context,
+      getModifiers(),
+      absTime,
+      finalSaleStart,
+      buildPhaseEnd,
+      'realistic',
+      'efficiency',
+      context.rawBackup
+    );
+    executePlanToLevels(
+      plan.purchases.map(p => p.researchId),
+      plan.endLevels,
+      Math.max(0, finalSaleStart - absTime),
+      (purchaseCount, totalGemsSpent, elapsedSeconds) =>
+        buildFinalSaleGapBuyNotePayload(purchaseCount, elapsedSeconds, totalGemsSpent)
+    );
+  };
+
   // 1. Shift to Curiosity
   const shifted = applyShiftAction(currentState, context, 'curiosity');
   currentState = shifted.state;
@@ -382,6 +426,17 @@ export function runC3(
     }
 
     buyUntilSaleWarning(nextSaleStart);
+
+    // `nextSaleStart` is itself the ride's final sale's start whenever that sale's own end reaches
+    // `buildPhaseEnd` — same test `isFinalSale` above runs against `absTime`, just one sale-start
+    // ahead. Whatever's left of the gap between here and `nextSaleStart` (`buyUntilSaleWarning` may
+    // have run out of qualifying candidates well before its own deadline) is otherwise wasted, idle
+    // time — see `buyFinalSaleGap`'s own doc comment for why this only applies to THIS cycle, never
+    // an earlier one.
+    if (getNextSaleEnd(nextSaleStart) >= buildPhaseEnd) {
+      buyFinalSaleGap(nextSaleStart);
+    }
+
     advanceTime(Math.max(0, nextSaleStart - getAbsTime()));
   }
 

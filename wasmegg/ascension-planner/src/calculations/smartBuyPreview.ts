@@ -12,7 +12,7 @@ import type { SimulationContext, EngineState } from '@/engine/types';
 import { createBaseEngineState } from '@/engine/adapter';
 import { computeSnapshot } from '@/engine/compute';
 import { applyAction, applyTime, boostTransitionsFrom } from '@/engine/apply';
-import { isResearchSaleActive } from '@/lib/events';
+import { isResearchSaleActive, getNextSaleEnd } from '@/lib/events';
 import { ei } from 'lib';
 
 // Set to true (temporarily, for debugging) to log why `simulateSaleAwareBuy`'s candidate search
@@ -39,7 +39,16 @@ const MAX_SIMULATED_PURCHASES = 2000;
  * iterations) from stalling the tab. A single research sale's window realistically can't fit
  * anywhere near this many sequential ROI-qualifying purchases.
  */
-const MAX_PRELUDE_PURCHASES = 100;
+const MAX_PRELUDE_PURCHASES = 200;
+
+/**
+ * Safety-net cap on `simulateFinalSaleGapBuy`'s own candidate loop — deliberately much smaller than
+ * `MAX_PRELUDE_PURCHASES`: every candidate considered there costs up to two full
+ * `simulateSaleEndsBuy` runs (see that function's own doc comment), and a single idle gap between
+ * two sales realistically can't fit anywhere near this many sequential ROI-qualifying delivery
+ * purchases.
+ */
+const MAX_GAP_FILL_CANDIDATES = 200;
 
 function buyResearchAction(researchId: string, fromLevel: number, cost: number) {
   return {
@@ -641,6 +650,219 @@ export function simulateSaleEndsBuy(
     endSnapshot: bestRun.endSnapshot,
     totalGemsSpent,
     lastPurchaseTimestamp,
+  };
+}
+
+export interface FinalSaleGapPurchase {
+  researchId: string;
+  price: number;
+  purchaseTimestamp: number;
+}
+
+export interface FinalSaleGapPlan {
+  /** In purchase order. Empty when there was no gap to fill, or nothing in it cleared both gates. */
+  purchases: FinalSaleGapPurchase[];
+  endLevels: Record<string, number>;
+  endSnapshot: CalculationsSnapshot;
+}
+
+/**
+ * C3's "final-sale gap fill": when the last earnings-ROI sweep before a multi-sale ride's FINAL
+ * sale (`buyUntilSaleWarning` in c3.ts, targeting that sale's own start) runs out of ROI-qualifying
+ * candidates before actually reaching that deadline, the remaining stretch between wherever it
+ * stopped and the final sale's start would otherwise sit completely idle — nothing else in C3 buys
+ * anything there, since the only pass that knows what delivery research this ride is going to end
+ * up buying (`buyUntilSaleEnds`) doesn't run until the final sale actually starts.
+ *
+ * That idle stretch isn't actually empty of opportunity: some of what `buyUntilSaleEnds` buys for
+ * delivery impact ALSO raises earnings, and delivery research is picked purely by ELR impact
+ * (`rankResearchByELRImpact`), never gated on ROI at all — so it's going to get bought during the
+ * final sale regardless of whether it makes economic sense to buy it *now* instead. That reframes
+ * the question this function answers from "is this purchase worth making at all" (already yes) to
+ * "is it worth making sooner, at today's likely-full off-sale price, than waiting for the final
+ * sale's own discount" — exactly a 70%-ROI-by-deadline question, just judged against
+ * `finalSaleStart` instead of the calendar's next real sale.
+ *
+ * Each iteration:
+ * 1. Ranks unpurchased research via `rankResearchByROI('immediate', deliveryImpactOnly: true,
+ *    roiDeadlineOverride: finalSaleStart)` — the OLD single-gate mode (`showSaleWarning`), NOT the
+ *    dual-gate mode `buyUntilSaleWarning` itself uses: Smart Buy's own near-term gate
+ *    (`showBuyNowRoiWarning`) is unconditionally anchored to the calendar's very next real sale
+ *    regardless of any deadline override (see its own doc comment in researchROI.ts) — reusing it
+ *    here would just reproduce the exact exclusion that left this candidate stranded in the idle
+ *    gap to begin with. `deliveryImpactOnly: true` additionally restricts candidates to the
+ *    categories `buyUntilSaleEnds`'s own delivery pass can actually buy
+ *    (`DELIVERY_IMPACT_CATEGORIES`) — a candidate outside those categories has no bearing on the
+ *    delivery outcome this function exists to protect, and pulling one forward here would just be
+ *    re-deciding a question `buyUntilSaleWarning` already answered correctly under its own
+ *    (correctly calendar-anchored) gate.
+ * 2. Takes the fastest-ROI candidate that clears gate 1 and hasn't already been rejected this call
+ *    (already `rankResearchByROI`'s own sort order — see its doc comment), and checks whether
+ *    buying it now leaves the eventual delivery outcome at `buildPhaseEnd` at least as good as not
+ *    buying it: both branches are projected forward to `finalSaleStart` first (an idle wait,
+ *    mirroring what this stretch would do with the time anyway) before running the real
+ *    `simulateSaleEndsBuy` plan from there, so the comparison isn't contaminated by one branch
+ *    simply having more elapsed time than the other. `endSnapshot.elr` — the real projected
+ *    delivery rate at `buildPhaseEnd`, not a hypothetical maxed-vehicles one — is the comparison
+ *    metric; non-negative (not strictly positive) is the bar, since a candidate that leaves the
+ *    final delivery rate merely unchanged still isn't making anything worse, and it's still earning
+ *    extra along the way.
+ * 3. A candidate that clears step 2 is bought for real (committing time/state), and its own "with
+ *    purchase" delivery-outcome run becomes the new baseline for the next iteration's comparison —
+ *    it already IS exactly "current committed state, projected and delivery-simulated," so nothing
+ *    needs recomputing. A candidate that fails step 2 is rejected for the rest of this call (added
+ *    to a skip set) rather than retried on a later iteration — a single greedy pass, not an
+ *    exhaustive search of every accept/reject combination; see `simulateSaleEndsBuy`'s own doc
+ *    comment for the same tradeoff made for the same reason elsewhere in this file.
+ *
+ * Each candidate considered costs up to two full `simulateSaleEndsBuy` runs (step 2's baseline
+ * reuse trims this to one for every candidate after the first) — expensive relative to everything
+ * else in this file, but bounded by `MAX_GAP_FILL_CANDIDATES`, and the candidate pool here is
+ * inherently small: at most a single week's worth of ROI-qualifying delivery research.
+ *
+ * Returns an empty plan immediately if there's no gap left to fill (`absoluteSimTime >=
+ * finalSaleStart`) — callers don't need their own guard for that case.
+ */
+export function simulateFinalSaleGapBuy(
+  researchLevels: Record<string, number>,
+  snapshot: CalculationsSnapshot,
+  context: SimulationContext,
+  mods: ResearchCostModifiers,
+  absoluteSimTime: number,
+  finalSaleStart: number,
+  buildPhaseEnd: number,
+  elrViewMode: 'realistic' | 'potential',
+  elrSortMode: 'efficiency' | 'impact',
+  rawBackup: ei.IBackup | null | undefined
+): FinalSaleGapPlan {
+  if (absoluteSimTime >= finalSaleStart) {
+    return { purchases: [], endLevels: researchLevels, endSnapshot: snapshot };
+  }
+
+  // Projects `levels`/`stateSnapshot` forward from `fromTime` to `finalSaleStart` doing nothing
+  // else (a pure idle wait — the same thing this gap would otherwise spend doing), then runs the
+  // real "Buy Until Sale Ends" delivery plan from there through `buildPhaseEnd`. This is the shared
+  // "what would the eventual delivery outcome actually be" projection both the baseline and each
+  // candidate branch below need — factored out since it's called at least twice (baseline once,
+  // once more per candidate actually considered).
+  const projectToDeliveryOutcome = (
+    levels: Record<string, number>,
+    stateSnapshot: CalculationsSnapshot,
+    fromTime: number
+  ): SaleEndsPlan => {
+    const idleSeconds = Math.max(0, finalSaleStart - fromTime);
+    let projectedSnapshot = stateSnapshot;
+    if (idleSeconds > 0) {
+      const engineState: EngineState = { ...createBaseEngineState(stateSnapshot), researchLevels: { ...levels } };
+      const projectedState = applyTime(engineState, idleSeconds, stateSnapshot);
+      // See `simulateSaleAwareBuy`'s identical comment — keeps `lastStepTime` in its incoming frame
+      // across this projection instead of risking a mid-loop epoch flip.
+      projectedSnapshot = computeSnapshot(projectedState, context, { skipEpochConversion: true });
+    }
+    return simulateSaleEndsBuy(
+      levels,
+      projectedSnapshot,
+      context,
+      mods,
+      finalSaleStart,
+      buildPhaseEnd,
+      elrViewMode,
+      elrSortMode,
+      rawBackup
+    );
+  };
+
+  let simState: EngineState = { ...createBaseEngineState(snapshot), researchLevels: { ...researchLevels } };
+  let simSnapshot = snapshot;
+  let simTime = absoluteSimTime;
+
+  const purchases: FinalSaleGapPurchase[] = [];
+  const rejectedIds = new Set<string>();
+  let baseline = projectToDeliveryOutcome(simState.researchLevels, simSnapshot, simTime);
+
+  for (let i = 0; i < MAX_GAP_FILL_CANDIDATES && simTime < finalSaleStart; i++) {
+    const isSale = isResearchSaleActive(simTime);
+    const ranked = rankResearchByROI(
+      simState.researchLevels,
+      simSnapshot,
+      context,
+      mods,
+      isSale,
+      simTime,
+      getNextSaleEnd(simTime),
+      'immediate',
+      true,
+      finalSaleStart,
+      undefined
+    );
+    // `!item.showSaleWarning` alone isn't enough: `showSaleWarning` is `!meetsROIByDeadline(...,
+    // finalSaleStart, 70)`, and `meetsROIByDeadline`'s own `targetTimestamp <= purchaseTime` guard
+    // unconditionally fails whenever a candidate's completion lands AT-OR-AFTER `finalSaleStart` —
+    // which is common here, since `finalSaleStart` is also the calendar's own next real sale from
+    // early in this gap, so `getSaleAwareTimeToSave` routinely resolves an expensive candidate's
+    // wait to "however long it takes to land exactly at that sale's start, buy at its discount."
+    // This is the same "transitional candidate" trap `meetsSaleAwareDeadline` already documents and
+    // works around elsewhere in this codebase, just NOT via that function's own `isActuallyDuringSale`
+    // bypass: that bypass answers "is this landing in the sale nearest to right now," which is the
+    // wrong question this far out — early in the gap, `simTime` itself can still be inside the
+    // PRECEDING (non-final) sale's own window, making the "nearest" sale from `simTime` that earlier
+    // one, not `finalSaleStart`. What actually matters here is simpler and doesn't need calendar
+    // lookahead at all: is this specific candidate actually landing inside SOME real, currently-
+    // resolvable sale discount (`item.duringSale` — either the one active right now, or, by
+    // construction, `finalSaleStart` itself, since nothing else sits between here and there)? If so,
+    // there's no "would waiting have been better" question left to ask, same reasoning as every other
+    // during-sale bypass in this file — pre-buying it now still isn't free, though: it's still
+    // trading part of this otherwise-idle gap for a purchase `buyUntilSaleEnds` would otherwise have
+    // to spend part of the final sale's own tight window on, which is exactly the win this function
+    // exists to bank (see this function's own doc comment). `item.duringSale`/`item.timeToBuySeconds`
+    // are already the pairing-aware anchor fields `showSaleWarning` itself was computed from (see
+    // `rankResearchByROI`'s bottleneck-pairing block), so this bypass stays consistent with whichever
+    // economics (solo or paired) actually decided this candidate's rank.
+    const candidate = ranked.find(
+      item => item.canBuy && (!item.showSaleWarning || item.duringSale) && !rejectedIds.has(item.research.id)
+    );
+    if (!candidate) break;
+
+    const timeToBuySeconds = candidate.timeToBuySeconds ?? 0;
+    // Doesn't even finish saving up before the final sale starts — nothing left to compare, and
+    // waiting won't change that verdict, so reject and move on rather than looping on it again.
+    if (simTime + timeToBuySeconds > finalSaleStart) {
+      rejectedIds.add(candidate.research.id);
+      continue;
+    }
+
+    const level = simState.researchLevels[candidate.research.id] || 0;
+    const candidateState = applyTime(
+      applyAction(simState, buyResearchAction(candidate.research.id, level, candidate.price)),
+      timeToBuySeconds,
+      simSnapshot
+    );
+    // See `simulateSaleAwareBuy`'s identical comment — keeps `lastStepTime` in its incoming frame.
+    const candidateSnapshot = computeSnapshot(candidateState, context, { skipEpochConversion: true });
+    const candidateResult = projectToDeliveryOutcome(
+      candidateState.researchLevels,
+      candidateSnapshot,
+      simTime + timeToBuySeconds
+    );
+
+    if (candidateResult.endSnapshot.elr < baseline.endSnapshot.elr) {
+      rejectedIds.add(candidate.research.id);
+      continue;
+    }
+
+    simState = candidateState;
+    simSnapshot = candidateSnapshot;
+    simTime += timeToBuySeconds;
+    purchases.push({ researchId: candidate.research.id, price: candidate.price, purchaseTimestamp: simTime });
+    // This candidate's own "with purchase" run already IS the next baseline — see this function's
+    // own doc comment (step 3) for why recomputing it fresh next iteration would be redundant.
+    baseline = candidateResult;
+  }
+
+  return {
+    purchases,
+    endLevels: simState.researchLevels,
+    endSnapshot: simSnapshot,
   };
 }
 
