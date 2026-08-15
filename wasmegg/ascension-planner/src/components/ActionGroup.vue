@@ -331,7 +331,10 @@ function actionAbsoluteTime(action: Action): Date {
   const startTime = virtueStore.planStartTime.getTime();
   const offset = actionsStore.planStartOffset;
   const simTime = action.endState.lastStepTime || 0;
-  return new Date(startTime + (simTime - offset) * 1000);
+  // `Math.round`, not a bare `new Date(...)` — see `secondsToDate`'s doc comment (lib/format.ts):
+  // `simTime` routinely lands a sub-microsecond residue short of a whole second even when it's
+  // "really" exactly on a boundary, and `new Date` truncates rather than rounds.
+  return new Date(Math.round(startTime + (simTime - offset) * 1000));
 }
 
 function formatDayLabel(date: Date, dayNumber: number): string {

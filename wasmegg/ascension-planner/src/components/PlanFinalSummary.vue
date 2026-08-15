@@ -319,7 +319,9 @@ const formattedDuration = computed(() => {
 });
 
 const endDate = computed(() => {
-  return new Date(startDate.value.getTime() + totalDurationSeconds.value * 1000);
+  // `Math.round`, not a bare `new Date(...)` — see `secondsToDate`'s doc comment (lib/format.ts):
+  // `totalDurationSeconds` routinely lands a sub-microsecond residue short of a whole second.
+  return new Date(Math.round(startDate.value.getTime() + totalDurationSeconds.value * 1000));
 });
 
 const shiftCount = computed(() => {

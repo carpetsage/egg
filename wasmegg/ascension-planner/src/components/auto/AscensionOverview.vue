@@ -562,8 +562,12 @@ const shifts = computed(() => {
 });
 
 const formatTimeRange = (start: number, end: number) => {
-  const s = new Date(start * 1000);
-  const e = new Date(end * 1000);
+  // `Math.round`, not a bare `new Date(...)` — see `secondsToDate`'s doc comment (lib/format.ts):
+  // `start`/`end` (an ascension's `summary.startTime`/`endTime`) are sums of hundreds of accumulated
+  // purchase/wait durations and routinely land a sub-microsecond residue short of a whole second
+  // even when "really" exactly on a boundary.
+  const s = new Date(Math.round(start * 1000));
+  const e = new Date(Math.round(end * 1000));
   
   const options: Intl.DateTimeFormatOptions = { 
     weekday: 'short',

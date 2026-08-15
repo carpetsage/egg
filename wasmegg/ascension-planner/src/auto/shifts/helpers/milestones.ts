@@ -80,15 +80,7 @@ export function createMilestoneShiftHelpers(
 
     const snapshot = computeSnapshot(currentState, context, { skipGrowth: true });
     const absTime = getAbsTime();
-    // Trust the engine's own tracked flag too, not just a fresh recompute from `absTime` alone.
-    // `currentState.activeSales.research` was set by `advanceTimeWithBoundaries`'s own boundary
-    // check the moment a `wait_for_research_sale`/`toggle_sale` action actually landed on the real
-    // sale start — if that already says the sale is on, price this purchase at the sale price even
-    // if a fresh `isResearchSaleActive(absTime)` recompute right at this instant would (due to any
-    // residual sub-boundary timing mismatch between how `absTime` and the toggle were each derived)
-    // disagree and read one tick early. One-directional on purpose: this can only ever make a
-    // purchase MORE likely to land during the sale it was just placed inside of, never less.
-    const isSaleActive = isResearchSaleActive(absTime) || currentState.activeSales.research;
+    const isSaleActive = isResearchSaleActive(absTime);
     const transitions = boostTransitionsFrom(snapshot, absTime);
     const purchase = getSaleAwareTimeToSave(research, currentLevel, getModifiers(), isSaleActive, absTime, snapshot, transitions);
 

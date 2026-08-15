@@ -26,6 +26,7 @@ import {
   isEarningsBoostActive,
   getNextEarningsBoostEnd,
   getNextEarningsBoostStart,
+  BOUNDARY_EPSILON_SECONDS,
 } from '@/lib/events';
 
 export interface AdvanceTimeResult {
@@ -119,7 +120,15 @@ export function advanceTimeWithBoundaries(
     let stepSeconds = remaining;
     let targetEvent: string | undefined;
 
-    if (nextBoundary && (nextBoundary.time - absTime) <= remaining) {
+    // `+ BOUNDARY_EPSILON_SECONDS`, not a bare `<= remaining`: `remaining` (ultimately from
+    // `getSaleAwareTimeToSave`) is often computed to land EXACTLY on this same boundary via a
+    // different arithmetic path than the fresh `getNextSaleStart`/`getNextSaleEnd`/etc. lookups
+    // above — both intend the identical instant, but floating-point round-trip through two paths can
+    // leave a sub-second residue between them. Without the tolerance, `remaining` undershooting the
+    // true distance by even a fraction of a second would fail this check, stop the wait a hair short
+    // of the boundary, and skip the toggle entirely — see `BOUNDARY_EPSILON_SECONDS`'s own doc
+    // comment (mirrors the identical fix in `calculations/researchROI.ts`'s `walkEventCrossings`).
+    if (nextBoundary && (nextBoundary.time - absTime) <= remaining + BOUNDARY_EPSILON_SECONDS) {
       stepSeconds = nextBoundary.time - absTime;
       targetEvent = nextBoundary.type;
     }

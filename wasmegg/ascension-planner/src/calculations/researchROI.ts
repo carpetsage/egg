@@ -17,6 +17,7 @@ import {
   getNextEarningsBoostStart,
   getNextEarningsBoostEnd,
   isResearchSaleActive,
+  BOUNDARY_EPSILON_SECONDS,
 } from '@/lib/events';
 
 // See the comment where this is used in `calculateResearchROI` for why the ROI-payback horizon is
@@ -271,7 +272,19 @@ function walkEventCrossings(
     // strictly after its input — see that function's own doc comment), but this walk used to have
     // no defense at all against that invariant ever being violated; break rather than spin forever
     // if it somehow is.
-    if (!isFinite(boundary) || boundary > deadline || boundary <= cursor) break;
+    //
+    // `boundary > deadline + BOUNDARY_EPSILON_SECONDS`, not a bare `boundary > deadline`: a purchase
+    // timed to land EXACTLY on this boundary (the common "saved up just enough right as the sale
+    // starts" case) computed `deadline` by working backward FROM this same boundary via a wait
+    // duration, then re-adding that duration to `currentAbsoluteTime` here — a different arithmetic
+    // path than this fresh `getNextStart`/`getNextEnd` lookup, even though both intend the identical
+    // instant. A bare `>` had zero tolerance for the sub-second float residue that round-trip can
+    // leave, so landing a hair on the wrong side silently dropped the crossing — no
+    // wait_for_research_sale/toggle_sale got inserted, `activeSales.research` never flipped, and
+    // every LATER purchase in the same chain kept reading that stale flag (`syncEventStateForItem`
+    // trusts it directly, not a fresh recompute) until some later crossing happened to land cleanly.
+    // See `BOUNDARY_EPSILON_SECONDS`'s own doc comment for why this tolerance is safe.
+    if (!isFinite(boundary) || boundary > deadline + BOUNDARY_EPSILON_SECONDS || boundary <= cursor) break;
     crossings.push({ waitSeconds: boundary - cursor, togglesTo: !active });
     active = !active;
     cursor = boundary;

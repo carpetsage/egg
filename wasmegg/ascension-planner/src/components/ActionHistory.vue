@@ -246,7 +246,9 @@ const groupedActions = computed<GroupedItem[]>(() => {
       headerAction: shiftAction,
       actions: groupActions,
       timeElapsedSeconds: periodTimeSeconds,
-      periodTimestamp: new Date(ascensionStartTime.value.getTime() + cumulativeTimeSeconds * 1000),
+      // `Math.round`, not a bare `new Date(...)` — see `secondsToDate`'s doc comment (lib/format.ts):
+      // `cumulativeTimeSeconds` routinely lands a sub-microsecond residue short of a whole second.
+      periodTimestamp: new Date(Math.round(ascensionStartTime.value.getTime() + cumulativeTimeSeconds * 1000)),
       eggsDelivered: computePeriodEggsDelivered(shiftAction, groupActions),
       visitCount: visitCounts[shiftAction.payload.toEgg],
       isCurrent: isLastShift,
