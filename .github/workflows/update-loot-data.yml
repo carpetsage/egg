@@ -15,7 +15,7 @@ jobs:
       run:
         working-directory: wasmegg/artifact-explorer
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           token: ${{ secrets.WORKFLOW_DISPATCH_TOKEN }}
       - name: Update Loot Data
@@ -26,7 +26,7 @@ jobs:
         run: |
           git config user.name 'github-actions'
           git config user.email 'actions@github.com'
-          git add src/lib/loot.json
+          git add data/loot.json
           git diff --cached --quiet || {
             git commit -m 'artifact-explorer: update loot data (from GitHub Actions)'
             git push

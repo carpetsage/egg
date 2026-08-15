@@ -105,7 +105,6 @@
                   <th class="px-2 py-2 text-center text-xs font-medium text-gray-500 border-l">Base Quality</th>
                   <th class="px-2 py-2 text-center text-xs font-medium text-gray-500">Base Quality Range</th>
                   <th class="px-2 py-2 text-center text-xs font-medium text-gray-500">Quality Bump<br />Per Level</th>
-                  <th class="px-4 py-2 text-center text-xs font-medium text-blue-500">Quality</th>
                   <th class="px-4 py-2 text-center text-xs font-medium text-blue-500">Quality Range</th>
                 </tr>
               </thead>
