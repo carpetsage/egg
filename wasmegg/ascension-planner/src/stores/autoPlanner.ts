@@ -62,6 +62,7 @@ export const useAutoPlannerStore = defineStore('autoPlanner', () => {
   });
 
   const planVariantOverrides = ref<Record<number, VariantKey>>({});
+  const deferForEarningsMode = ref(false);
 
   function setPlan(data: {
     ascensionChain: ChainedAscension[];
@@ -112,6 +113,7 @@ export const useAutoPlannerStore = defineStore('autoPlanner', () => {
     targetEndTime,
     nextGoals,
     planVariantOverrides,
+    deferForEarningsMode,
     setPlan,
     clear,
   };
