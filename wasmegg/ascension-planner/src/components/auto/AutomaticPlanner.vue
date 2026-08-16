@@ -56,11 +56,11 @@
                     <div class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 font-black text-[10px]">TE</div>
                   </div>
                   <button
-                    v-if="siloMode"
+                    v-if="deferForEarningsMode"
                     type="button"
-                    title="Silo mode is on — click to turn it off"
+                    title="Defer for earnings mode is on — click to turn it off"
                     class="flex-shrink-0 w-9 h-9 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center hover:bg-indigo-100 transition-colors"
-                    @click="siloMode = false"
+                    @click="deferForEarningsMode = false"
                   >
                     <img :src="iconURL('egginc-extras/silo.png', 64)" class="w-5 h-5 object-contain" alt="silo" />
                   </button>
@@ -251,7 +251,7 @@ const autoPlannerStore = useAutoPlannerStore();
 const virtueStore = useVirtueStore();
 const truthEggsStore = useTruthEggsStore();
 
-const { ascensionChain, timezone, startDate, startTime, targetTE } = storeToRefs(autoPlannerStore);
+const { ascensionChain, timezone, startDate, startTime, targetTE, deferForEarningsMode } = storeToRefs(autoPlannerStore);
 
 // The forced-490 ascension is a silent bonus card — don't count it in the "A1 of N" denominator.
 const visibleTotal = computed(() => {
@@ -264,7 +264,6 @@ const showLowClothedTEWarning = computed(() => earningsClothedTe.value !== null 
 
 const targetInput = ref<HTMLInputElement | null>(null);
 const isCollapsed = ref(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
-const siloMode = ref(false);
 
 // Restore a cached form (start date/time/timezone, target TE) from a previous visit, if any,
 // so a page reload doesn't wipe out what the user had entered. This runs before the defaulting
@@ -275,7 +274,7 @@ if (cachedSchedule) {
   if (cachedSchedule.startDate) startDate.value = cachedSchedule.startDate;
   if (cachedSchedule.startTime) startTime.value = cachedSchedule.startTime;
   if (cachedSchedule.targetTE) targetTE.value = cachedSchedule.targetTE;
-  if (cachedSchedule.siloMode && isTestingEnvironment) siloMode.value = true;
+  if (cachedSchedule.deferForEarningsMode && isTestingEnvironment) deferForEarningsMode.value = true;
 }
 
 // Initialize timezone default
@@ -310,14 +309,14 @@ watch(
   { immediate: true }
 );
 
-// Persist the form (start date/time/timezone, target TE, silo mode) so it survives a page reload.
-watch([timezone, startDate, startTime, targetTE, siloMode], () => {
+// Persist the form (start date/time/timezone, target TE, defer for earnings mode) so it survives a page reload.
+watch([timezone, startDate, startTime, targetTE, deferForEarningsMode], () => {
   saveAutoPlannerSchedule({
     timezone: timezone.value,
     startDate: startDate.value,
     startTime: startTime.value,
     targetTE: targetTE.value,
-    siloMode: siloMode.value,
+    deferForEarningsMode: deferForEarningsMode.value,
   });
 });
 
@@ -351,7 +350,7 @@ const runGenerate = () => {
 const handleTargetTEInput = (e: Event) => {
   const input = e.target as HTMLInputElement;
   if (isTestingEnvironment && /g/i.test(input.value)) {
-    siloMode.value = true;
+    deferForEarningsMode.value = true;
   }
   const formatted = input.value.replace(/\D+/g, ' ');
   targetTE.value = formatted.replace(/^\s+/, '').replace(/\s{2,}/g, ' ');

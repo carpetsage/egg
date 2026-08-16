@@ -19,6 +19,7 @@ import { createSimAction } from '@/types/actions/meta';
 import type { EngineState, SimulationContext } from '../../types';
 import { computeSnapshot } from '../../../engine/compute';
 import { applyAction, calculateEggsDeliveredForTime } from '../../../engine/apply';
+import { totalAwayTime } from '@/stores/silos';
 import {
   isResearchSaleActive,
   getNextSaleStart,
@@ -164,6 +165,28 @@ export function advanceTimeWithBoundaries(
 
     const isBoostNow = isEarningsBoostActive(newAbsTime);
     if (currentState.earningsBoost?.active !== isBoostNow) {
+      if (isBoostNow && context.deferForEarningsMode) {
+        const siloCapacityLevel = context.epicResearchLevels['silo_capacity'] || 0;
+        const totalSiloSeconds = totalAwayTime(currentState.siloCount, siloCapacityLevel) * 60;
+        const creditSeconds = Math.min(stepSeconds, totalSiloSeconds);
+        if (creditSeconds > 0) {
+          const preBoostSnap = computeSnapshot(currentState, context, { skipGrowth: true });
+          const delta = preBoostSnap.offlineEarnings * creditSeconds;
+          if (delta > 0) {
+            const modifyBank = createSimAction('modify_bank', {
+              mode: 'delta',
+              amount: delta,
+              previousValue: currentState.bankValue || 0,
+              delta,
+            });
+            currentState = applyAction(currentState, modifyBank);
+            modifyBank.bankDelta = delta;
+            modifyBank.endState = computeSnapshot(currentState, context, { skipGrowth: true });
+            actions.push(modifyBank);
+          }
+        }
+      }
+
       const toggleBoost = createSimAction('toggle_earnings_boost', {
         active: isBoostNow,
         multiplier: 2,

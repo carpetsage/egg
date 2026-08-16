@@ -2,6 +2,7 @@ import type { EngineState, SimulationContext } from './types';
 import { CalculationsSnapshot, VIRTUE_EGGS, VirtueEgg } from '@/types';
 import { useInitialStateStore } from '@/stores/initialState';
 import { useVirtueStore } from '@/stores/virtue';
+import { useAutoPlannerStore } from '@/stores/autoPlanner';
 import { useSilosStore } from '@/stores/silos';
 import { useFuelTankStore } from '@/stores/fuelTank';
 import { useActionsStore } from '@/stores/actions';
@@ -30,6 +31,7 @@ export function getSimulationContext(): SimulationContext {
     planStartOffset: (useActionsStore() as any).planStartOffset || 0,
     assumeDoubleEarnings: initialStateStore.assumeDoubleEarnings,
     rawBackup: initialStateStore.rawBackup || undefined,
+    deferForEarningsMode: useAutoPlannerStore().deferForEarningsMode,
   };
 }
 

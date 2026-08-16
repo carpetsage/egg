@@ -55,6 +55,7 @@ export interface SimulationContext {
   planStartOffset: number; // Seconds since ascension start at which planning begins
   assumeDoubleEarnings: boolean;
   rawBackup?: any; // ei.IBackup
+  deferForEarningsMode: boolean;
   // TODO: Add any other global context needed (e.g. events?)
 }
 

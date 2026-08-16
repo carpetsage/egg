@@ -18,6 +18,7 @@ import { applyAction, boostTransitionsFrom } from '../../../engine/apply';
 import { advanceTimeWithBoundaries } from './advanceTime';
 import { isResearchSaleActive, getNextSaleStart, getNextSaleEnd } from '@/lib/events';
 import { buildQuickBuyNotePayload, buildMilestoneNotePayload } from '@/lib/actions/notes';
+import { runWithEarningsEventDeferral } from './earningsEventDeferral';
 
 /**
  * Shared mutable-simulation plumbing for the milestone/smart-buy helpers below.
@@ -149,6 +150,34 @@ export function createMilestoneShiftHelpers(
   };
 
   /**
+   * Read-only preview of `buyResearch`'s own sale-aware pricing (research validity, tier unlock,
+   * current level, `getSaleAwareTimeToSave`) — same computation, minus the wait/mutate/checkRoiGate
+   * machinery, since callers here only want "how long would this take right now," not to actually
+   * commit to it. Kept as its own small function (duplicating `buyResearch`'s first half) rather
+   * than factored out of it, since `buyResearch` already has more branches (`checkRoiGate`'s
+   * defer-and-recurse path) than this needs, and refactoring it risks disturbing that delicate
+   * logic. Returns `null` for the same "can't ever buy this" reasons `buyResearch` bails out early
+   * for. Used by C3's silo-mode purchase deferral (`executePlanToLevels`) to decide whether a
+   * planned purchase would naturally complete before an upcoming earnings boost starts, without
+   * actually committing to it.
+   */
+  const previewPurchase = (researchId: string): { waitSeconds: number } | null => {
+    const research = getResearchById(researchId);
+    if (!research) return null;
+    const currentLevel = currentState.researchLevels[researchId] || 0;
+    if (currentLevel >= research.levels) return null;
+    if (!isTierUnlocked(currentState.researchLevels, research.tier)) return null;
+
+    const snapshot = computeSnapshot(currentState, context, { skipGrowth: true });
+    if (snapshot.offlineEarnings <= 0) return null;
+    const absTime = getAbsTime();
+    const isSaleActive = isResearchSaleActive(absTime);
+    const transitions = boostTransitionsFrom(snapshot, absTime);
+    const purchase = getSaleAwareTimeToSave(research, currentLevel, getModifiers(), isSaleActive, absTime, snapshot, transitions);
+    return { waitSeconds: purchase.waitSeconds };
+  };
+
+  /**
    * Execute one already-planned milestone-chain item by re-deriving its actual price/wait from the
    * CURRENT state via `buyResearch`, rather than trusting `item`'s own precomputed `price`/
    * `timeToBuySeconds` — those were priced once during planning and can go stale by the time this
@@ -208,24 +237,47 @@ export function createMilestoneShiftHelpers(
    *
    * Returns the number of items actually executed (may be less than `items.length` if `timeLimit`
    * was hit).
+   *
+   * `deferForEarningsMode` (only ever passed `true` by C3's Tier 13 unlock step — see its own call
+   * site's comment) opts into the same defer-for-earnings-mode purchase deferral
+   * `executePlanToLevels` (c3.ts) uses for its own sweep: an item that would otherwise complete
+   * within the pre-boost silo window is skipped and bought instead right after the boost starts,
+   * where the same price is reached in less real time. Multiversal Layering is exempt (and
+   * protects anything scheduled before it in this same chain) since it meaningfully raises the
+   * earn rate and should start compounding ASAP. Defaults to `false` so C1/C2's own
+   * `runTierUnlockMilestone` calls — tightly time-boxed budgets unrelated to riding out a boost
+   * cycle — are unaffected regardless of `context.deferForEarningsMode`.
    */
   const executeChain = (
     items: MilestoneChainItem[],
     targetLabel: string,
     timeLimit: number,
-    timeSavedSeconds?: number
+    timeSavedSeconds?: number,
+    deferForEarningsMode = false
   ): number => {
-    let executedCount = 0;
-    let totalGemsSpent = 0;
-    for (const item of items) {
-      // Actual price paid, not `item.price` — see `executeChainItem`'s doc comment for why the
-      // plan's own precomputed price can no longer be trusted as of whatever real state replay has
-      // reached by this point.
-      const paid = executeChainItem(item, timeLimit);
-      if (paid === false) break;
-      executedCount++;
-      totalGemsSpent += paid;
-    }
+    // Actual price paid, not `item.price` — see `executeChainItem`'s doc comment for why the
+    // plan's own precomputed price can no longer be trusted as of whatever real state replay has
+    // reached by this point.
+    const { executedCount, totalGemsSpent } = deferForEarningsMode
+      ? runWithEarningsEventDeferral(
+          items,
+          item => item.research.id,
+          executeChainItem,
+          { getAbsTime, previewPurchase, advanceTime, getElapsedSeconds: () => elapsedSeconds, getState: () => currentState },
+          context,
+          timeLimit
+        )
+      : (() => {
+          let executedCount = 0;
+          let totalGemsSpent = 0;
+          for (const item of items) {
+            const paid = executeChainItem(item, timeLimit);
+            if (paid === false) break;
+            executedCount++;
+            totalGemsSpent += paid;
+          }
+          return { executedCount, totalGemsSpent };
+        })();
 
     if (executedCount > 0) {
       const notePayload = buildMilestoneNotePayload(
@@ -245,6 +297,8 @@ export function createMilestoneShiftHelpers(
     getAbsTime,
     getModifiers,
     buyResearch,
+    previewPurchase,
+    advanceTime,
     executeChainItem,
     executeChain,
     addNotification,
@@ -319,7 +373,11 @@ export function runTierUnlockMilestone(
   timeLimit: number,
   // Forwarded to `computeTierMilestoneChain`'s own `roiDeadlineOverride` (planning) and
   // `createMilestoneShiftHelpers`'s (execution-time re-check) — see that parameter's doc comment.
-  roiDeadlineOverride?: number
+  roiDeadlineOverride?: number,
+  // Forwarded to `executeChain`'s own `deferForEarningsMode` — see that parameter's doc comment.
+  // Defaults to `false`: C1/C2's own tier-unlock calls don't pass this, so they're unaffected
+  // regardless of `context.deferForEarningsMode`.
+  deferForEarningsMode = false
 ): ShiftResult {
   const helpers = createMilestoneShiftHelpers(startState, context, roiDeadlineOverride);
 
@@ -355,7 +413,7 @@ export function runTierUnlockMilestone(
   const timeSavedSeconds =
     chain.reached && baseline.reached ? baseline.totalSeconds - chain.totalSeconds : undefined;
 
-  helpers.executeChain(chain.items, `Unlock Tier ${targetTier}`, timeLimit, timeSavedSeconds);
+  helpers.executeChain(chain.items, `Unlock Tier ${targetTier}`, timeLimit, timeSavedSeconds, deferForEarningsMode);
 
   return {
     actions: helpers.getActions(),

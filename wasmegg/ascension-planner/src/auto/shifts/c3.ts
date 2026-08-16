@@ -9,6 +9,7 @@ import {
 } from './helpers/milestones';
 import { applyShiftAction } from './helpers/actionHelpers';
 import { advanceTimeWithBoundaries } from './helpers/advanceTime';
+import { runWithEarningsEventDeferral, MULTI_LAYERING_ID } from './helpers/earningsEventDeferral';
 import { computeSnapshot } from '../../engine/compute';
 import { calculateArtifactModifiers } from '../../lib/artifacts';
 import { simulateSaleAwareBuy, simulateSaleEndsBuy, simulateFinalSaleGapBuy } from '../../calculations/smartBuyPreview';
@@ -31,7 +32,7 @@ export interface C3Params {
   attemptTier13Unlock?: boolean;
 }
 
-const MULTI_LAYERING_ID = 'multi_layering';
+// MULTI_LAYERING_ID comes from './helpers/earningsEventDeferral' (shared with its own deferral logic).
 const MULTI_LAYERING_LEVEL_1 = 1;
 const MULTI_LAYERING_TARGET_LEVEL = 2;
 
@@ -181,15 +182,25 @@ export function runC3(
     buildNote?: (purchaseCount: number, totalGemsSpent: number, elapsedSeconds: number) => NotificationPayload | null
   ) => {
     const helpers = createMilestoneShiftHelpers(currentState, context);
-    let purchaseCount = 0;
-    let totalGemsSpent = 0;
-    for (const researchId of researchIdsInOrder) {
-      const target = targetLevels[researchId] || 0;
-      if ((helpers.getState().researchLevels[researchId] || 0) >= target) continue;
-      if (!helpers.buyResearch(researchId, timeLimit)) break;
-      purchaseCount++;
-      totalGemsSpent += helpers.getActions()[helpers.getActions().length - 1].cost;
-    }
+
+    const { executedCount: purchaseCount, totalGemsSpent } = runWithEarningsEventDeferral(
+      researchIdsInOrder,
+      id => id,
+      (id, tl) => {
+        if (!helpers.buyResearch(id, tl)) return false;
+        return helpers.getActions()[helpers.getActions().length - 1].cost;
+      },
+      {
+        getAbsTime: helpers.getAbsTime,
+        previewPurchase: helpers.previewPurchase,
+        advanceTime: helpers.advanceTime,
+        getElapsedSeconds: helpers.getElapsedSeconds,
+        getState: helpers.getState,
+      },
+      context,
+      timeLimit,
+      id => (helpers.getState().researchLevels[id] || 0) >= (targetLevels[id] || 0)
+    );
 
     if (buildNote && purchaseCount > 0) {
       const notePayload = buildNote(purchaseCount, totalGemsSpent, helpers.getElapsedSeconds());
@@ -322,7 +333,7 @@ export function runC3(
     const attemptTier13Only = (): boolean => {
       if (!isTierUnlocked(currentState.researchLevels, maxTier)) {
         const timeLimit = Math.max(0, buildPhaseEnd - getAbsTime());
-        runStep(runTierUnlockMilestone(currentState, context, maxTier, timeLimit, roiDeadline));
+        runStep(runTierUnlockMilestone(currentState, context, maxTier, timeLimit, roiDeadline, true));
       }
       return isTierUnlocked(currentState.researchLevels, maxTier);
     };
