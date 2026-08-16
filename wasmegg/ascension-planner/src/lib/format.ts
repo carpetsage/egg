@@ -186,6 +186,16 @@ export function formatMultiplier(value: number, asPercent: boolean = false): str
 export function formatDuration(seconds: number): string {
   if (!isFinite(seconds) || seconds < 0) return '∞';
 
+  // Round to the nearest whole second up front — every branch below floors seconds into minutes,
+  // then minutes into hours, then hours into days, and this function never shows sub-second
+  // precision anyway. Without this, a value that's THEORETICALLY exact (e.g. a duration
+  // back-derived as `gems / gemsPerSecond` from a delta that was itself `gemsPerSecond * exactSeconds`)
+  // but lands a sub-microsecond epsilon under a whole unit due to the two floating-point ops not
+  // perfectly inverting each other gets floored down a full unit at every level it cascades through
+  // — confirmed in the wild: a 27h-exact silo credit displaying as "1d 2h" (26h) instead of "1d 3h"
+  // (27h) because 27h's worth of seconds landed at 97199.99999999999, not 97200.
+  seconds = Math.round(seconds);
+
   if (seconds < 60) {
     return `${Math.round(seconds)}s`;
   }
