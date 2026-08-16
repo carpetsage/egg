@@ -357,6 +357,7 @@
       :show="isComparisonOpen"
       :variants="variants"
       :active-variant-key="activeVariantKey"
+      :target-t-e="targetTE"
       @close="isComparisonOpen = false"
       @select="onCompareSelect"
     />
