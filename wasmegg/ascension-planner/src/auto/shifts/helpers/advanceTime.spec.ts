@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest';
 import { modifiersFromColleggtibleTiers } from 'lib/collegtibles';
 import type { EngineState, SimulationContext } from '../../types';
 import { advanceTimeWithBoundaries } from './advanceTime';
-import { getNextEarningsBoostStart } from '@/lib/events';
+import { getNextEarningsBoostStart, getNextSaleStart, isResearchSaleActive } from '@/lib/events';
 
 function fakeState(overrides: Partial<EngineState> = {}): EngineState {
   return {
@@ -72,5 +72,49 @@ describe('advanceTimeWithBoundaries defer for earnings mode', () => {
 
     expect(actions.some(a => a.type === 'modify_bank')).toBe(false);
     expect(actions.some(a => a.type === 'toggle_earnings_boost' && a.payload.active === true)).toBe(true);
+  });
+});
+
+describe('advanceTimeWithBoundaries boundary-landing precision', () => {
+  // Real exports have shown a step landing on a sale boundary via one arithmetic path (the
+  // caller's own `baseAbsTime`, threaded independently of `state.lastStepTime`) while a LATER,
+  // freshly re-derived absolute time — `context.ascensionStartTime + (lastStepTime - offset)`, what
+  // every other consumer (a fresh `createMilestoneShiftHelpers` call, an export, a tooltip) actually
+  // uses — lands a sub-microsecond short of it. Confirmed in the wild: a "Buy Until Sale Ends"
+  // batch's first several purchases priced at full rate despite the sale having already toggled on,
+  // because the fresh helper re-deriving `baseAbsTime` from `lastStepTime` landed on the wrong side.
+  //
+  // Simulated here by deliberately drifting `baseAbsTime` a millisecond away from what
+  // `ascensionStartTime + (lastStepTime - offset)` would derive for the SAME state — the exact
+  // shape of the real-world mismatch, just exaggerated from sub-microsecond to millisecond so the
+  // test doesn't hinge on chasing individual ULPs.
+  const anchor = Date.UTC(2024, 0, 1, 0, 0, 0) / 1000;
+  const saleStart = getNextSaleStart(anchor);
+  const driftSeconds = 0.001;
+
+  test('lastStepTime reconstructs the exact sale boundary even when baseAbsTime has drifted from it', () => {
+    const context = fakeContext({ ascensionStartTime: anchor, planStartOffset: 0 });
+    const priorLastStepTime = 100;
+    // baseAbsTime disagrees with `ascensionStartTime + (priorLastStepTime - offset)` by `driftSeconds`
+    // — simulating a `baseAbsTime`/`elapsedSeconds` accumulator that's drifted from the state's own
+    // canonical `lastStepTime`, exactly like the real bug.
+    const driftedBaseAbsTime = anchor + priorLastStepTime + driftSeconds;
+    const state = fakeState({ lastStepTime: priorLastStepTime });
+    const totalSeconds = saleStart - driftedBaseAbsTime;
+
+    const actions: any[] = [];
+    const result = advanceTimeWithBoundaries(state, actions, 0, context, driftedBaseAbsTime, totalSeconds);
+
+    const reconstructedAbsTime =
+      context.ascensionStartTime + ((result.currentState.lastStepTime || 0) - context.planStartOffset);
+
+    // Reconstructed via the CANONICAL formula (what a fresh helper/export/tooltip would use), not
+    // just this function's own internal reference frame — must land within a tiny fraction of the
+    // injected millisecond-scale drift, not merely "closer than before".
+    expect(Math.abs(reconstructedAbsTime - saleStart)).toBeLessThan(1e-6);
+    expect(isResearchSaleActive(reconstructedAbsTime)).toBe(true);
+
+    const toggleIdx = actions.findIndex(a => a.type === 'toggle_sale' && a.payload.active === true);
+    expect(toggleIdx).toBeGreaterThanOrEqual(0);
   });
 });

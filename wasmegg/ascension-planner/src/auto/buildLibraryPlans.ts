@@ -81,7 +81,7 @@ export function buildLibraryPlansFromExport(
 
     const summary = best.summary;
     const startStr = new Date(summary.startTime * 1000).toISOString().split('T')[0];
-    const peakELR = formatNumber(summary.maxELR * 3600, 2);
+    const peakELR = formatNumber(summary.maxELR * 3600, 3);
     const duration = formatDuration(summary.totalDurationSeconds);
     const variantSuffix = bestKey ? `${formatVariantLabel(bestKey)}` : '';
     const name = `${namePrefix} A${idx + 1} - ${peakELR}/hr from ${summary.startTE} to ${summary.endTE} - ${variantSuffix} - ${duration} - starting ${startStr}`;

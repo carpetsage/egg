@@ -143,10 +143,33 @@ export function advanceTimeWithBoundaries(
       const waitAction = createSimAction(actionType, { totalTimeSeconds: stepSeconds });
       const passiveEggs = calculateEggsDeliveredForTime(stepSeconds, snap);
 
+      // When this step lands EXACTLY on a known calendar boundary (`targetEvent` set), derive the
+      // resulting `lastStepTime`/`elapsedSeconds` by working BACKWARD from that boundary's own exact
+      // value (`nextBoundary.time`, straight from the Pacific-time table) instead of forward via
+      // `+= stepSeconds`. Both are mathematically identical, but `stepSeconds` itself came from
+      // `nextBoundary.time - absTime`, and `absTime` was itself derived from `lastStepTime` via a
+      // SEPARATE large+small float addition (`ascensionStartTime + (lastStepTime - offset)`) that
+      // doesn't perfectly round-trip. Landing back on `lastStepTime` via `+= stepSeconds` can leave it
+      // a sub-microsecond residue away from the value that exactly reconstructs `nextBoundary.time` —
+      // invisible almost everywhere, but enough that a LATER, independently re-derived absTime (e.g.
+      // a fresh `createMilestoneShiftHelpers` call re-deriving `baseAbsTime` from this same
+      // `lastStepTime`) lands on the wrong side of the boundary, silently pricing purchases at full
+      // price even though this very step's own toggle (below) already turned the sale on. Confirmed
+      // in the wild: a "Buy Until Sale Ends" batch's first several purchases priced at full rate, with
+      // only the purchases after an incidental near-zero `wait_for_research_sale` (the drift
+      // eventually self-correcting) landing at the real 0.3x sale price. Nudging both accumulators to
+      // agree with the boundary's own exact value, once, here — rather than a fresh, independent
+      // subtraction each time something re-derives absolute time from `lastStepTime` — is what keeps
+      // every later consumer (fresh helpers, exports, tooltips) reading the same, single truth.
+      const nextElapsedSeconds = targetEvent ? nextBoundary!.time - baseAbsTime : elapsedSeconds + stepSeconds;
+      const nextLastStepTime = targetEvent
+        ? nextBoundary!.time - context.ascensionStartTime + context.planStartOffset
+        : (currentState.lastStepTime || 0) + stepSeconds;
+
       currentState = applyAction(currentState, waitAction);
       currentState = {
         ...currentState,
-        lastStepTime: (currentState.lastStepTime || 0) + stepSeconds,
+        lastStepTime: nextLastStepTime,
         bankValue: (currentState.bankValue || 0) + snap.offlineEarnings * stepSeconds,
         eggsDelivered: { ...currentState.eggsDelivered, [currentState.currentEgg]: (currentState.eggsDelivered[currentState.currentEgg] || 0) + passiveEggs },
       };
@@ -157,11 +180,15 @@ export function advanceTimeWithBoundaries(
       waitAction.bankDelta = snap.offlineEarnings * stepSeconds;
 
       actions.push(waitAction);
-      elapsedSeconds += stepSeconds;
+      elapsedSeconds = nextElapsedSeconds;
       remaining -= stepSeconds;
     }
 
-    const newAbsTime = baseAbsTime + elapsedSeconds;
+    // `targetEvent ? nextBoundary!.time : ...` — use the boundary's own exact value directly for
+    // this iteration's toggle checks below, rather than re-deriving it from the just-nudged
+    // `elapsedSeconds` (which, per the comment above, is already an exact match, but there's no
+    // reason to risk a second round-trip when the precise value is sitting right there).
+    const newAbsTime = targetEvent ? nextBoundary!.time : baseAbsTime + elapsedSeconds;
 
     const isBoostNow = isEarningsBoostActive(newAbsTime);
     if (currentState.earningsBoost?.active !== isBoostNow) {
