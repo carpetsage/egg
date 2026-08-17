@@ -117,40 +117,6 @@ export function useAscensionGenerator() {
     return Object.values(snapshot.teEarned).reduce((a, b) => a + b, 0);
   });
 
-  const isA1Dirty = computed(() => {
-    if (ascensionChain.value.length === 0) return true;
-    const last = ascensionChain.value[0];
-    if (!last.initialParams) return true;
-
-    const initialParamsDirty =
-      startDate.value !== last.initialParams.startDate ||
-      startTime.value !== last.initialParams.startTime ||
-      JSON.stringify(truthEggsStore.teEarned) !== JSON.stringify(last.initialParams.teEarned);
-
-    if (initialParamsDirty) return true;
-
-    const targets = getTargets();
-    // The chain may have a silent forced-490 item appended; exclude it from the length comparison.
-    const hasForced490 =
-      ascensionChain.value.length > 0 &&
-      !!ascensionChain.value[ascensionChain.value.length - 1].forcedTarget490;
-    const visibleChainLength = ascensionChain.value.length - (hasForced490 ? 1 : 0);
-
-    if (targets.length !== visibleChainLength) return true;
-
-    for (let i = 0; i < targets.length; i++) {
-      // An overridden index's `goal.te` holds the deadline's *actual achieved* TE, not the Target TE
-      // text field's own value for that slot (which the override supersedes) — the two are expected
-      // to differ, so comparing them here would flag this index dirty forever. Overridden indices'
-      // own staleness is handled separately (they're regenerated directly by
-      // `handleSetEndTimeOverride`, bypassing this dirty check and the Generate button entirely).
-      if (autoPlannerStore.endTimeOverrides[i]) continue;
-      if (targets[i] !== ascensionChain.value[i].goal.te) return true;
-    }
-
-    return false;
-  });
-
   const bestResults = computed(() => {
     return ascensionChain.value.map(item => {
       const hasEndTimeOverride = !!autoPlannerStore.endTimeOverrides[item.index];
@@ -481,10 +447,11 @@ export function useAscensionGenerator() {
         const best = pickVariant(variants, autoPlannerStore.planVariantOverrides[i], hasEndTimeOverride);
         currentSummary = best.summary;
 
-        // Overridden slots save `type: 'date'` and the deadline's real achieved TE — comparing this
-        // against the Target TE text field's own value for that slot would be comparing two
-        // different things (a request vs. an outcome), which is exactly why `isA1Dirty` above
-        // explicitly skips overridden indices rather than using this field for staleness detection.
+        // Overridden slots save `type: 'date'` and the deadline's real achieved TE, not the Target TE
+        // text field's own (superseded) value for that slot — a request vs. an outcome, not
+        // interchangeable — but nothing here needs to compare the two: the main Generate/Update Plan
+        // button always regenerates fresh (see `regeneratePlan`), and a per-ascension override is
+        // regenerated directly by `handleSetEndTimeOverride`, so no staleness check ever reads this.
         const goalToSave = hasEndTimeOverride
           ? { type: 'date' as const, te: currentSummary.endTE, date: '', time: '' }
           : { type: 'te' as const, te: stepTargetTE || null, date: '', time: '' };
@@ -678,8 +645,7 @@ export function useAscensionGenerator() {
   };
 
   // Sets (or clears, when `endTime` is null) an ascension's end-time override and regenerates —
-  // same "mutate the override map, then call generate() directly" shape as `handleSetPlanVariant`,
-  // bypassing `isA1Dirty`/the Generate button entirely (see that computed's own comment for why).
+  // same "mutate the override map, then call generate() directly" shape as `handleSetPlanVariant`.
   const handleSetEndTimeOverride = (idx: number, endTime: number | null) => {
     if (endTime === null) {
       const { [idx]: _removed, ...rest } = autoPlannerStore.endTimeOverrides;
@@ -693,6 +659,18 @@ export function useAscensionGenerator() {
     generate();
   };
 
+  // The main Generate/Update Plan button's handler: always available (no dirty-check gating it —
+  // an earlier attempt at one, comparing the Target TE text field against each ascension's stored
+  // goal, went stale/wrong the moment an end-time-overridden slot's goal no longer meant the same
+  // thing as a plain target; see git history around 2026-08-17 for the bug that came from it),
+  // and always a full fresh start: clearing both override maps first means every ascension's target
+  // is read straight from the Target TE field with nothing left over to reinterpret it.
+  const regeneratePlan = (onComplete?: () => void) => {
+    autoPlannerStore.planVariantOverrides = {};
+    autoPlannerStore.endTimeOverrides = {};
+    generate(onComplete);
+  };
+
   return {
     isGenerating,
     isExporting,
@@ -703,9 +681,9 @@ export function useAscensionGenerator() {
     isValidationErrorOpen,
     validationErrorMessage,
     copySuccess,
-    isA1Dirty,
     bestResults,
     generate,
+    regeneratePlan,
     copySummary,
     exportCurrentPlan,
     saveToLibrary,

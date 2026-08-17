@@ -91,7 +91,7 @@ const MAX_SALE_SWEEPS_SAFETY_CAP = 5000;
 // loop and `sweepUntilNextSale`'s own candidate search to the console — visible in the browser's
 // devtools Console panel even though this runs inside a Web Worker. Remove once the milestone-chain
 // investigation this was added for is resolved.
-const DEBUG_MILESTONE_CHAIN = true;
+const DEBUG_MILESTONE_CHAIN = false;
 
 function debugTime(t: number): string {
   return new Date(t * 1000).toISOString();

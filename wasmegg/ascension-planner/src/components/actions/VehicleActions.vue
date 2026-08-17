@@ -217,8 +217,8 @@ import {
   calculateMaxTrainLength,
 } from '@/calculations/shippingCapacity';
 import { calculateArtifactModifiers } from '@/lib/artifacts';
-import { calculateEarningsForTime, getTimeToSave } from '@/engine/apply';
-import { calculateVehicleCapacity, planMaxVehicles, planVehiclesWithinBudget } from '@/calculations/vehiclePurchasePlan';
+import { getTimeToSave } from '@/engine/apply';
+import { calculateVehicleCapacity, planMaxVehicles, planVehiclesForTimeLimit } from '@/calculations/vehiclePurchasePlan';
 
 const shippingStore = useShippingCapacityStore();
 const initialStateStore = useInitialStateStore();
@@ -666,19 +666,19 @@ function handleBuyMax() {
 
 function handleBuy5MinCap() {
   const snapshot = actionsStore.effectiveSnapshot;
-  const offlineEarnings = snapshot.offlineEarnings;
-  if (offlineEarnings <= 0) return;
+  if (snapshot.offlineEarnings <= 0) return;
 
-  const maxBudget = calculateEarningsForTime(5 * 60, snapshot);
-
-  const plan = planVehiclesWithinBudget(
+  // Same purchase-picking logic K1 uses for its (much longer) shift budget, just with a
+  // 5-minute allowance — see planVehiclesForTimeLimit's doc comment.
+  const plan = planVehiclesForTimeLimit(
     snapshot.vehicles || [],
     maxVehicleSlots.value,
     getMaxTrainLength(),
     costModifiers.value,
     isVehicleSaleActive.value,
     effectiveMultipliers.value,
-    maxBudget
+    5 * 60,
+    snapshot
   );
 
   if (plan.steps.length === 0) return;
