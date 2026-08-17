@@ -195,8 +195,11 @@
             :result3-skipped-reason="result.result3SkippedReason"
             :is-saving-single="savingIndex === idx"
             :save-single-success="savedIndex === idx"
+            :timezone="timezone"
+            :has-end-time-override="autoPlannerStore.endTimeOverrides[idx] !== undefined"
             @set-plan-variant="(variant: VariantKey) => handleSetPlanVariant(idx, variant)"
             @save-single-to-library="saveSingleAscensionToLibrary(idx)"
+            @override-end-time="(endTime: number | null) => handleSetEndTimeOverride(idx, endTime)"
           />
         </template>
       </div>
@@ -339,6 +342,7 @@ const {
   savedIndex,
   saveSingleAscensionToLibrary,
   handleSetPlanVariant,
+  handleSetEndTimeOverride,
 } = useAscensionGenerator();
 
 const runGenerate = () => {
