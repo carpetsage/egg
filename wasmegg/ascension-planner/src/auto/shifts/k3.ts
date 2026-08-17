@@ -15,12 +15,22 @@ import { runMaxVehiclesPlan } from './helpers/vehicles';
  * 2. Buy any remaining vehicles/trains unlocked by C3.
  * 3. Compute peak ELR.
  * 4. Wait until buildPhaseEnd.
+ *
+ * @param maxWaitSeconds - Hard ceiling on step 4's own wait duration (see `runTEWaitShift`'s doc
+ *   comment for the general mechanism). Defaults to unbounded, so every pre-existing caller is
+ *   unaffected. Callers passing a finite value MUST ensure `buildPhaseEnd` itself is reachable
+ *   within it (i.e. `buildPhaseEnd - startTime <= maxWaitSeconds`, roughly) — this clamp protects
+ *   the deadline from being overrun by extra *TE-target-driven* waiting on top of the mandatory
+ *   build-phase-end wait, but it does NOT know `buildPhaseEnd` is mandatory and would truncate that
+ *   base wait too if the caller got the two out of sync (`runC3Variants`' own filtering, done before
+ *   any variant reaches this shift, is what's expected to guarantee this).
  */
 export function runK3(
   startState: EngineState,
   context: SimulationContext,
   buildPhaseEnd: number = 0,
-  targetTEForEgg?: number
+  targetTEForEgg?: number,
+  maxWaitSeconds: number = Infinity
 ): ShiftResult {
   // 1. Shift to Kindness
   const shifted = applyShiftAction(startState, context, 'kindness');
@@ -67,6 +77,11 @@ export function runK3(
       waitDuration = Math.max(waitDuration, teWaitTime);
     }
   }
+
+  // See this function's doc comment: callers passing a finite `maxWaitSeconds` are expected to have
+  // already guaranteed `buildPhaseEnd` fits inside it, so this clamp only ever trims the
+  // TE-target-driven extension above, never the mandatory build-phase wait itself.
+  waitDuration = Math.min(waitDuration, maxWaitSeconds);
 
   if (waitDuration > 0) {
     const currentEggsDelivered = currentState.eggsDelivered['kindness'] || 0;
