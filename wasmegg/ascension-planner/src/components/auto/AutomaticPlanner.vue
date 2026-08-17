@@ -90,7 +90,7 @@
 
         <button
           class="btn-premium btn-primary w-full py-4 mt-8 text-sm shadow-xl shadow-indigo-500/20 active:scale-[0.98]"
-          :disabled="isGenerating || !isA1Dirty"
+          :disabled="isGenerating"
           @click="runGenerate()"
         >
           <span v-if="isGenerating">{{ generateProgress || 'Generating Plan...' }}</span>
@@ -332,9 +332,8 @@ const {
   isValidationErrorOpen,
   validationErrorMessage,
   copySuccess,
-  isA1Dirty,
   bestResults,
-  generate,
+  regeneratePlan,
   copySummary,
   exportCurrentPlan,
   saveToLibrary,
@@ -345,9 +344,13 @@ const {
   handleSetEndTimeOverride,
 } = useAscensionGenerator();
 
+// The main Generate/Update Plan button (and Enter in the Target TE field) always starts fresh —
+// see `regeneratePlan`'s own doc comment for why it clears both override maps rather than trying to
+// detect what actually changed. Per-ascension overrides (variant dropdown, end-time editor) still
+// regenerate surgically via their own handlers, which call `generate()` directly.
 const runGenerate = () => {
   console.clear();
-  generate(() => nextTick(() => targetInput.value?.focus()));
+  regeneratePlan(() => nextTick(() => targetInput.value?.focus()));
 };
 
 const handleTargetTEInput = (e: Event) => {
