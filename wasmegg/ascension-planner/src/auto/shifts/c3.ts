@@ -527,17 +527,24 @@ export interface C3Variant {
  * or pruned via `tier13KnownImpossible`) or was attempted and failed — that's the only case it can
  * legitimately win. Returned in ascending `saleCount` order regardless of the internal descending
  * walk, so callers see a stable, predictable order.
+ *
+ * `skipTier13Attempts`, when true, treats Tier 13 as known-impossible from the start — no
+ * `attemptTier13Unlock` variant is ever run, for any `saleCount`. Callers set this for ascensions
+ * that start with too little TE for a Tier 13 unlock to be realistic in the first place (see the
+ * caller's own threshold), purely to avoid paying for simulations that would virtually always come
+ * back impossible anyway.
  */
 export function runC3Variants(
   startState: EngineState,
   context: SimulationContext,
-  maxSaleCount: number = 3
+  maxSaleCount: number = 3,
+  skipTier13Attempts: boolean = false
 ): C3Variant[] {
   const maxTier = Math.max(...getTiers());
   const tier13AlreadyUnlocked = isTierUnlocked(startState.researchLevels, maxTier);
   const variants: C3Variant[] = [];
   const variantTimings: { name: string; ms: number }[] = [];
-  let tier13KnownImpossible = false;
+  let tier13KnownImpossible = skipTier13Attempts;
   for (let saleCount = maxSaleCount; saleCount >= 1; saleCount--) {
     const buildPhaseEnd = getBuildPhaseEndForSaleCount(context.ascensionStartTime, saleCount);
 
