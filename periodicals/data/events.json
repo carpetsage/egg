@@ -28303,5 +28303,14 @@
     "startTimestamp": 1786982400,
     "type": "vehicle-sale",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1787155200,
+    "id": "event-8-18",
+    "message": "15% OFF SHELLS!",
+    "multiplier": 0.85,
+    "startTimestamp": 1787068800,
+    "type": "shell-sale",
+    "ultra": false
   }
 ]
