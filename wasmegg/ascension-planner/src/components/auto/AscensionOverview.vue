@@ -20,8 +20,51 @@
                   — {{ summary.strategyLabel === 'Continue current' ? 'Continue current ascension' : 'Prestige Now' }}
                 </span>
               </h3>
-              <span class="text-[8px] sm:text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-none">{{ formatTimeRange(summary.startTime, summary.endTime) }}</span>
+              <span v-if="!isEditingEndTime" class="flex items-center gap-1">
+                <span class="text-[8px] sm:text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-none">{{ formatTimeRange(summary.startTime, summary.endTime) }}</span>
+                <button
+                  v-tippy="hasEndTimeOverride ? 'Edit overridden end time' : 'Override end time'"
+                  class="text-slate-300 hover:text-indigo-500 transition-colors flex-shrink-0"
+                  @click="startEditingEndTime"
+                >
+                  <svg class="w-2.5 h-2.5 sm:w-3 sm:h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </button>
+                <span
+                  v-if="hasEndTimeOverride"
+                  class="px-1 py-0.5 rounded bg-amber-50 text-amber-600 border border-amber-100 text-[7px] font-black uppercase tracking-wider leading-none"
+                >Overridden</span>
+              </span>
             </div>
+
+            <!-- Inline end-time override editor -->
+            <div v-if="isEditingEndTime" class="flex flex-wrap items-center gap-1.5 mt-1.5">
+              <input
+                v-model="editEndDate"
+                type="date"
+                class="bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-xs font-bold text-slate-700 outline-none focus:border-indigo-500/50 bg-white transition-all w-36"
+              />
+              <input
+                v-model="editEndTime"
+                type="time"
+                class="bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-xs font-bold text-slate-700 outline-none focus:border-indigo-500/50 bg-white transition-all w-28"
+              />
+              <button
+                class="px-2 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-[9px] font-black uppercase tracking-wider rounded-lg transition-all"
+                @click="saveEndTimeOverride"
+              >Save</button>
+              <button
+                class="px-2 py-1 bg-slate-50 hover:bg-slate-100 border border-slate-200/80 text-slate-500 text-[9px] font-black uppercase tracking-wider rounded-lg transition-all"
+                @click="cancelEditingEndTime"
+              >Cancel</button>
+              <button
+                v-if="hasEndTimeOverride"
+                class="px-2 py-1 bg-slate-50 hover:bg-rose-50 border border-slate-200/80 hover:border-rose-200/50 text-slate-500 hover:text-rose-600 text-[9px] font-black uppercase tracking-wider rounded-lg transition-all"
+                @click="resetEndTimeOverride"
+              >Reset to Auto</button>
+            </div>
+            <div v-if="endTimeEditError" class="text-[8px] sm:text-[9px] font-bold text-rose-500 mt-1">{{ endTimeEditError }}</div>
 
             <div v-if="displayComparisons.length > 0" class="flex flex-wrap gap-2 mt-1">
               <div v-for="(comp, ci) in displayComparisons" :key="ci"
@@ -366,7 +409,8 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
-import { formatNumber, formatDuration } from '@/lib/format';
+import { formatNumber, formatDuration, formatUnixToDateInput, formatUnixToTimeInput } from '@/lib/format';
+import { getLocalTimestampInTimezone } from '@/lib/events';
 import { iconURL } from 'lib';
 import type { AscensionSummary } from '@/auto/types';
 import type { VirtueEgg } from '@/types';
@@ -396,17 +440,63 @@ const props = defineProps<{
   result3SkippedReason?: string;
   isSavingSingle?: boolean;
   saveSingleSuccess?: boolean;
+  /** IANA timezone name, same one the initial Start Time form (`SchedulingInputs.vue`) uses — the
+   * end-time editor below reads and writes through this same timezone so an edited value lines up
+   * with what the user typed for the plan's start. */
+  timezone: string;
+  /** True when this ascension already has a user-set end-time override active (`autoPlannerStore.endTimeOverrides`). */
+  hasEndTimeOverride?: boolean;
 }>();
 
 const emit = defineEmits<{
   (e: 'setPlanVariant', variant: VariantKey): void;
   (e: 'saveSingleToLibrary'): void;
+  /** Sets (a finite unix timestamp) or clears (`null`) this ascension's end-time override. */
+  (e: 'overrideEndTime', endTime: number | null): void;
 }>();
 
 const isExpanded = ref(false);
 const isDropdownOpen = ref(false);
 const isComparisonOpen = ref(false);
 const dropdownRef = ref<HTMLElement | null>(null);
+
+const isEditingEndTime = ref(false);
+const editEndDate = ref('');
+const editEndTime = ref('');
+const endTimeEditError = ref('');
+
+const startEditingEndTime = () => {
+  editEndDate.value = formatUnixToDateInput(props.summary.endTime, props.timezone);
+  editEndTime.value = formatUnixToTimeInput(props.summary.endTime, props.timezone);
+  endTimeEditError.value = '';
+  isEditingEndTime.value = true;
+};
+
+const cancelEditingEndTime = () => {
+  isEditingEndTime.value = false;
+  endTimeEditError.value = '';
+};
+
+const saveEndTimeOverride = () => {
+  if (!editEndDate.value || !editEndTime.value) {
+    endTimeEditError.value = 'Enter both a date and a time.';
+    return;
+  }
+  const newEndTime = getLocalTimestampInTimezone(editEndDate.value, editEndTime.value, props.timezone);
+  if (newEndTime <= props.summary.startTime) {
+    endTimeEditError.value = "End time must be after this ascension's own start time.";
+    return;
+  }
+  emit('overrideEndTime', newEndTime);
+  isEditingEndTime.value = false;
+  endTimeEditError.value = '';
+};
+
+const resetEndTimeOverride = () => {
+  emit('overrideEndTime', null);
+  isEditingEndTime.value = false;
+  endTimeEditError.value = '';
+};
 
 const handleClickOutside = (e: MouseEvent) => {
   if (dropdownRef.value && !dropdownRef.value.contains(e.target as Node)) {
@@ -569,16 +659,21 @@ const formatTimeRange = (start: number, end: number) => {
   // even when "really" exactly on a boundary.
   const s = new Date(Math.round(start * 1000));
   const e = new Date(Math.round(end * 1000));
-  
-  const options: Intl.DateTimeFormatOptions = { 
+
+  const options: Intl.DateTimeFormatOptions = {
     weekday: 'short',
     year: 'numeric',
     month: 'short',
     day: 'numeric',
     hour: 'numeric',
-    minute: '2-digit'
+    minute: '2-digit',
+    // Without this, `toLocaleString` falls back to the browser's own local timezone rather than the
+    // plan's configured one (`props.timezone`, the same zone the Start Time form and the end-time
+    // editor both read/write through) — whenever those two differ, this display and the editor it
+    // opens would silently disagree by the zones' offset.
+    timeZone: props.timezone,
   };
-  
+
   return `${s.toLocaleString('en-US', options)} — ${e.toLocaleString('en-US', options)}`;
 };
 </script>

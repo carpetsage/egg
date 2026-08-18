@@ -18,9 +18,10 @@ export function buildLibraryPlansFromExport(
 
   const overrides =
     imported.planVariantOverrides ?? (imported.a1ForceMode === 'continue' ? { 0: 'continue' as const } : {});
+  const endTimeOverrides = imported.endTimeOverrides ?? {};
 
   return imported.ascensions.map((a, idx) => {
-    const best = pickVariant(a.variants, overrides[idx]);
+    const best = pickVariant(a.variants, overrides[idx], !!endTimeOverrides[idx]);
     const bestKey = (Object.entries(a.variants) as [VariantKey, VariantResult | undefined][]).find(
       ([, v]) => v === best
     )?.[0];
@@ -28,7 +29,7 @@ export function buildLibraryPlansFromExport(
     const state = JSON.parse(JSON.stringify(imported.initialState));
 
     if (idx > 0) {
-      const prevBest = pickVariant(imported.ascensions[idx - 1].variants, overrides[idx - 1]);
+      const prevBest = pickVariant(imported.ascensions[idx - 1].variants, overrides[idx - 1], !!endTimeOverrides[idx - 1]);
       state.initialTeEarned = { ...prevBest.summary.finalTE };
       state.initialEggsDelivered = { ...prevBest.summary.eggsDelivered };
       state.soulEggs = prevBest.summary.endSoulEggs;

@@ -33,6 +33,7 @@
             <div
               v-if="playerId && !loading"
               class="mt-6 flex justify-center animate-in fade-in slide-in-from-top-4 duration-500"
+              :class="plannerTab === 'automatic' ? 'pb-8' : ''"
             >
               <div class="bg-slate-50 p-1.5 rounded-2xl border border-slate-200/50 shadow-sm flex gap-1">
                 <button
@@ -80,12 +81,15 @@
             </div>
 
             <!-- Plan Library Section -->
-            <div v-if="playerId" class="max-w-6xl mx-auto mt-6">
+            <div v-if="playerId && plannerTab === 'manual'" class="max-w-6xl mx-auto mt-6">
               <PlanLibrary @plan-loaded="handlePlanLoaded" />
             </div>
 
             <!-- Ascension Action Buttons -->
-            <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-3 max-w-6xl mx-auto">
+            <div
+              v-if="plannerTab === 'manual'"
+              class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-3 max-w-6xl mx-auto"
+            >
               <!-- Start from Scratch -->
               <div class="section-premium p-5 flex flex-col items-center text-center group relative overflow-hidden">
                 <div

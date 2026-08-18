@@ -9,6 +9,7 @@ import {
   computeResearchMilestoneChain,
   computeMilestoneBaseline,
   computeMilestoneSummaryCore,
+  isCheapestTierPurchaseAffordable,
   type MilestoneChainItem,
 } from '../../../calculations/milestoneChain';
 import { getSaleAwareTimeToSave, shouldDeferToNextSale } from '../../../calculations/researchROI';
@@ -384,6 +385,23 @@ export function runTierUnlockMilestone(
   const startSnapshot = computeSnapshot(startState, context, { skipGrowth: true });
   const absoluteSimTimeAtStart = helpers.getAbsTime();
   const mods = helpers.getModifiers();
+
+  // Cheap short-circuit before the expensive chain build: if even the single cheapest currently
+  // available research purchase can't fit in the remaining budget, nothing in the full chain could
+  // either — no purchase (ROI-motivated or not) can cost less, in wait time, than the cheapest
+  // option available right now, so if that alone doesn't fit, literally zero purchases are possible
+  // and `computeTierMilestoneChain`'s full detour search is guaranteed to find nothing.
+  //
+  // Deliberately NOT "would plain cheapest-first reach the whole tier in time" (a broader, cheaper
+  // check that was here before this comment): that's unsound. A pricier detour that raises the
+  // earnings rate can make every purchase AFTER it complete faster, so "cheapest-first can't finish
+  // the full chain" does NOT prove "nothing can finish it" — `findRoiDetour` exists precisely
+  // because that kind of rate-boosting detour is sometimes exactly what makes an otherwise-out-of-
+  // reach chain reachable. Only "not even one purchase is affordable" is safe to shortcut on.
+  if (!isCheapestTierPurchaseAffordable(startState.researchLevels, startSnapshot, mods, absoluteSimTimeAtStart, timeLimit)) {
+    return { actions: [], elapsedSeconds: 0, endState: startState };
+  }
+
   // Deadline for "would this purchase still finish before the current/next sale ends" — must match
   // the manual planner's own `researchSaleDeadline` (`useResearchViews.ts`), which is `getNextSaleEnd`,
   // not `getNextSaleStart`. The two had drifted apart (this used to pass `getNextSaleStart`, a much

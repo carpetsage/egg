@@ -325,6 +325,7 @@ async function handleImport(event: Event) {
             // 3. Restore to Auto Planner (now overwriting the fresh backup state)
             const importedOverrides: Record<number, VariantKey> =
               plan.planVariantOverrides ?? (plan.a1ForceMode === 'continue' ? { 0: 'continue' } : {});
+            const importedEndTimeOverrides: Record<number, number> = plan.endTimeOverrides ?? {};
 
             const chain: ChainedAscension[] = plan.ascensions.map(a => {
               const item: ChainedAscension = {
@@ -343,14 +344,17 @@ async function handleImport(event: Event) {
 
               // If it was a TE goal, pre-fill the date/time fields with the actual result for better UX
               if (a.goal.type === 'te' || !a.goal.date) {
-                const bestResult = pickVariant(a.variants, importedOverrides[idx]);
+                const bestResult = pickVariant(a.variants, importedOverrides[idx], !!importedEndTimeOverrides[idx]);
                 nextGoalsMap[idx].date = formatUnixToDateInput(bestResult.summary.endTime, plan.timezone);
                 nextGoalsMap[idx].time = formatUnixToTimeInput(bestResult.summary.endTime, plan.timezone);
               }
             });
             // Add the next step goal (empty placeholder for new ascension)
             const lastImportedA = plan.ascensions[plan.ascensions.length - 1];
-            const lastBestResult = pickVariant(lastImportedA.variants, importedOverrides[plan.ascensions.length - 1]);
+            const lastIdx = plan.ascensions.length - 1;
+            const lastBestResult = pickVariant(
+              lastImportedA.variants, importedOverrides[lastIdx], !!importedEndTimeOverrides[lastIdx]
+            );
             nextGoalsMap[chain.length] = {
               te: Math.min(490, lastBestResult.summary.endTE + 30),
               date: '',
@@ -358,7 +362,7 @@ async function handleImport(event: Event) {
             };
 
             const firstA = plan.ascensions[0];
-            const bestFirstA = pickVariant(firstA.variants, importedOverrides[0]);
+            const bestFirstA = pickVariant(firstA.variants, importedOverrides[0], !!importedEndTimeOverrides[0]);
             const a1EndTime = bestFirstA.summary.endTime;
 
             autoPlannerStore.setPlan({
@@ -372,6 +376,7 @@ async function handleImport(event: Event) {
               targetEndTime: formatUnixToTimeInput(a1EndTime, plan.timezone),
               nextGoals: nextGoalsMap,
               planVariantOverrides: importedOverrides,
+              endTimeOverrides: plan.endTimeOverrides ?? {},
             });
 
             // Hydrate stores so the form shows the correct numbers from the plan

@@ -29,6 +29,10 @@ export interface ExportedPlan {
   timezone: string;
   initialState: ExportedInitialState;
   planVariantOverrides?: Record<number, VariantKey>;
+  /** Per-ascension end-time overrides (index -> unix timestamp), same shape as the store's own
+   * `endTimeOverrides` — see its doc comment in `stores/autoPlanner.ts`. Absent on exports made
+   * before this field existed; treated as `{}` on import. */
+  endTimeOverrides?: Record<number, number>;
   /** @deprecated use planVariantOverrides */
   a1ForceMode?: 'continue' | 'prestige' | null;
   ascensions: {

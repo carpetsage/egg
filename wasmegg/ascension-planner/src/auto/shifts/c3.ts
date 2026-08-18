@@ -6,6 +6,7 @@ import {
   createMilestoneShiftHelpers,
   runTierUnlockMilestone,
   runResearchMilestoneIfWorthwhile,
+  runSmartBuyForSeconds,
 } from './helpers/milestones';
 import { applyShiftAction } from './helpers/actionHelpers';
 import { advanceTimeWithBoundaries } from './helpers/advanceTime';
@@ -26,6 +27,7 @@ import {
   getSaleStartForEnd,
   countSalesThrough,
 } from '@/lib/events';
+import { DEBUG_SHIFT_TIMING } from '@/lib/debugFlags';
 
 export interface C3Params {
   /** Attempt to unlock Tier 13 before anything else, if it isn't already unlocked. Default false. */
@@ -36,10 +38,36 @@ export interface C3Params {
 const MULTI_LAYERING_LEVEL_1 = 1;
 const MULTI_LAYERING_TARGET_LEVEL = 2;
 
+// Threshold for step 1a's opening smart-buy sweep — see that step's own comment below for why.
+// Matches the order of magnitude C1's identical bootstrap sweep already uses (3 seconds); picked
+// independently rather than sharing C1's own constant since the two calls are tuned for different
+// jobs and have no reason to move together.
+const OPENING_SMART_BUY_THRESHOLD_SECONDS = 10;
+
 /**
  * C3: the "build phase" shift, spent riding out one or more weekly research sales in Curiosity.
  *
  * 1. Shift to Curiosity.
+ * 1a. Run a short, fixed-threshold smart-buy sweep (`runSmartBuyForSeconds`, same helper C1's own
+ *    bootstrap sweep uses) before anything else gets a chance to spend real budget. This exists
+ *    purely as a performance measure, not an economic one: every purchase it makes is something
+ *    that would have gotten bought anyway by steps 2-4's own ROI-gated loops, just at the cost of
+ *    a full `rankResearchByROI`/`rankResearchByELRImpact` pass (each of which is expensive —
+ *    involves an artifact-set optimization search per candidate) for what's often a long run of
+ *    trivially-affordable levels early in a low-earnings ascension. Buying that stretch here
+ *    instead, via `findSmartBuyCandidate`'s much cheaper plain price sort, does the exact same
+ *    purchases for a fraction of the cost, and shrinks the candidate pool (and, for
+ *    `rankResearchByELRImpact` specifically, the remaining-levels lookahead search — see its own
+ *    comment in researchRanking.ts) that every later step's ranking calls have to chew through.
+ *    Deliberately unrestricted by category, same as C1's sweep: anything cheap enough to clear
+ *    `OPENING_SMART_BUY_THRESHOLD_SECONDS` is worth having regardless of what it's for, and this
+ *    keeps the same lookup available for step 2's Tier-13 milestone checks too. Placed before step
+ *    2 rather than folded into it since it isn't Tier-13-specific — it should run whether or not
+ *    Tier 13 is even being attempted this variant. Runs again from scratch for every variant
+ *    `runC3Variants` computes (each calls `runC3` fresh from the same `startState`) rather than
+ *    being hoisted out and shared — deliberately, to keep all of C3's buying logic together in one
+ *    place instead of splitting it across a shared pre-step and this function; the sweep itself is
+ *    cheap enough that repeating it a handful of times is not worth that split.
  * 2. If Tier 13 is wanted: first, if Multiversal Layering 2 isn't already unlocked, try to grab it
  *    via the milestone view's research-level-target chain — staged as level 1 (if not already
  *    bought) then level 2, as two separate chain attempts, so a level-1-only ML doesn't get skipped
@@ -321,10 +349,26 @@ export function runC3(
   actions.push(shifted.action);
   if (shifted.saleToggleAction) actions.push(shifted.saleToggleAction);
 
-  // 2 (only when requested): try to unlock Tier 13 before anything else. Must run right here, at
-  // elapsedSeconds === 0 — runTierUnlockMilestone derives its absolute-time baseline from
-  // currentState.lastStepTime, which trivially still matches startState.lastStepTime at this point
-  // (the shift action above doesn't advance time).
+  // 1a. Opening smart-buy sweep — see this function's own top-level doc comment (step 1a) for why
+  // this exists and why it's placed here, before step 2's Tier-13 attempt. Capped at the shift's
+  // own overall deadline like everything else here, though in practice a 10-second-threshold sweep
+  // finishes buying (or running out of candidates) far short of that.
+  runStep(
+    runSmartBuyForSeconds(
+      currentState,
+      context,
+      OPENING_SMART_BUY_THRESHOLD_SECONDS,
+      Math.max(0, buildPhaseEnd - getAbsTime())
+    )
+  );
+
+  // 2 (only when requested): try to unlock Tier 13 before any of steps 3-4's own deliberate,
+  // ROI-gated spending gets a chance to eat into the same budget. Safe to run after step 1a's sweep
+  // despite `elapsedSeconds` no longer necessarily being 0 here — `runTierUnlockMilestone`/
+  // `runResearchMilestoneIfWorthwhile` (via `createMilestoneShiftHelpers`) derive their own
+  // absolute-time baseline from whatever `currentState` they're actually given at call time, not
+  // from this function's own `elapsedSeconds`/`baseAbsTime`, so they stay correct however much of
+  // this shift's clock step 1a already spent.
   if (params.attemptTier13Unlock) {
     const maxTier = Math.max(...getTiers());
 
@@ -492,13 +536,16 @@ export function runC3Variants(
   const maxTier = Math.max(...getTiers());
   const tier13AlreadyUnlocked = isTierUnlocked(startState.researchLevels, maxTier);
   const variants: C3Variant[] = [];
+  const variantTimings: { name: string; ms: number }[] = [];
   let tier13KnownImpossible = false;
   for (let saleCount = maxSaleCount; saleCount >= 1; saleCount--) {
     const buildPhaseEnd = getBuildPhaseEndForSaleCount(context.ascensionStartTime, saleCount);
 
     let tier13SucceededThisSaleCount = false;
     if (!tier13AlreadyUnlocked && !tier13KnownImpossible) {
+      const t0 = performance.now();
       const result = runC3(startState, context, buildPhaseEnd, undefined, { attemptTier13Unlock: true });
+      variantTimings.push({ name: `${saleCount}-sale-tier13`, ms: performance.now() - t0 });
       const impossible = !isTierUnlocked(result.endState.researchLevels, maxTier);
       if (impossible) {
         tier13KnownImpossible = true;
@@ -509,15 +556,21 @@ export function runC3Variants(
     }
 
     if (!tier13SucceededThisSaleCount) {
-      variants.push({
-        saleCount,
-        attemptTier13Unlock: false,
-        buildPhaseEnd,
-        result: runC3(startState, context, buildPhaseEnd, undefined, { attemptTier13Unlock: false }),
-        impossible: false,
-      });
+      const t0 = performance.now();
+      const result = runC3(startState, context, buildPhaseEnd, undefined, { attemptTier13Unlock: false });
+      variantTimings.push({ name: `${saleCount}-sale`, ms: performance.now() - t0 });
+      variants.push({ saleCount, attemptTier13Unlock: false, buildPhaseEnd, result, impossible: false });
     }
   }
+
+  if (DEBUG_SHIFT_TIMING) {
+    const totalMs = variantTimings.reduce((sum, t) => sum + t.ms, 0);
+    console.log(
+      `[runC3Variants] ${totalMs.toFixed(1)}ms total\n` +
+        variantTimings.map(t => `  ${t.name}: ${t.ms.toFixed(1)}ms`).join('\n')
+    );
+  }
+
   return variants.sort(
     (a, b) => a.saleCount - b.saleCount || Number(a.attemptTier13Unlock) - Number(b.attemptTier13Unlock)
   );

@@ -508,6 +508,12 @@ export function rankResearchByROI(
  * lookahead search for multi-level research where level+1 alone has zero impact. `potential` mode
  * uses a cheaper formula-based estimate instead. Both compute `hpp` (hours per impact-percentage-
  * point) and can be sorted by it (`efficiency`) or by raw impact (`impact`).
+ *
+ * `realistic` mode's `getOptimalELRSet` calls (one baseline call, then one per candidate, then up
+ * to `r.levels - level` more per candidate inside the lookahead search) all reuse the baseline
+ * call's own artifact structure via `forcedArtifacts` rather than each re-running their own
+ * up-to-495-combo search — see that option's own doc comment in virtue.ts for why the structure is
+ * safe to hold fixed across every one of these calls even though stone placement isn't.
  */
 export function rankResearchByELRImpact(
   researchLevels: Record<string, number>,
@@ -548,6 +554,15 @@ export function rankResearchByELRImpact(
 
     if (baseline.effectiveRate <= 0) return [];
 
+    // Which ARTIFACTS are worth equipping is driven by owned inventory and target-artifact tiers —
+    // nothing a research purchase changes — so the structure this baseline call already searched
+    // for stays optimal for every candidate/lookahead evaluation below too; only stone placement
+    // (tachyon vs. quantum per slot) actually depends on the research state, since that's decided
+    // by which of lay rate/shipping capacity is the current bottleneck. Every `getOptimalELRSet`
+    // call below force-feeds this same structure via `forcedArtifacts` so it skips straight to
+    // re-solving stones, rather than repeating the up-to-495-combo structure search unchanged.
+    const baselineArtifactIds = baselineOptimal.map(slot => slot.artifactId);
+
     candidates = uniqueUnpurchased
       .map((r): ResearchRankingItem => {
         const level = researchLevels[r.id] || 0;
@@ -586,6 +601,7 @@ export function rankResearchByELRImpact(
           commonResearch: tempLevels,
           epicResearchLevels: context.epicResearchLevels,
           colleggtibleModifiers: context.colleggtibleModifiers,
+          forcedArtifacts: baselineArtifactIds,
         });
         const tempArtifactMods = calculateArtifactModifiers(tempOptimal);
         const stats = computeRealisticELR(
@@ -619,6 +635,7 @@ export function rankResearchByELRImpact(
               commonResearch: laLevels,
               epicResearchLevels: context.epicResearchLevels,
               colleggtibleModifiers: context.colleggtibleModifiers,
+              forcedArtifacts: baselineArtifactIds,
             });
             const laArtifactMods = calculateArtifactModifiers(laOptimal);
             const laStats = computeRealisticELR(
