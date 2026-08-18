@@ -111,6 +111,22 @@ export function getOptimalELRSet(
     commonResearch?: Record<string, number>;
     epicResearchLevels?: Record<string, number>;
     colleggtibleModifiers?: any;
+    /**
+     * Skip the up-to-495-combo artifact STRUCTURE search entirely and evaluate stone placement for
+     * exactly this structure instead — one `artifactId` per slot (`null` for an empty slot), same
+     * shape as a prior call's own return value's `.map(slot => slot.artifactId)`. Any stones on
+     * those slots are ignored; stone placement is always re-solved fresh against the given research
+     * state, since which stone type (tachyon vs. quantum) belongs in each slot depends on which of
+     * lay rate/shipping capacity is currently the bottleneck — that shifts as research levels
+     * change, even though which ARTIFACTS are worth equipping doesn't (that's driven by owned
+     * inventory and target-artifact tiers, neither of which a research purchase changes). Intended
+     * for callers that already know the winning structure from an earlier, unforced call against
+     * the same backup (e.g. `rankResearchByELRImpact`'s baseline call) and just want that same
+     * structure's stats at a different research level — skipping the structure search this way is
+     * roughly 500x cheaper per call, since only one structure's stone placement runs instead of
+     * every combo's.
+     */
+    forcedArtifacts?: (string | null)[];
   } = {}
 ): EquippedArtifact[] {
   if (!backup.artifactsDb) {
@@ -137,81 +153,135 @@ export function getOptimalELRSet(
     }
   }
 
-  // 2. Identify top candidate artifacts
-  const name = ei.ArtifactSpec.Name;
-  const targetAfxIds = new Set([name.QUANTUM_METRONOME, name.INTERSTELLAR_COMPASS, name.ORNATE_GUSSET]);
+  // 2. Identify candidate artifact STRUCTURES to search over — skipped entirely when
+  // `forcedArtifacts` is given (see that option's own doc comment): the search collapses to the
+  // one caller-supplied structure instead of the up-to-495-combo search below, so step 4 only ever
+  // evaluates stone placement for that one structure.
+  let candidateLoadouts: EquippedArtifact[][];
 
-  // Candidate Wrapper
-  type Candidate = { item: InventoryItem; rarity: ei.ArtifactSpec.Rarity; slots: number; isTarget: boolean };
-  const afxGroups = new Map<number, Candidate[]>();
+  if (options.forcedArtifacts) {
+    const forcedLoadout: EquippedArtifact[] = options.forcedArtifacts.map(artifactId => ({
+      artifactId,
+      stones: new Array(artifactId ? getArtifact(artifactId)?.slots ?? 0 : 0).fill(null),
+    }));
+    while (forcedLoadout.length < 4) forcedLoadout.push({ artifactId: null, stones: [] });
+    candidateLoadouts = [forcedLoadout];
+  } else {
+    const name = ei.ArtifactSpec.Name;
+    const targetAfxIds = new Set([name.QUANTUM_METRONOME, name.INTERSTELLAR_COMPASS, name.ORNATE_GUSSET]);
 
-  for (const item of inventory.items) {
-    if (item.have === 0 || !item.isArtifact) continue;
+    // Candidate Wrapper
+    type Candidate = { item: InventoryItem; rarity: ei.ArtifactSpec.Rarity; slots: number; isTarget: boolean };
+    const afxGroups = new Map<number, Candidate[]>();
 
-    const afxId = item.afxId;
-    if (excludeGusset && afxId === name.ORNATE_GUSSET) continue;
+    for (const item of inventory.items) {
+      if (item.have === 0 || !item.isArtifact) continue;
 
-    const isTarget = targetAfxIds.has(afxId);
+      const afxId = item.afxId;
+      if (excludeGusset && afxId === name.ORNATE_GUSSET) continue;
 
-    // Find best rarity for this tier
-    for (const rarity of [
-      ei.ArtifactSpec.Rarity.LEGENDARY,
-      ei.ArtifactSpec.Rarity.EPIC,
-      ei.ArtifactSpec.Rarity.RARE,
-      ei.ArtifactSpec.Rarity.COMMON,
-    ]) {
-      if (item.haveRarity[rarity] > 0) {
-        const slots = item.stoneSlotCount(rarity);
-        const cand: Candidate = { item, rarity, slots, isTarget };
+      const isTarget = targetAfxIds.has(afxId);
 
-        if (!afxGroups.has(afxId)) afxGroups.set(afxId, []);
-        afxGroups.get(afxId)!.push(cand);
-        break; // Only take best rarity of each tier
+      // Find best rarity for this tier
+      for (const rarity of [
+        ei.ArtifactSpec.Rarity.LEGENDARY,
+        ei.ArtifactSpec.Rarity.EPIC,
+        ei.ArtifactSpec.Rarity.RARE,
+        ei.ArtifactSpec.Rarity.COMMON,
+      ]) {
+        if (item.haveRarity[rarity] > 0) {
+          const slots = item.stoneSlotCount(rarity);
+          const cand: Candidate = { item, rarity, slots, isTarget };
+
+          if (!afxGroups.has(afxId)) afxGroups.set(afxId, []);
+          afxGroups.get(afxId)!.push(cand);
+          break; // Only take best rarity of each tier
+        }
       }
     }
-  }
 
-  const finalCandidates: Candidate[] = [];
+    const finalCandidates: Candidate[] = [];
 
-  // Sort each AFX group by "goodness"
-  for (const [afxId, group] of afxGroups.entries()) {
-    const isTarget = targetAfxIds.has(afxId);
+    // Sort each AFX group by "goodness"
+    for (const [afxId, group] of afxGroups.entries()) {
+      const isTarget = targetAfxIds.has(afxId);
 
-    if (isTarget) {
-      // Keep only the Pareto-optimal tier/rarity for this family: a candidate
-      // is dropped when some other owned tier is at least as good on both
-      // base effect delta and stone slots (and strictly better on one). This
-      // reduces a T4 Legendary (typically max delta AND max slots) down to a
-      // single candidate, but keeps genuine trade-offs alive -- e.g. a T2
-      // Epic Gusset (fewer tiers, more slots) survives alongside a T4 Common
-      // Gusset (more delta, no slots) because neither dominates the other,
-      // and it's the stone/ELR search below that has to settle it.
-      const delta = (c: Candidate) => c.item.effectDelta(c.rarity);
-      const pareto = group.filter(
-        a =>
-          !group.some(
-            b => b !== a && delta(b) >= delta(a) && b.slots >= a.slots && (delta(b) > delta(a) || b.slots > a.slots)
-          )
-      );
-      finalCandidates.push(...pareto);
-    } else {
-      group.sort((a, b) => {
-        if (a.slots !== b.slots) return b.slots - a.slots;
-        return b.item.tierNumber - a.item.tierNumber;
-      });
-      // For non-targets, we only care about the single best carrier from this family
-      finalCandidates.push(group[0]);
+      if (isTarget) {
+        // Keep only the Pareto-optimal tier/rarity for this family: a candidate
+        // is dropped when some other owned tier is at least as good on both
+        // base effect delta and stone slots (and strictly better on one). This
+        // reduces a T4 Legendary (typically max delta AND max slots) down to a
+        // single candidate, but keeps genuine trade-offs alive -- e.g. a T2
+        // Epic Gusset (fewer tiers, more slots) survives alongside a T4 Common
+        // Gusset (more delta, no slots) because neither dominates the other,
+        // and it's the stone/ELR search below that has to settle it.
+        const delta = (c: Candidate) => c.item.effectDelta(c.rarity);
+        const pareto = group.filter(
+          a =>
+            !group.some(
+              b => b !== a && delta(b) >= delta(a) && b.slots >= a.slots && (delta(b) > delta(a) || b.slots > a.slots)
+            )
+        );
+        finalCandidates.push(...pareto);
+      } else {
+        group.sort((a, b) => {
+          if (a.slots !== b.slots) return b.slots - a.slots;
+          return b.item.tierNumber - a.item.tierNumber;
+        });
+        // For non-targets, we only care about the single best carrier from this family
+        finalCandidates.push(group[0]);
+      }
     }
+
+    // Pick top 4 of the non-target leaders based on slots
+    const targetCands = finalCandidates.filter(c => c.isTarget);
+    const nonTargetCands = finalCandidates
+      .filter(c => !c.isTarget)
+      .sort((a, b) => b.slots - a.slots)
+      .slice(0, 4);
+
+    const topCandidates = [...targetCands, ...nonTargetCands];
+
+    // Search through combinations of 1 to 4 artifacts
+    // 12C4 = 495, which is small enough.
+    function combinations<T>(array: T[], r: number): T[][] {
+      const result: T[][] = [];
+      function helper(start: number, combo: T[]) {
+        if (combo.length === r) {
+          result.push([...combo]);
+          return;
+        }
+        for (let i = start; i < array.length; i++) {
+          helper(i + 1, [...combo, array[i]]);
+        }
+      }
+      helper(0, []);
+      return result;
+    }
+
+    const combos = [
+      ...combinations(topCandidates, 1),
+      ...combinations(topCandidates, 2),
+      ...combinations(topCandidates, 3),
+      ...combinations(topCandidates, 4),
+    ];
+
+    candidateLoadouts = combos
+      .filter(comboWrappers => {
+        // Ensure all artifacts in the combination are from unique families
+        const families = new Set(comboWrappers.map(w => w.item.props.family.afx_id));
+        return families.size === comboWrappers.length;
+      })
+      .map(comboWrappers => {
+        const loadout: EquippedArtifact[] = comboWrappers.map(wrapper => ({
+          // Use the family ID from props. This maps correctly to gusset-x-y instead of ornate-gusset-x-y
+          artifactId: `${wrapper.item.props.family.id}-${wrapper.item.tierNumber}-${wrapper.rarity}`,
+          stones: new Array(wrapper.slots).fill(null),
+        }));
+        while (loadout.length < 4) loadout.push({ artifactId: null, stones: [] });
+        return loadout;
+      });
   }
-
-  // Pick top 4 of the non-target leaders based on slots
-  const targetCands = finalCandidates.filter(c => c.isTarget);
-  const nonTargetCands = finalCandidates
-    .filter(c => !c.isTarget)
-    .sort((a, b) => b.slots - a.slots)
-    .slice(0, 4);
-
-  const topCandidates = [...targetCands, ...nonTargetCands];
 
   // 3. Gather available stones (Tachyon and Quantum)
   const tachyonStones = inventory.items
@@ -239,52 +309,7 @@ export function getOptimalELRSet(
   let maxELR = -1;
   let bestMetrics: any = null;
 
-  // Search through combinations of 1 to 4 artifacts
-  // 12C4 = 495, which is small enough.
-  function combinations<T>(array: T[], r: number): T[][] {
-    const result: T[][] = [];
-    function helper(start: number, combo: T[]) {
-      if (combo.length === r) {
-        result.push([...combo]);
-        return;
-      }
-      for (let i = start; i < array.length; i++) {
-        helper(i + 1, [...combo, array[i]]);
-      }
-    }
-    helper(0, []);
-    return result;
-  }
-
-  const combos = [
-    ...combinations(topCandidates, 1),
-    ...combinations(topCandidates, 2),
-    ...combinations(topCandidates, 3),
-    ...combinations(topCandidates, 4),
-  ];
-
-  for (const comboWrappers of combos) {
-    const hasTarget = comboWrappers.some((w: Candidate) => w.isTarget);
-
-    // Ensure all artifacts in the combination are from unique families
-    const families = new Set(comboWrappers.map((w: Candidate) => w.item.props.family.afx_id));
-    if (families.size !== comboWrappers.length) {
-      continue;
-    }
-
-    const loadout: EquippedArtifact[] = comboWrappers.map((wrapper: Candidate) => {
-      return {
-        // Use the family ID from props. This maps correctly to gusset-x-y instead of ornate-gusset-x-y
-        artifactId: `${wrapper.item.props.family.id}-${wrapper.item.tierNumber}-${wrapper.rarity}`,
-        stones: new Array(wrapper.slots).fill(null),
-      };
-    });
-
-    // Padding to 4 slots
-    while (loadout.length < 4) {
-      loadout.push({ artifactId: null, stones: [] });
-    }
-
+  for (const loadout of candidateLoadouts) {
     // Balance stones
     const totalStoneSlots = loadout.reduce((sum, slot) => sum + slot.stones.length, 0);
 
