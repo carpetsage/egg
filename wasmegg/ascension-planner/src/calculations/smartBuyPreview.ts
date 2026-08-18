@@ -13,15 +13,8 @@ import { createBaseEngineState } from '@/engine/adapter';
 import { computeSnapshot } from '@/engine/compute';
 import { applyAction, applyTime, boostTransitionsFrom } from '@/engine/apply';
 import { isResearchSaleActive, getNextSaleEnd } from '@/lib/events';
+import { DEBUG_SALE_AWARE_BUY } from '@/lib/debugFlags';
 import { ei } from 'lib';
-
-// Set to true (temporarily, for debugging) to log why `simulateSaleAwareBuy`'s candidate search
-// comes up empty — i.e. what the top of the ROI ranking looked like at the moment it stopped
-// finding anything to buy. Gated separately from `milestoneChain.ts`'s own debug flag since this
-// function is also invoked by the manual planner's live "Buy Until Sale Warning" button, not just
-// the milestone chain. Remove once the milestone-chain investigation this was added for is
-// resolved.
-const DEBUG_SALE_AWARE_BUY = false;
 
 /**
  * Safety-net cap shared by every dry run below — protects against a runaway loop, not a real

@@ -22,6 +22,15 @@ import { calculateEggValue } from '@/calculations/eggValue';
 import { calculateEarnings } from '@/calculations/earnings';
 import { getTiers, isTierUnlocked } from '@/calculations/commonResearch';
 import type { VirtueEgg } from '@/types';
+import { DEBUG_SHIFT_TIMING } from '@/lib/debugFlags';
+
+function logShiftTimings(label: string, timings: { name: string; ms: number }[]): void {
+  if (!DEBUG_SHIFT_TIMING) return;
+  const totalMs = timings.reduce((sum, t) => sum + t.ms, 0);
+  console.log(
+    `[${label}] ${totalMs.toFixed(1)}ms total\n` + timings.map(t => `  ${t.name}: ${t.ms.toFixed(1)}ms`).join('\n')
+  );
+}
 
 function computeLastTEDuration(finalTE: Record<VirtueEgg, number>, peakELR: number): number {
   const maxTE = Math.max(...Object.values(finalTE));
@@ -112,12 +121,16 @@ const allShifts: { name: string; run: ShiftRunner }[] = [
  * the default order wins instead, since I1's output depends on its input state and K1 changes
  * that state first.
  */
-function runC1K1I1Segment(startState: EngineState, context: SimulationContext): ShiftResult {
+function runC1K1I1Segment(
+  startState: EngineState,
+  context: SimulationContext
+): ShiftResult & { shiftTimings: { name: string; ms: number }[] } {
   const actions: Action[] = [];
   let elapsedSeconds = 0;
   let currentState = startState;
+  const shiftTimings: { name: string; ms: number }[] = [];
 
-  const pushShiftResult = (result: ShiftResult) => {
+  const pushShiftResult = (name: string, result: ShiftResult, ms: number) => {
     const eggsLaid = calculateEggsLaidDuringActions(result.actions, currentState, context);
     if (result.actions.length > 0 && result.actions[0].type === 'shift') {
       result.actions[0].payload.eggsLaid = eggsLaid;
@@ -125,26 +138,34 @@ function runC1K1I1Segment(startState: EngineState, context: SimulationContext): 
     actions.push(...result.actions);
     currentState = result.endState;
     elapsedSeconds += result.elapsedSeconds;
+    shiftTimings.push({ name, ms });
+  };
+
+  const timed = (name: string, fn: () => ShiftResult) => {
+    const t0 = performance.now();
+    pushShiftResult(name, fn(), performance.now() - t0);
   };
 
   currentState.lastStepTime = elapsedSeconds;
-  pushShiftResult(runC1(currentState, context));
+  timed('C1', () => runC1(currentState, context));
 
   currentState.lastStepTime = elapsedSeconds;
+  const t0I1 = performance.now();
   const speculativeI1 = runI1(currentState, context);
+  const speculativeI1Ms = performance.now() - t0I1;
 
   const I1_ORDER_SWAP_THRESHOLD_SECONDS = 3600;
   if (speculativeI1.elapsedSeconds < I1_ORDER_SWAP_THRESHOLD_SECONDS) {
-    pushShiftResult(speculativeI1);
+    pushShiftResult('I1', speculativeI1, speculativeI1Ms);
     currentState.lastStepTime = elapsedSeconds;
-    pushShiftResult(runK1(currentState, context));
+    timed('K1', () => runK1(currentState, context));
   } else {
-    pushShiftResult(runK1(currentState, context));
+    timed('K1', () => runK1(currentState, context));
     currentState.lastStepTime = elapsedSeconds;
-    pushShiftResult(runI1(currentState, context));
+    timed('I1', () => runI1(currentState, context));
   }
 
-  return { actions, elapsedSeconds, endState: currentState };
+  return { actions, elapsedSeconds, endState: currentState, shiftTimings };
 }
 
 /**
@@ -174,9 +195,8 @@ export function runUntilShift(
   }
 
   {
-    const t0 = performance.now();
     const segmentResult = runC1K1I1Segment(currentState, context);
-    shiftTimings.push({ name: 'C1+K1+I1', ms: performance.now() - t0 });
+    shiftTimings.push(...segmentResult.shiftTimings);
 
     currentActions.push(...segmentResult.actions);
     currentState = segmentResult.endState;
@@ -201,11 +221,7 @@ export function runUntilShift(
     totalElapsedSeconds += result.elapsedSeconds;
   }
 
-  // const totalMs = shiftTimings.reduce((sum, t) => sum + t.ms, 0);
-  // console.log(
-  //   `[C1 to R1] ${totalMs.toFixed(1)}ms total\n` +
-  //   shiftTimings.map(t => `  ${t.name}: ${t.ms.toFixed(1)}ms`).join('\n')
-  // );
+  logShiftTimings('C1 to R1', shiftTimings);
 
   return { state: currentState, actions: currentActions, elapsedSeconds: totalElapsedSeconds };
 }
@@ -329,9 +345,8 @@ export function runAscension(
   const lockedEggs: VirtueEgg[] = [];
 
   if (!resumeData) {
-    const t0 = performance.now();
     const segmentResult = runC1K1I1Segment(currentState, context);
-    ascShiftTimings.push({ name: 'C1+K1+I1', ms: performance.now() - t0 });
+    ascShiftTimings.push(...segmentResult.shiftTimings);
 
     currentActions.push(...segmentResult.actions);
     currentState = segmentResult.endState;
@@ -446,11 +461,7 @@ export function runAscension(
     if (shift.name === 'H1') buildDurationSeconds = totalElapsedSeconds;
   }
 
-  // const ascTotalMs = ascShiftTimings.reduce((sum, t) => sum + t.ms, 0);
-  // console.log(
-  //   `[C3 to H2 ${id}] ${ascTotalMs.toFixed(1)}ms total\n` +
-  //   ascShiftTimings.map(t => `  ${t.name}: ${t.ms.toFixed(1)}ms`).join('\n')
-  // );
+  logShiftTimings(`Ascension ${id} (${resumeData ? `resume from ${resumeData.resumeShiftName}` : 'C1 to H2'})`, ascShiftTimings);
 
   // Prepend start action if not resuming
   if (!resumeData) {

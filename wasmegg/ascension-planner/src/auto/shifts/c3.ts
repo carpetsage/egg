@@ -26,6 +26,7 @@ import {
   getSaleStartForEnd,
   countSalesThrough,
 } from '@/lib/events';
+import { DEBUG_SHIFT_TIMING } from '@/lib/debugFlags';
 
 export interface C3Params {
   /** Attempt to unlock Tier 13 before anything else, if it isn't already unlocked. Default false. */
@@ -492,13 +493,16 @@ export function runC3Variants(
   const maxTier = Math.max(...getTiers());
   const tier13AlreadyUnlocked = isTierUnlocked(startState.researchLevels, maxTier);
   const variants: C3Variant[] = [];
+  const variantTimings: { name: string; ms: number }[] = [];
   let tier13KnownImpossible = false;
   for (let saleCount = maxSaleCount; saleCount >= 1; saleCount--) {
     const buildPhaseEnd = getBuildPhaseEndForSaleCount(context.ascensionStartTime, saleCount);
 
     let tier13SucceededThisSaleCount = false;
     if (!tier13AlreadyUnlocked && !tier13KnownImpossible) {
+      const t0 = performance.now();
       const result = runC3(startState, context, buildPhaseEnd, undefined, { attemptTier13Unlock: true });
+      variantTimings.push({ name: `${saleCount}-sale-tier13`, ms: performance.now() - t0 });
       const impossible = !isTierUnlocked(result.endState.researchLevels, maxTier);
       if (impossible) {
         tier13KnownImpossible = true;
@@ -509,15 +513,21 @@ export function runC3Variants(
     }
 
     if (!tier13SucceededThisSaleCount) {
-      variants.push({
-        saleCount,
-        attemptTier13Unlock: false,
-        buildPhaseEnd,
-        result: runC3(startState, context, buildPhaseEnd, undefined, { attemptTier13Unlock: false }),
-        impossible: false,
-      });
+      const t0 = performance.now();
+      const result = runC3(startState, context, buildPhaseEnd, undefined, { attemptTier13Unlock: false });
+      variantTimings.push({ name: `${saleCount}-sale`, ms: performance.now() - t0 });
+      variants.push({ saleCount, attemptTier13Unlock: false, buildPhaseEnd, result, impossible: false });
     }
   }
+
+  if (DEBUG_SHIFT_TIMING) {
+    const totalMs = variantTimings.reduce((sum, t) => sum + t.ms, 0);
+    console.log(
+      `[runC3Variants] ${totalMs.toFixed(1)}ms total\n` +
+        variantTimings.map(t => `  ${t.name}: ${t.ms.toFixed(1)}ms`).join('\n')
+    );
+  }
+
   return variants.sort(
     (a, b) => a.saleCount - b.saleCount || Number(a.attemptTier13Unlock) - Number(b.attemptTier13Unlock)
   );
