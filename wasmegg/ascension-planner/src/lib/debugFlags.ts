@@ -20,7 +20,7 @@
  * `runAscension` (per-shift breakdown, including `C1K1I1Segment`'s C1/I1/K1 split), and
  * `auto/shifts/c3.ts`'s `runC3Variants` (per-variant breakdown, e.g. `3-sale-tier13`, `2-sale`).
  */
-export const DEBUG_SHIFT_TIMING = true;
+export const DEBUG_SHIFT_TIMING = false;
 
 /**
  * Log each round of `computeResearchMilestoneChain`'s loop and `sweepUntilNextSale`'s own
