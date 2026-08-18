@@ -30,6 +30,12 @@ const VIRTUE_EGGS_MAP: Record<number, VirtueEgg> = {
   54: 'kindness',
 };
 
+// Below this starting TE, an ascension's build phase can't realistically reach a Tier 13 unlock —
+// so `runC3Variants` is told to skip every tier13 combo outright for that ascension (see its own
+// `skipTier13Attempts` doc comment) rather than spend time simulating attempts that would almost
+// always come back impossible anyway.
+const TIER_13_MIN_STARTING_TE = 190;
+
 function pickVariantSummary(
   item: ChainedAscension,
   overrides: Record<number, VariantKey>,
@@ -338,8 +344,14 @@ export function useAscensionGenerator() {
 
         // Cheap: runs C3 alone (not a full ascension) for every (saleCount, attemptTier13Unlock)
         // combination, descending-order-pruning Tier 13 attempts once a larger saleCount proves it
-        // impossible.
-        const c3Variants = runC3Variants(precomputed.state, currentContext, 3);
+        // impossible. Below TIER_13_MIN_STARTING_TE, a Tier 13 unlock is never realistically
+        // reachable within one ascension's build phase, so every tier13 variant is skipped outright
+        // for this ascension rather than paying to simulate combinations that would come back
+        // impossible anyway.
+        const ascensionStartTE = currentSummary?.endTE ?? currentTE.value;
+        const c3Variants = runC3Variants(
+          precomputed.state, currentContext, 3, ascensionStartTE < TIER_13_MIN_STARTING_TE
+        );
         // Variants where the requested Tier 13 unlock couldn't finish in time are dropped here, not
         // completed through K3-H2: `runC3` returns early on that failure, before actually reaching
         // buildPhaseEnd, so there's no valid build-phase-complete state to hand off to H1 onward.
