@@ -313,6 +313,7 @@ import {
   type SimpleBuyPlan,
 } from '@/calculations/smartBuyPreview';
 import { yieldForOverlayPaint } from '@/lib/yieldForOverlayPaint';
+import { DEBUG_MILESTONE_EXECUTION } from '@/lib/debugFlags';
 import InlineSpinner from '@/components/InlineSpinner.vue';
 
 // Sub-components
@@ -340,12 +341,6 @@ const {
   deactivateAndCancel: handleExpiryDeactivateAndCancel,
   deactivateAndContinue: handleExpiryDeactivateAndContinue,
 } = useEventExpiry();
-
-// Set to true (temporarily, for debugging) to log each item `handleBuyMilestoneChain` executes —
-// `syncEventStateForItem`'s computed price/wait/crossings and `buyOneLevel`'s actual resulting
-// timestamp — so a live "Buy Entire Chain" run can be compared directly against the milestone
-// chain's own offline preview. Remove once that investigation is resolved.
-const DEBUG_MILESTONE_EXECUTION = true;
 
 const autoBuyState = ref({ threshold: 0, alwaysOn: false });
 // Reactive (not a plain `let`) so the Quick Buy button can bind its disabled/spinner state to the

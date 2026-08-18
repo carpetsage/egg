@@ -27,6 +27,7 @@ import { computeSnapshot } from '@/engine/compute';
 import { createBaseEngineState } from '@/engine/adapter';
 import { applyAction, applyTime, boostTransitionsFrom } from '@/engine/apply';
 import { getNextSaleStart, isResearchSaleActive, isEarningsBoostActive } from '@/lib/events';
+import { DEBUG_MILESTONE_CHAIN } from '@/lib/debugFlags';
 
 export type MilestoneTarget =
   | { kind: 'tier'; tier: number }
@@ -86,12 +87,6 @@ export interface MilestoneChainResult {
 // unproductive forever) fails loudly/boundedly instead of hanging the worker tab indefinitely.
 // 5000 weekly sweeps is ~96 years — nothing a real milestone should ever need.
 const MAX_SALE_SWEEPS_SAFETY_CAP = 5000;
-
-// Set to true (temporarily, for debugging) to log each round of `computeResearchMilestoneChain`'s
-// loop and `sweepUntilNextSale`'s own candidate search to the console — visible in the browser's
-// devtools Console panel even though this runs inside a Web Worker. Remove once the milestone-chain
-// investigation this was added for is resolved.
-const DEBUG_MILESTONE_CHAIN = false;
 
 function debugTime(t: number): string {
   return new Date(t * 1000).toISOString();
@@ -732,6 +727,48 @@ export function computeCheapestFirstTierChain(
     mods,
     absoluteSimTimeAtStart
   );
+}
+
+/**
+ * Cheap upfront affordability gate for `computeTierMilestoneChain`: no purchase — ROI-motivated
+ * detour or not — can cost less, in wait time from the CURRENT (not-yet-boosted) rate, than the
+ * single cheapest currently-available research purchase. So if even that one doesn't fit in
+ * `timeLimit`, literally zero purchases are possible, and building the full chain (up to
+ * `MILESTONE_MAX_STEPS` items, the early ones each re-simulating the entire remaining chain from
+ * scratch — see that function's own doc comment) is guaranteed to be wasted work.
+ *
+ * Deliberately narrow: this can only ever say "not even one purchase is affordable," never "the
+ * whole chain is unreachable" — a pricier detour that raises the earnings rate can make every
+ * purchase after it complete faster, so a plain cheapest-first-to-completion estimate is NOT a
+ * valid lower bound on the full chain's time (that stronger-looking but unsound check was tried and
+ * reverted — see git history on this function). Only the "can we make even a single purchase"
+ * question is safe to answer cheaply, since compounding effects can't apply before any purchase has
+ * happened yet.
+ */
+export function isCheapestTierPurchaseAffordable(
+  researchLevels: Record<string, number>,
+  snapshot: CalculationsSnapshot,
+  mods: ResearchCostModifiers,
+  absoluteSimTime: number,
+  timeLimit: number
+): boolean {
+  const isSale = isResearchSaleActive(absoluteSimTime);
+
+  const candidates = getCommonResearches()
+    .filter(r => (researchLevels[r.id] || 0) < r.levels && isTierUnlocked(researchLevels, r.tier))
+    .map(r => {
+      const level = researchLevels[r.id] || 0;
+      return { research: r, level, price: getDiscountedVirtuePrice(r, level, mods, isSale) };
+    });
+
+  if (candidates.length === 0) return false;
+
+  candidates.sort((a, b) => a.price - b.price);
+  const cheapest = candidates[0];
+  const transitions = boostTransitionsFrom(snapshot, absoluteSimTime);
+  const purchase = getSaleAwareTimeToSave(cheapest.research, cheapest.level, mods, isSale, absoluteSimTime, snapshot, transitions);
+
+  return purchase.waitSeconds <= timeLimit;
 }
 
 // Tier-unlock milestone: every purchase (in an already-unlocked tier) counts toward the threshold,
