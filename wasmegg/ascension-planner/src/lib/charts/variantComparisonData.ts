@@ -160,34 +160,18 @@ export function shiftForChartTimezone(epochMs: number, timeZone: string): number
 // Shift-phase segmentation (shared C3/K3 boundary finder)
 // ---------------------------------------------------------------------------------------------
 
-/** The 13-phase build+wait sequence every freshly-generated variant follows, in order (see
- * `src/auto/PLAN.md` §8). `continue` has no build phase at all and never matches this. */
-const CANONICAL_PHASES = ['C1', 'K1', 'I1', 'C2', 'K2', 'R1', 'C3', 'H1', 'K3', 'C4', 'I2', 'R2', 'H2'] as const;
-const C3_PHASE_INDEX = CANONICAL_PHASES.indexOf('C3');
-const K3_PHASE_INDEX = CANONICAL_PHASES.indexOf('K3');
-
-function shiftIndices(timeline: TimedAction[]): number[] {
-  const indices: number[] = [];
-  timeline.forEach((t, i) => {
-    if (t.action.type === 'shift') indices.push(i);
-  });
-  return indices;
-}
-
 /**
- * `[startIndex, endIndex]` (inclusive) into `timeline` for the given canonical phase, identified
- * by counting `shift` actions rather than by egg — a plan can start on curiosity with no leading
- * `shift` at all, which would throw off any "Nth shift into curiosity" count. Segment 0 (C1) runs
- * from the very start to the first shift; segment N starts at the Nth shift. Returns `null` if the
- * plan never reaches that phase (`continue`, which skips the build phase entirely, or any variant
- * whose plan was cut short by a date goal before reaching it).
+ * `[startIndex, endIndex]` (inclusive) into `timeline` for the named phase (e.g. 'C3'): from the
+ * shift action the planner tagged with that `autoShiftName` through the next shift action. Looked
+ * up by name, not by counting shifts, since the opening's C1/K1/I1 rounds vary in number. Returns
+ * `null` if the plan never reaches that phase (`continue`, which skips the build phase entirely,
+ * or any variant whose plan was cut short by a date goal before reaching it).
  */
-function phaseWindow(timeline: TimedAction[], phaseIndex: number): [number, number] | null {
-  const shifts = shiftIndices(timeline);
-  const start = phaseIndex === 0 ? 0 : shifts[phaseIndex - 1];
-  if (start === undefined || timeline.length === 0) return null;
-  const end = shifts[phaseIndex] ?? timeline.length - 1;
-  return [start, end];
+function phaseWindow(timeline: TimedAction[], phaseName: string): [number, number] | null {
+  const start = timeline.findIndex(t => t.action.type === 'shift' && t.action.payload.autoShiftName === phaseName);
+  if (start === -1) return null;
+  const nextShift = timeline.findIndex((t, i) => i > start && t.action.type === 'shift');
+  return [start, nextShift === -1 ? timeline.length - 1 : nextShift];
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -222,7 +206,7 @@ export interface ChartMarker {
  * C3). */
 export function getC3Actions(actions: Action[], startTime: number): TimedAction[] | null {
   const timeline = buildTimeline(actions, startTime);
-  const window = phaseWindow(timeline, C3_PHASE_INDEX);
+  const window = phaseWindow(timeline, 'C3');
   if (!window) return null;
   const [start, end] = window;
   return timeline.slice(start, end + 1);
@@ -390,7 +374,7 @@ export function buildVariantRay(key: VariantKey, result: VariantResult): Variant
 
   // `continue` has no build phase (`phaseWindow` returns null for it) — search its whole action
   // list instead; it does no purchasing, so the anchor naturally falls at/near its first action.
-  const k3Window = phaseWindow(timeline, K3_PHASE_INDEX);
+  const k3Window = phaseWindow(timeline, 'K3');
   const minIndex = k3Window ? k3Window[0] : 0;
   const anchorIndex = findRampAnchorIndex(timeline, minIndex);
   const anchor = timeline[anchorIndex];

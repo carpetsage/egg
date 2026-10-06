@@ -48,7 +48,8 @@ export function runC1(
   startState: EngineState,
   context: SimulationContext,
   timeLimit: number = 1800,
-  peakELR: number = 0
+  peakELR: number = 0,
+  equipEarningsSet: boolean = true
 ): ShiftResult {
   let currentState: EngineState = { ...startState, maxELR: peakELR };
   let elapsedSeconds = 0;
@@ -62,7 +63,10 @@ export function runC1(
   // it differs from the current state — so every generated plan makes the expected starting
   // loadout explicit in its action list (and visible in the shift summary, see ShiftSummary.vue's
   // `equip_artifact_set` handling) instead of silently relying on whatever was already equipped.
-  {
+  // Repeat C1 rounds within one ascension's opening (see `runC1K1I1Segment`) pass
+  // `equipEarningsSet = false`, since the first round already equipped it and nothing since has
+  // switched gear.
+  if (equipEarningsSet) {
     let earningsSet = currentState.artifactSets.earnings;
     const needsUpdate = !earningsSet;
     if (needsUpdate && context.rawBackup) {
