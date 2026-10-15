@@ -23,6 +23,8 @@ import { calculateEggValue } from '@/calculations/eggValue';
 import { calculateEarnings } from '@/calculations/earnings';
 import { getTiers, isTierUnlocked } from '@/calculations/commonResearch';
 import type { VirtueEgg } from '@/types';
+import { getHabById, type HabId } from '@/lib/habs';
+import { getVehicleType } from '@/lib/vehicles';
 import { DEBUG_SHIFT_TIMING } from '@/lib/debugFlags';
 
 function logShiftTimings(label: string, timings: { name: string; ms: number }[]): void {
@@ -93,7 +95,7 @@ export function deriveNextStartState(
 // declares are required of it.
 type ShiftRunner = (state: EngineState, context: SimulationContext) => ShiftResult;
 
-// C1/K1/I1 are not in this list: they run as a variable number of rounds by runC1K1I1Segment,
+// C1/K1/I1 are not in this list: they run as one or two rounds, in a chosen order, by runC1K1I1Segment,
 // which both loops below run as an explicit first step.
 const allShifts: { name: string; run: ShiftRunner }[] = [
   { name: 'C2', run: runC2 },
@@ -108,9 +110,17 @@ const allShifts: { name: string; run: ShiftRunner }[] = [
   { name: 'H2', run: runH2 },
 ];
 
-// Backstop against looping forever on a farm whose earnings can't make hab progress. The final
-// round's I1 runs uncapped, so the segment always ends with max habs.
-const MAX_OPENING_ROUNDS = 10;
+// Two-round openings tried (each from the ascension's empty starting farm) when a single C1 -> K1
+// -> I1 pass can't max habs. See `runC1K1I1Segment`.
+const FALLBACK_OPENINGS = ['CKICKI', 'CKICIK', 'CIKCIK', 'CIKCKI'];
+
+// I1's cap on a fallback opening's final I visit, in place of the usual 4 hours — I1 is the only
+// shift that buys habs, so this is the last chance to max them.
+const FINAL_I1_TIME_LIMIT_SECONDS = 2 * 24 * 3600;
+
+// Budgets tried for a fallback opening's second-round C1: the usual 30 minutes, or 4 hours of extra
+// (mostly earnings) research before the second round's hab and vehicle buying.
+const SECOND_C1_TIME_LIMITS_SECONDS = [1800, 4 * 3600];
 
 function isPurchase(action: Action): boolean {
   return (
@@ -133,23 +143,31 @@ function tagShiftName(actions: Action[], name: string): void {
   if (shiftAction?.type === 'shift') shiftAction.payload.autoShiftName = name;
 }
 
+type OpeningRun = ShiftResult & { shiftTimings: { name: string; ms: number }[] };
+
 /**
- * Runs the opening of an ascension as repeated C1 -> K1 -> I1 rounds:
- *  - C1: research (rounds after the first shift back to Curiosity first).
- *  - K1: vehicles — skipped for the round if it wouldn't buy any.
- *  - I1: the best habs reachable within its 4-hour cap (see `runI1`).
- * Rounds repeat with the same parameters until an I1 ends with every slot at Chicken Universe.
+ * Continues an opening run (`base`) with the given C/K/I visits, using the C1/K1/I1 scripts:
+ *  - C: research for `c1TimeLimit` (default C1's 30 minutes). Visits after the first shift back to
+ *    Curiosity first.
+ *  - K: vehicles — skipped if it wouldn't buy any.
+ *  - I: the best habs reachable within I1's 4-hour cap (see `runI1`), or `finalI1TimeLimit` for
+ *    the last I in `visits`.
+ * `base` is left untouched (its end state is deep-copied), so one run can be the shared prefix of
+ * several longer ones. The returned `shiftTimings` cover only the new visits; `label` prefixes them.
  */
-function runC1K1I1Segment(
-  startState: EngineState,
-  context: SimulationContext
-): ShiftResult & { shiftTimings: { name: string; ms: number }[] } {
-  const actions: Action[] = [];
-  let elapsedSeconds = 0;
-  let currentState = startState;
+function continueOpening(
+  base: OpeningRun,
+  visits: string,
+  context: SimulationContext,
+  label: string,
+  { c1TimeLimit = 1800, finalI1TimeLimit = I1_TIME_LIMIT_SECONDS } = {}
+): OpeningRun {
+  const actions: Action[] = [...base.actions];
+  let elapsedSeconds = base.elapsedSeconds;
+  let currentState: EngineState = JSON.parse(JSON.stringify(base.endState));
   const shiftTimings: { name: string; ms: number }[] = [];
 
-  const pushShiftResult = (name: string, round: number, result: ShiftResult, ms: number) => {
+  const pushShiftResult = (name: string, result: ShiftResult, ms: number) => {
     tagShiftName(result.actions, name);
     const eggsLaid = calculateEggsLaidDuringActions(result.actions, currentState, context);
     // Not gated on `actions[0].type === 'shift'`: some shifts (e.g. C1) lead with a non-shift
@@ -162,45 +180,111 @@ function runC1K1I1Segment(
     actions.push(...result.actions);
     currentState = result.endState;
     elapsedSeconds += result.elapsedSeconds;
-    shiftTimings.push({ name: round > 1 ? `${name} (round ${round})` : name, ms });
+    shiftTimings.push({ name: `${label}: ${name}`, ms });
   };
 
-  const timed = (name: string, round: number, fn: () => ShiftResult) => {
-    const t0 = performance.now();
-    pushShiftResult(name, round, fn(), performance.now() - t0);
-  };
-
-  // C1 itself never shifts (it assumes the ascension's starting egg), so later rounds — which
-  // begin on Integrity — prepend the shift back to Curiosity, plus any research-sale toggle.
-  // Only the first round equips the earnings set; later rounds are already wearing it.
-  const runC1Round = (state: EngineState, isFirstRound: boolean): ShiftResult => {
-    if (state.currentEgg === 'curiosity') return runC1(state, context, undefined, undefined, isFirstRound);
+  // C1 itself never shifts (it assumes the ascension's starting egg), so later C visits prepend
+  // the shift back to Curiosity, plus any research-sale toggle. Only the ascension's first C1
+  // equips the earnings set; later visits are already wearing it.
+  const runC1Visit = (state: EngineState): ShiftResult => {
+    const isFirstVisit = actions.length === 0;
+    if (state.currentEgg === 'curiosity') return runC1(state, context, c1TimeLimit, undefined, isFirstVisit);
     const shifted = applyShiftAction(state, context, 'curiosity');
-    const c1 = runC1(shifted.state, context, undefined, undefined, isFirstRound);
+    const c1 = runC1(shifted.state, context, c1TimeLimit, undefined, isFirstVisit);
     const leading = shifted.saleToggleAction ? [shifted.action, shifted.saleToggleAction] : [shifted.action];
     return { ...c1, actions: [...leading, ...c1.actions] };
   };
 
-  for (let round = 1; ; round++) {
-    const isFinalRound = round >= MAX_OPENING_ROUNDS;
-
+  const lastIIndex = visits.lastIndexOf('I');
+  [...visits].forEach((visit, i) => {
     currentState.lastStepTime = elapsedSeconds;
-    timed('C1', round, () => runC1Round(currentState, round === 1));
-
-    currentState.lastStepTime = elapsedSeconds;
-    const t0K1 = performance.now();
-    const k1 = runK1(currentState, context);
-    if (k1.actions.some(isPurchase)) {
-      pushShiftResult('K1', round, k1, performance.now() - t0K1);
+    const t0 = performance.now();
+    if (visit === 'C') {
+      pushShiftResult('C1', runC1Visit(currentState), performance.now() - t0);
+    } else if (visit === 'K') {
+      const k1 = runK1(currentState, context);
+      if (k1.actions.some(isPurchase)) pushShiftResult('K1', k1, performance.now() - t0);
+    } else {
+      const timeLimit = i === lastIIndex ? finalI1TimeLimit : I1_TIME_LIMIT_SECONDS;
+      pushShiftResult('I1', runI1(currentState, context, timeLimit), performance.now() - t0);
     }
-
-    currentState.lastStepTime = elapsedSeconds;
-    timed('I1', round, () => runI1(currentState, context, isFinalRound ? Infinity : I1_TIME_LIMIT_SECONDS));
-
-    if (habsMaxed(currentState) || isFinalRound) break;
-  }
+  });
 
   return { actions, elapsedSeconds, endState: currentState, shiftTimings };
+}
+
+function totalHabCapacity(state: EngineState): number {
+  return state.habIds.reduce<number>((sum, id) => sum + (id === null ? 0 : getHabById(id as HabId).baseCapacity), 0);
+}
+
+function totalShippingCapacity(state: EngineState): number {
+  return state.vehicles.reduce((sum, slot) => {
+    const vehicle = slot.vehicleId === null ? undefined : getVehicleType(slot.vehicleId);
+    if (!vehicle) return sum;
+    return sum + vehicle.baseCapacityPerSecond * (vehicle.isHyperloop ? slot.trainLength : 1);
+  }, 0);
+}
+
+/**
+ * How long C2 would take after `run`, or 0 if it would be skipped (see `SKIP_WHEN_NO_PURCHASES`).
+ * Simulated on a copy of the opening's end state; the main loop re-runs C2 for the winner.
+ */
+function c2SecondsAfter(run: OpeningRun, context: SimulationContext): number {
+  const state: EngineState = JSON.parse(JSON.stringify(run.endState));
+  state.lastStepTime = run.elapsedSeconds;
+  const c2 = runC2(state, context);
+  return c2.actions.some(isPurchase) ? c2.elapsedSeconds : 0;
+}
+
+type ScoredOpening = { run: OpeningRun; secondsThroughC2: number };
+
+/** Negative if `a` is the better opening: more hab capacity, then more shipping capacity (K2
+ * finishes vehicles later, so habs matter more), then the earlier end of C2. Timing through C2
+ * rather than just the opening credits research an opening buys early (e.g. a 4-hour second C1)
+ * with the C2 time it saves. */
+function compareOpenings(a: ScoredOpening, b: ScoredOpening): number {
+  return (
+    totalHabCapacity(b.run.endState) - totalHabCapacity(a.run.endState) ||
+    totalShippingCapacity(b.run.endState) - totalShippingCapacity(a.run.endState) ||
+    a.secondsThroughC2 - b.secondsThroughC2
+  );
+}
+
+/**
+ * Runs the opening of an ascension:
+ *  - A single C1 -> K1 -> I1 pass. If it maxes habs, that's the opening.
+ *  - Otherwise that pass is discarded and each of `FALLBACK_OPENINGS` is simulated from the same
+ *    empty starting farm, once per `SECOND_C1_TIME_LIMITS_SECONDS` budget for its second C visit,
+ *    with a 2-day cap on its final I visit; the best by `compareOpenings` wins.
+ * Openings sharing a first round reuse it rather than re-simulating — the CKI... paths continue
+ * from the first pass itself, the CIK... paths from one shared CIK run — since every shift is
+ * deterministic given its input state.
+ */
+function runC1K1I1Segment(startState: EngineState, context: SimulationContext): OpeningRun {
+  const empty: OpeningRun = { actions: [], elapsedSeconds: 0, endState: startState, shiftTimings: [] };
+  const firstPass = continueOpening(empty, 'CKI', context, 'CKI');
+  if (habsMaxed(firstPass.endState)) return firstPass;
+
+  const firstRounds: Record<string, OpeningRun> = {
+    CKI: firstPass,
+    CIK: continueOpening(empty, 'CIK', context, 'CIK'),
+  };
+  const candidates = FALLBACK_OPENINGS.flatMap(order =>
+    SECOND_C1_TIME_LIMITS_SECONDS.map(c1TimeLimit => {
+      const run = continueOpening(
+        firstRounds[order.slice(0, 3)],
+        order.slice(3),
+        context,
+        `${order} (second C1 ${c1TimeLimit / 60}m)`,
+        { c1TimeLimit, finalI1TimeLimit: FINAL_I1_TIME_LIMIT_SECONDS }
+      );
+      return { run, secondsThroughC2: run.elapsedSeconds + c2SecondsAfter(run, context) };
+    })
+  );
+  const best = [...candidates].sort(compareOpenings)[0].run;
+  // Keep every simulated visit's timing (not just the winner's) so the debug log shows the full cost.
+  const allRuns = [firstPass, firstRounds.CIK, ...candidates.map(c => c.run)];
+  return { ...best, shiftTimings: allRuns.flatMap(r => r.shiftTimings) };
 }
 
 /**
@@ -222,7 +306,7 @@ export function runUntilShift(
     return { state: currentState, actions: currentActions, elapsedSeconds: totalElapsedSeconds };
   }
   if (stopBeforeShift === 'K1' || stopBeforeShift === 'I1') {
-    // K1/I1 no longer have a fixed slot — see runC1K1I1Segment (repeated rounds, K1 skippable) — so stopping "before" either one
+    // K1/I1 no longer have a fixed slot — see runC1K1I1Segment (one or two rounds, CKI/CIK order, K1 skippable) — so stopping "before" either one
     // specifically isn't well-defined. Every current caller passes 'C3', well past this segment.
     throw new Error(
       `runUntilShift: cannot stop before '${stopBeforeShift}' — the opening's shift count is chosen dynamically at runtime`
@@ -399,7 +483,7 @@ export function runAscension(
     resumeData.resumeShiftName === 'K1' ||
     resumeData.resumeShiftName === 'I1'
   ) {
-    // K1/I1 no longer have a fixed slot — see runC1K1I1Segment (repeated rounds, K1 skippable) — so resuming "at" either one
+    // K1/I1 no longer have a fixed slot — see runC1K1I1Segment (one or two rounds, CKI/CIK order, K1 skippable) — so resuming "at" either one
     // specifically isn't well-defined. The only current caller (runAscensionFromC3Variant)
     // always resumes at 'H1', well past this segment.
     throw new Error(
@@ -616,7 +700,7 @@ export function runAscension(
  * `startSoulEggs`, `startShiftCount`, `teEarned` deltas) reads directly off that param even when
  * `resumeData` is set, so passing `preC3.state` (the post-C1-R1, pre-C3 state) there instead would
  * silently corrupt those fields — `preC3.state`'s `shiftCount` already includes every shift C1-R1
- * spent (each opening round's K1/I1 plus later rounds' shifts back to Curiosity, then C2/K2/R1;
+ * spent (each opening visit to K/I plus a second round's shift back to Curiosity, then C2/K2/R1;
  * the first C1 itself doesn't count as a shift), and its `te`/`soulEggs` have already
  * moved. Caller passes `preC3`/`originalStartState` once per ascension step and reuses both for every
  * variant, per this plan's C1-R1 reuse requirement.
