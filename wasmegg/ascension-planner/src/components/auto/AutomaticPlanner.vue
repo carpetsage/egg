@@ -108,13 +108,17 @@
           <p class="text-amber-600 leading-relaxed">Use this as a starting point, not a final word. Your actual results may vary.</p>
 
           <div class="border-t border-amber-200 pt-3 mt-1">
-            <p class="font-bold uppercase tracking-wide text-amber-700 mb-2">Each ascension will have exactly this shift order (except that it will consider CKI vs CIK starts):</p>
+            <p class="font-bold uppercase tracking-wide text-amber-700 mb-2">Each ascension follows this shift order:</p>
             <ul class="space-y-1.5 list-disc list-inside leading-relaxed">
-              <li><span class="font-semibold">C1</span> — Spends up to 30 minutes with the primary target being fleet size and Graviton Coupling.</li>
-              <li><span class="font-semibold">K1</span> — Spends up to 30 minutes buying the best vehicles it can afford. Swaps places with I1 below if I1 can finish in under an hour.</li>
-              <li><span class="font-semibold">I1</span> — Max Chicken Universes. Runs before K1 instead if it can finish in under an hour.</li>
-              <li><span class="font-semibold">C2</span> — Maxes fleet size research. If it can afford Graviton Coupling within 4 hours, it does.</li>
-              <li><span class="font-semibold">K2</span> — Max Vehicles and Hyperloop Train Cars.</li>
+              <li><span class="font-semibold">C1 → K1 → I1</span> — The opening runs in rounds, repeating until every hab is a Chicken Universe. Lower earners may need several rounds.
+                <ul class="mt-1 ml-5 space-y-1 list-[circle] list-inside">
+                  <li><span class="font-semibold">C1</span> — Spends up to 30 minutes with the primary target being fleet size and Graviton Coupling.</li>
+                  <li><span class="font-semibold">K1</span> — Spends up to 30 minutes buying the best vehicles it can afford. Skipped for a round if it can't buy anything.</li>
+                  <li><span class="font-semibold">I1</span> — Upgrades habs toward Chicken Universes for up to 4 hours. If habs still aren't maxed, another round starts.</li>
+                </ul>
+              </li>
+              <li><span class="font-semibold">C2</span> — Maxes fleet size research. If it can afford Graviton Coupling within 4 hours, it does. Skipped if there's nothing left to buy.</li>
+              <li><span class="font-semibold">K2</span> — Max Vehicles and Hyperloop Train Cars. Skipped if there's nothing left to buy.</li>
               <li><span class="font-semibold">R1</span> — Buys as many silos as possible within one hour.</li>
               <li><span class="font-semibold">C3</span> — Purchases remaining Delivery Rate-boosting research: lay rate, shipping capacity, and hab capacity.</li>
               <li><span class="font-semibold">H1</span> — Swaps to the optimal artifact loadout for Delivery Rate.</li>

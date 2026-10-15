@@ -579,13 +579,19 @@ const shifts = computed(() => {
   const shifts: any[] = [];
   let absoluteTime = ascStartTime;
 
-  const isContinueCurrent = props.summary.strategyLabel === 'Continue current';
   const startEgg = (actions[0]?.type === 'start_ascension' && actions[0]?.payload?.initialEgg) || 'curiosity';
 
+  // Titles are the egg's first letter plus how many times this ascension has visited that egg
+  // (the starting egg counts as visit 1) — e.g. C1, K1, I1, C2, K2, I2, R1 for a two-round opening.
+  const visitCounts: Partial<Record<string, number>> = {};
+  const visitTitle = (egg: string) => {
+    const count = (visitCounts[egg] || 0) + 1;
+    visitCounts[egg] = count;
+    return `${egg.charAt(0).toUpperCase()}${count} Shift`;
+  };
+
   let currentShift = {
-    title: isContinueCurrent
-      ? `${startEgg.charAt(0).toUpperCase() + startEgg.slice(1)} Shift`
-      : 'C1 Shift',
+    title: visitTitle(startEgg),
     egg: startEgg,
     actions: [] as any[],
     duration: 0,
@@ -595,34 +601,14 @@ const shifts = computed(() => {
     endTime: absoluteTime,
   };
 
-  // Indices 1 and 2 are deliberately absent: the C1 -> {K1, I1} order is chosen dynamically at
-  // simulation time (see runC1K1I1Segment in ascension.ts), so whichever shift lands in that
-  // position isn't always K1 then I1 — those two are labeled from the shift's actual target egg
-  // below instead of by fixed position.
-  const titles = [
-    'C1 Shift', undefined, undefined,
-    'C2 Shift', 'K2 Shift', 'R1 Shift',
-    'C3 Shift', 'H1 Shift', 'K3 Shift',
-    'C4 Shift', 'I2 Shift', 'R2 Shift',
-    'H2 Shift',
-  ];
-  const eggShiftTitles: Partial<Record<VirtueEgg, string>> = { kindness: 'K1 Shift', integrity: 'I1 Shift' };
-  let shiftIndex = 0;
-
   for (const action of actions) {
     if (action.type === 'shift') {
       if (currentShift.actions.length > 0) {
         currentShift.endTime = absoluteTime;
         shifts.push(currentShift);
       }
-      shiftIndex++;
       const nextEgg = action.payload.toEgg;
-      const defaultTitle = `${nextEgg.charAt(0).toUpperCase() + nextEgg.slice(1)} Shift`;
-      const title = isContinueCurrent
-        ? defaultTitle
-        : (shiftIndex === 1 || shiftIndex === 2)
-          ? (eggShiftTitles[nextEgg as VirtueEgg] || defaultTitle)
-          : (titles[shiftIndex] || defaultTitle);
+      const title = visitTitle(nextEgg);
 
       currentShift = {
         title: title,

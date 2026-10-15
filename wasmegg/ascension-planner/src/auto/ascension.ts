@@ -7,7 +7,8 @@ import { calculateEggsLaidDuringActions } from './engine/eggs';
 import type { EngineState, SimulationContext, AscensionSummary, ShiftResult } from './types';
 import { runC1 } from './shifts/c1';
 import { runK1 } from './shifts/k1';
-import { runI1 } from './shifts/i1';
+import { runI1, habsMaxed, I1_TIME_LIMIT_SECONDS } from './shifts/i1';
+import { applyShiftAction } from './shifts/helpers/actionHelpers';
 import { runC2 } from './shifts/c2';
 import { runK2 } from './shifts/k2';
 import { runR1 } from './shifts/r1';
@@ -92,7 +93,7 @@ export function deriveNextStartState(
 // declares are required of it.
 type ShiftRunner = (state: EngineState, context: SimulationContext) => ShiftResult;
 
-// C1 -> {K1, I1} is not in this list: their order is chosen dynamically by runC1K1I1Segment,
+// C1/K1/I1 are not in this list: they run as a variable number of rounds by runC1K1I1Segment,
 // which both loops below run as an explicit first step.
 const allShifts: { name: string; run: ShiftRunner }[] = [
   { name: 'C2', run: runC2 },
@@ -107,19 +108,37 @@ const allShifts: { name: string; run: ShiftRunner }[] = [
   { name: 'H2', run: runH2 },
 ];
 
+// Backstop against looping forever on a farm whose earnings can't make hab progress. The final
+// round's I1 runs uncapped, so the segment always ends with max habs.
+const MAX_OPENING_ROUNDS = 10;
+
+function isPurchase(action: Action): boolean {
+  return (
+    action.type === 'buy_research' ||
+    action.type === 'buy_vehicle' ||
+    action.type === 'buy_train_car' ||
+    action.type === 'buy_hab' ||
+    action.type === 'buy_silo'
+  );
+}
+
+// Shifts dropped from the plan (state, time, and shift cost all discarded) when they'd buy nothing
+// — e.g. a multi-round opening can leave C2/K2 with nothing left to buy.
+const SKIP_WHEN_NO_PURCHASES = new Set(['C2', 'K2']);
+
+/** Labels the shift action that starts this shift (if any — the ascension's first C1 has none)
+ * with its planner name, which the UI reads for shift headers and phase lookups. */
+function tagShiftName(actions: Action[], name: string): void {
+  const shiftAction = actions.find(a => a.type === 'shift');
+  if (shiftAction?.type === 'shift') shiftAction.payload.autoShiftName = name;
+}
+
 /**
- * Runs the C1 -> {K1, I1} opening of an ascension, choosing between shift orders based on how
- * long I1 takes when run immediately after C1:
- *  - If I1 (run right after C1) would take under an hour of simulated time, that's the better
- *    order: C1, I1, K1.
- *  - Otherwise, fall back to the default order: C1, K1, I1.
- *
- * I1 has no time cap (see `runI1`) — it always runs to completion (all 4 hab slots maxed) — so
- * its duration from a given input state is deterministic. That means the speculative "run I1
- * right after C1" call below doubles as the real result whenever that order is chosen: no need
- * to simulate I1 twice. It's only discarded (and I1 re-simulated from the post-K1 state) when
- * the default order wins instead, since I1's output depends on its input state and K1 changes
- * that state first.
+ * Runs the opening of an ascension as repeated C1 -> K1 -> I1 rounds:
+ *  - C1: research (rounds after the first shift back to Curiosity first).
+ *  - K1: vehicles — skipped for the round if it wouldn't buy any.
+ *  - I1: the best habs reachable within its 4-hour cap (see `runI1`).
+ * Rounds repeat with the same parameters until an I1 ends with every slot at Chicken Universe.
  */
 function runC1K1I1Segment(
   startState: EngineState,
@@ -130,7 +149,8 @@ function runC1K1I1Segment(
   let currentState = startState;
   const shiftTimings: { name: string; ms: number }[] = [];
 
-  const pushShiftResult = (name: string, result: ShiftResult, ms: number) => {
+  const pushShiftResult = (name: string, round: number, result: ShiftResult, ms: number) => {
+    tagShiftName(result.actions, name);
     const eggsLaid = calculateEggsLaidDuringActions(result.actions, currentState, context);
     // Not gated on `actions[0].type === 'shift'`: some shifts (e.g. C1) lead with a non-shift
     // action (equipping the earnings set), so requiring 'shift' silently dropped eggsLaid for
@@ -142,31 +162,42 @@ function runC1K1I1Segment(
     actions.push(...result.actions);
     currentState = result.endState;
     elapsedSeconds += result.elapsedSeconds;
-    shiftTimings.push({ name, ms });
+    shiftTimings.push({ name: round > 1 ? `${name} (round ${round})` : name, ms });
   };
 
-  const timed = (name: string, fn: () => ShiftResult) => {
+  const timed = (name: string, round: number, fn: () => ShiftResult) => {
     const t0 = performance.now();
-    pushShiftResult(name, fn(), performance.now() - t0);
+    pushShiftResult(name, round, fn(), performance.now() - t0);
   };
 
-  currentState.lastStepTime = elapsedSeconds;
-  timed('C1', () => runC1(currentState, context));
+  // C1 itself never shifts (it assumes the ascension's starting egg), so later rounds — which
+  // begin on Integrity — prepend the shift back to Curiosity, plus any research-sale toggle.
+  // Only the first round equips the earnings set; later rounds are already wearing it.
+  const runC1Round = (state: EngineState, isFirstRound: boolean): ShiftResult => {
+    if (state.currentEgg === 'curiosity') return runC1(state, context, undefined, undefined, isFirstRound);
+    const shifted = applyShiftAction(state, context, 'curiosity');
+    const c1 = runC1(shifted.state, context, undefined, undefined, isFirstRound);
+    const leading = shifted.saleToggleAction ? [shifted.action, shifted.saleToggleAction] : [shifted.action];
+    return { ...c1, actions: [...leading, ...c1.actions] };
+  };
 
-  currentState.lastStepTime = elapsedSeconds;
-  const t0I1 = performance.now();
-  const speculativeI1 = runI1(currentState, context);
-  const speculativeI1Ms = performance.now() - t0I1;
+  for (let round = 1; ; round++) {
+    const isFinalRound = round >= MAX_OPENING_ROUNDS;
 
-  const I1_ORDER_SWAP_THRESHOLD_SECONDS = 3600;
-  if (speculativeI1.elapsedSeconds < I1_ORDER_SWAP_THRESHOLD_SECONDS) {
-    pushShiftResult('I1', speculativeI1, speculativeI1Ms);
     currentState.lastStepTime = elapsedSeconds;
-    timed('K1', () => runK1(currentState, context));
-  } else {
-    timed('K1', () => runK1(currentState, context));
+    timed('C1', round, () => runC1Round(currentState, round === 1));
+
     currentState.lastStepTime = elapsedSeconds;
-    timed('I1', () => runI1(currentState, context));
+    const t0K1 = performance.now();
+    const k1 = runK1(currentState, context);
+    if (k1.actions.some(isPurchase)) {
+      pushShiftResult('K1', round, k1, performance.now() - t0K1);
+    }
+
+    currentState.lastStepTime = elapsedSeconds;
+    timed('I1', round, () => runI1(currentState, context, isFinalRound ? Infinity : I1_TIME_LIMIT_SECONDS));
+
+    if (habsMaxed(currentState) || isFinalRound) break;
   }
 
   return { actions, elapsedSeconds, endState: currentState, shiftTimings };
@@ -191,10 +222,10 @@ export function runUntilShift(
     return { state: currentState, actions: currentActions, elapsedSeconds: totalElapsedSeconds };
   }
   if (stopBeforeShift === 'K1' || stopBeforeShift === 'I1') {
-    // K1/I1 no longer have a fixed slot — see runC1K1I1Segment — so stopping "before" either one
+    // K1/I1 no longer have a fixed slot — see runC1K1I1Segment (repeated rounds, K1 skippable) — so stopping "before" either one
     // specifically isn't well-defined. Every current caller passes 'C3', well past this segment.
     throw new Error(
-      `runUntilShift: cannot stop before '${stopBeforeShift}' — its position in the shift order is chosen dynamically at runtime`
+      `runUntilShift: cannot stop before '${stopBeforeShift}' — the opening's shift count is chosen dynamically at runtime`
     );
   }
 
@@ -213,6 +244,10 @@ export function runUntilShift(
     const t0 = performance.now();
     const result = shift.run(currentState, context);
     shiftTimings.push({ name: shift.name, ms: performance.now() - t0 });
+
+    if (SKIP_WHEN_NO_PURCHASES.has(shift.name) && !result.actions.some(isPurchase)) continue;
+
+    tagShiftName(result.actions, shift.name);
 
     // Calculate eggs laid during this shift (assuming full habs)
     const eggsLaid = calculateEggsLaidDuringActions(result.actions, currentState, context);
@@ -364,11 +399,11 @@ export function runAscension(
     resumeData.resumeShiftName === 'K1' ||
     resumeData.resumeShiftName === 'I1'
   ) {
-    // K1/I1 no longer have a fixed slot — see runC1K1I1Segment — so resuming "at" either one
+    // K1/I1 no longer have a fixed slot — see runC1K1I1Segment (repeated rounds, K1 skippable) — so resuming "at" either one
     // specifically isn't well-defined. The only current caller (runAscensionFromC3Variant)
     // always resumes at 'H1', well past this segment.
     throw new Error(
-      `runAscension: cannot resume at '${resumeData.resumeShiftName}' — its position in the shift order is chosen dynamically at runtime`
+      `runAscension: cannot resume at '${resumeData.resumeShiftName}' — the opening's shift count is chosen dynamically at runtime`
     );
   }
 
@@ -453,6 +488,10 @@ export function runAscension(
     } else {
       result = shift.run(currentState, context);
     }
+
+    if (SKIP_WHEN_NO_PURCHASES.has(shift.name) && !result.actions.some(isPurchase)) continue;
+
+    tagShiftName(result.actions, shift.name);
 
     // Calculate eggs laid during this shift (assuming full habs)
     const eggsLaid = calculateEggsLaidDuringActions(result.actions, currentState, context);
@@ -576,8 +615,9 @@ export function runAscension(
  * `startState` for a from-scratch call) — `runAscension`'s post-loop bookkeeping (`startTE`,
  * `startSoulEggs`, `startShiftCount`, `teEarned` deltas) reads directly off that param even when
  * `resumeData` is set, so passing `preC3.state` (the post-C1-R1, pre-C3 state) there instead would
- * silently corrupt those fields — `preC3.state`'s `shiftCount` already includes the 5 shifts C1-R1
- * spent (K1/I1/C2/K2/R1; C1 itself doesn't count as a shift), and its `te`/`soulEggs` have already
+ * silently corrupt those fields — `preC3.state`'s `shiftCount` already includes every shift C1-R1
+ * spent (each opening round's K1/I1 plus later rounds' shifts back to Curiosity, then C2/K2/R1;
+ * the first C1 itself doesn't count as a shift), and its `te`/`soulEggs` have already
  * moved. Caller passes `preC3`/`originalStartState` once per ascension step and reuses both for every
  * variant, per this plan's C1-R1 reuse requirement.
  */

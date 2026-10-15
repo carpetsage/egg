@@ -364,21 +364,22 @@ if (!(researchId in startResearch)) startResearch[researchId] = fromLevel;
   }
 
   // --- Habs ---
-  let hasCU = false;
-  let highestHabId = -1;
+  // Every slot's final hab this shift, grouped by type (highest tier first) — a capped I1 can end
+  // with a mix, e.g. 2 Chicken Universes plus 2 interim habs.
   const habCounts: Record<number, number> = {};
-
   for (const habId of Object.values(finalHabs)) {
-    if (habId === 18) hasCU = true;
-    if (habId > highestHabId) highestHabId = habId;
     habCounts[habId] = (habCounts[habId] || 0) + 1;
   }
 
-  if (hasCU) {
-    items.push({ category: 'habs', isPremium: true, text: `${habCounts[18]}x Chicken Universe` });
-  } else if (highestHabId >= 0) {
-    const habName = getHabById(highestHabId as HabId)?.name || 'Hab';
-    items.push({ category: 'habs', isPremium: false, name: `Hab Upgrade`, delta: `to ${habName}` });
+  const habIdsDesc = Object.keys(habCounts).map(Number).sort((a, b) => b - a);
+  for (const habId of habIdsDesc) {
+    const count = habCounts[habId];
+    if (habId === 18) {
+      items.push({ category: 'habs', isPremium: true, text: `Chicken Universe ${count}x` });
+    } else {
+      const habName = getHabById(habId as HabId)?.name || 'Hab';
+      items.push({ category: 'habs', isPremium: false, name: habName, delta: `${count}x` });
+    }
   }
 
   // --- Vehicles ---
