@@ -29257,5 +29257,14 @@
     "startTimestamp": 1791993600,
     "type": "boost-duration",
     "ultra": true
+  },
+  {
+    "endTimestamp": 1792166400,
+    "id": "event-10-15",
+    "message": "3x FUELING!",
+    "multiplier": 3,
+    "startTimestamp": 1792080000,
+    "type": "mission-fuel",
+    "ultra": false
   }
 ]
