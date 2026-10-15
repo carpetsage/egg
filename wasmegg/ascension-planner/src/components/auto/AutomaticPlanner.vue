@@ -110,11 +110,11 @@
           <div class="border-t border-amber-200 pt-3 mt-1">
             <p class="font-bold uppercase tracking-wide text-amber-700 mb-2">Each ascension follows this shift order:</p>
             <ul class="space-y-1.5 list-disc list-inside leading-relaxed">
-              <li><span class="font-semibold">C1 → K1 → I1</span> — The opening runs in rounds, repeating until every hab is a Chicken Universe. Lower earners may need several rounds.
+              <li><span class="font-semibold">C1 → K1 → I1</span> — If one pass doesn't max out Chicken Universes, the planner restarts from an empty farm, tries two rounds in each of CKI CKI, CKI CIK, CIK CIK and CIK CKI order, each with a 30-minute and a 4-hour second C visit (and up to 2 days for the last I visit), and keeps whichever ends with the best habs, then vehicles, then the earliest finish through C2.
                 <ul class="mt-1 ml-5 space-y-1 list-[circle] list-inside">
                   <li><span class="font-semibold">C1</span> — Spends up to 30 minutes with the primary target being fleet size and Graviton Coupling.</li>
-                  <li><span class="font-semibold">K1</span> — Spends up to 30 minutes buying the best vehicles it can afford. Skipped for a round if it can't buy anything.</li>
-                  <li><span class="font-semibold">I1</span> — Upgrades habs toward Chicken Universes for up to 4 hours. If habs still aren't maxed, another round starts.</li>
+                  <li><span class="font-semibold">K1</span> — Spends up to 30 minutes buying the best vehicles it can afford. Skipped if it can't buy anything.</li>
+                  <li><span class="font-semibold">I1</span> — Upgrades habs toward Chicken Universes for up to 4 hours.</li>
                 </ul>
               </li>
               <li><span class="font-semibold">C2</span> — Maxes fleet size research. If it can afford Graviton Coupling within 4 hours, it does. Skipped if there's nothing left to buy.</li>

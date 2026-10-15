@@ -13,8 +13,8 @@ export const I1_TIME_LIMIT_SECONDS = 4 * 3600;
  *    run past `timeLimit`, so the shift ends at its last purchase rather than idling out the
  *    remaining budget. Pass `Infinity` to run until habs are maxed.
  *
- * Low earners can't max habs within the cap; `runOpeningSegment` in `ascension.ts` repeats
- * C1 -> K1 -> I1 rounds until an I1 ends with `habsMaxed(endState)`.
+ * Low earners can't max habs within the cap; when one C1 -> K1 -> I1 pass doesn't end with
+ * `habsMaxed(endState)`, `runC1K1I1Segment` in `ascension.ts` tries two-round openings instead.
  *
  * `runHabPurchasePlan` re-evaluates the best next purchase every step, across all 4 slots, rather
  * than a single upfront decision — unverified whether that changes I1's simulated output; worth a
