@@ -29266,5 +29266,23 @@
     "startTimestamp": 1792080000,
     "type": "mission-fuel",
     "ultra": false
+  },
+  {
+    "endTimestamp": 1792252800,
+    "id": "event-10-16",
+    "message": "70% OFF RESEARCH!",
+    "multiplier": 0.3,
+    "startTimestamp": 1792166400,
+    "type": "research-sale",
+    "ultra": false
+  },
+  {
+    "endTimestamp": 1792252800,
+    "id": "ultra-10-16",
+    "message": "80% OFF HEN HOUSES!",
+    "multiplier": 0.2,
+    "startTimestamp": 1792166400,
+    "type": "hab-sale",
+    "ultra": true
   }
 ]
