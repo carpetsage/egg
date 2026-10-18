@@ -334,6 +334,7 @@ async function handleImport(event: Event) {
                 goal: a.goal,
               };
               if (a.result3SkippedReason) item.result3SkippedReason = a.result3SkippedReason;
+              if (a.loadoutHash) item.loadoutHash = a.loadoutHash;
               return item;
             });
 
@@ -377,6 +378,8 @@ async function handleImport(event: Event) {
               nextGoals: nextGoalsMap,
               planVariantOverrides: importedOverrides,
               endTimeOverrides: plan.endTimeOverrides ?? {},
+              loadoutInputs: plan.loadoutInputs ?? null,
+              loadoutOverrides: plan.loadoutOverrides ?? {},
             });
 
             // Hydrate stores so the form shows the correct numbers from the plan

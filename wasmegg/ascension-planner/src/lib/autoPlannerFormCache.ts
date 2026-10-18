@@ -7,6 +7,7 @@
  */
 
 import type { VirtueEgg } from '@/types';
+import type { AutoLoadoutInputs } from '@/auto/loadout/types';
 
 const SCHEDULE_STORAGE_KEY = 'auto_planner_schedule_v1';
 const TE_INPUTS_STORAGE_KEY_PREFIX = 'auto_planner_te_inputs_v1';
@@ -75,6 +76,39 @@ export function saveAutoPlannerTEInputs(playerId: string, data: AutoPlannerTEInp
   if (!playerId) return;
   try {
     localStorage.setItem(teInputsStorageKey(playerId), JSON.stringify(data));
+  } catch {
+    // Ignore quota/privacy-mode errors — persistence is a nicety, not a requirement.
+  }
+}
+
+const LOADOUT_INPUTS_STORAGE_KEY_PREFIX = 'auto_planner_loadout_inputs_v1';
+const consumedLoadoutPlayerIds = new Set<string>();
+
+function loadoutInputsStorageKey(playerId: string): string {
+  return `${LOADOUT_INPUTS_STORAGE_KEY_PREFIX}:${playerId}`;
+}
+
+/**
+ * Cached artifact/stone setup inputs for this player — same consume-once-per-page-load contract as
+ * `consumeAutoPlannerTEInputs`.
+ */
+export function consumeAutoPlannerLoadoutInputs(playerId: string): AutoLoadoutInputs | null {
+  if (!playerId || consumedLoadoutPlayerIds.has(playerId)) return null;
+  consumedLoadoutPlayerIds.add(playerId);
+  try {
+    const raw = localStorage.getItem(loadoutInputsStorageKey(playerId));
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Persists artifact/stone setup inputs. Like `saveAutoPlannerTEInputs`, call only from user edits. */
+export function saveAutoPlannerLoadoutInputs(playerId: string, data: AutoLoadoutInputs | null): void {
+  if (!playerId) return;
+  try {
+    if (data) localStorage.setItem(loadoutInputsStorageKey(playerId), JSON.stringify(data));
+    else localStorage.removeItem(loadoutInputsStorageKey(playerId));
   } catch {
     // Ignore quota/privacy-mode errors — persistence is a nicety, not a requirement.
   }

@@ -1,5 +1,5 @@
 import type { EngineState, SimulationContext, ShiftResult } from '../types';
-import { applyShiftAction } from './helpers/actionHelpers';
+import { applyShiftIfNeeded } from './helpers/actionHelpers';
 import { runHabPurchasePlan } from './helpers/habs';
 import { CHICKEN_UNIVERSE_ID } from '../../calculations/habPurchasePlan';
 
@@ -25,11 +25,11 @@ export function runI1(
   context: SimulationContext,
   timeLimit: number = I1_TIME_LIMIT_SECONDS
 ): ShiftResult {
-  const { state, action: shiftAction } = applyShiftAction(startState, context, 'integrity');
+  const { state, actions: shiftActions } = applyShiftIfNeeded(startState, context, 'integrity');
   const plan = runHabPurchasePlan(state, context, timeLimit);
 
   return {
-    actions: [shiftAction, ...plan.actions],
+    actions: [...shiftActions, ...plan.actions],
     elapsedSeconds: plan.elapsedSeconds,
     endState: plan.endState,
   };

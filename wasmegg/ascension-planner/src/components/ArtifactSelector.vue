@@ -31,7 +31,7 @@
         />
       </div>
 
-      <!-- Artifact Effect Display & Stone Slots -->
+      <!-- Artifact Effect Display & Stone Slots (stone slots only when stones are edited here) -->
       <div v-if="slot.artifactId" class="ml-8 space-y-3">
         <div
           class="badge-premium badge-brand bg-white/60 backdrop-blur-sm border border-brand-primary/10 text-[10px] py-1 px-3 flex items-center gap-2 max-w-fit"
@@ -42,7 +42,7 @@
 
         <!-- Stone Slots -->
         <div
-          v-if="getArtifact(slot.artifactId)?.slots"
+          v-if="stones === 'edit' && getArtifact(slot.artifactId)?.slots"
           class="flex flex-wrap gap-6 p-2 bg-white/30 rounded-xl border border-white/40 shadow-inner"
         >
           <div v-for="stoneIndex in getArtifact(slot.artifactId)!.slots" :key="stoneIndex" class="group relative">
@@ -77,13 +77,16 @@
           </div>
         </div>
       </div>
-      <div v-else class="ml-5 text-[10px] text-gray-400 italic">Select an artifact to configure stones</div>
+      <div v-else class="ml-5 text-[10px] text-gray-400 italic">
+        {{ stones === 'hidden' ? 'Empty slot' : 'Select an artifact to configure stones' }}
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { GenericBaseSelectFilterable } from 'ui/components/BaseSelectFilterable.vue';
+import { rarityTint } from '@/lib/artifacts/display';
 import {
   type EquippedArtifact,
   type ArtifactOption,
@@ -94,9 +97,17 @@ import {
   getStone,
 } from '@/lib/artifacts';
 
-const props = defineProps<{
-  modelValue: EquippedArtifact[];
-}>();
+const props = withDefaults(
+  defineProps<{
+    modelValue: EquippedArtifact[];
+    /**
+     * `edit` (default): a stone picker per socket. `hidden`: artifacts only — for callers whose
+     * stones are handled elsewhere (the auto planner places them from its own stone pool).
+     */
+    stones?: 'edit' | 'hidden';
+  }>(),
+  { stones: 'edit' }
+);
 
 const emit = defineEmits<{
   'update:modelValue': [value: EquippedArtifact[]];
@@ -157,48 +168,26 @@ function onStoneChange(slotIndex: number, stoneSlotIndex: number, stoneId: strin
 }
 
 /**
- * Get CSS class for artifact dropdown item based on rarity.
- * Rare: #0D6DFD, Epic: #FF00FF, Legendary: #FECD1B, Common: unchanged
+ * Dropdown item tint by rarity (commons unchanged), matching `rarityTint`. Literal class names on
+ * purpose: Tailwind only generates arbitrary-value classes it can find verbatim in source.
  */
 function getArtifactColorClass(artifact: ArtifactOption): string {
-  // rarity: 0=Common, 1=Rare, 2=Epic, 3=Legendary
   switch (artifact.rarity) {
-    case 1: // Rare
+    case 1:
       return 'bg-[#0D6DFD30]';
-    case 2: // Epic
+    case 2:
       return 'bg-[#FF00FF30]';
-    case 3: // Legendary
+    case 3:
       return 'bg-[#FECD1B40]';
-    default: // Common
+    default:
       return '';
   }
 }
 
-/**
- * Get background style for an artifact slot based on rarity.
- * Rare: #0D6DFD, Epic: #FF00FF, Legendary: #FECD1B, Common: white
- */
+/** Slot background tint by rarity (commons white). */
 function getSlotBackgroundStyle(artifactId: string | null): Record<string, string> {
-  if (!artifactId) {
-    return { backgroundColor: 'white' };
-  }
-
   const artifact = getArtifact(artifactId);
-  if (!artifact) {
-    return { backgroundColor: 'white' };
-  }
-
-  // rarity: 0=Common, 1=Rare, 2=Epic, 3=Legendary
-  switch (artifact.rarity) {
-    case 1: // Rare
-      return { backgroundColor: '#0D6DFD30' }; // ~19% opacity for visible but subtle bg
-    case 2: // Epic
-      return { backgroundColor: '#FF00FF30' };
-    case 3: // Legendary
-      return { backgroundColor: '#FECD1B40' }; // Slightly higher for yellow visibility
-    default: // Common
-      return { backgroundColor: 'white' };
-  }
+  return { backgroundColor: artifact ? rarityTint(artifact.rarity) : 'white' };
 }
 </script>
 

@@ -133,8 +133,12 @@ function isPurchase(action: Action): boolean {
 }
 
 // Shifts dropped from the plan (state, time, and shift cost all discarded) when they'd buy nothing
-// — e.g. a multi-round opening can leave C2/K2 with nothing left to buy.
-const SKIP_WHEN_NO_PURCHASES = new Set(['C2', 'K2']);
+// — e.g. a multi-round opening can leave C2/K2 with nothing left to buy, and a low earner may not
+// afford a silo within R1's hour. Every pre-C3 shift is a purchasing shift, so all of them are here;
+// the opening's own visits get the same treatment in `continueOpening`. Dropping one can leave two
+// visits to the same egg back to back; the shifts themselves then skip the redundant shift (see
+// `applyShiftIfNeeded`).
+const SKIP_WHEN_NO_PURCHASES = new Set(['C2', 'K2', 'R1']);
 
 /** Labels the shift action that starts this shift (if any — the ascension's first C1 has none)
  * with its planner name, which the UI reads for shift headers and phase lookups. */
@@ -143,15 +147,33 @@ function tagShiftName(actions: Action[], name: string): void {
   if (shiftAction?.type === 'shift') shiftAction.payload.autoShiftName = name;
 }
 
+/**
+ * Records a shift's eggs laid on its first action, where the shift summary UI reads it — any first
+ * action works, not just a shift (C1 leads with equipping the earnings set). A shift that didn't
+ * actually shift (already on its egg — see `applyShiftIfNeeded`) renders as part of the previous
+ * visit, so its eggs are added to that visit's figure instead of hiding behind it.
+ */
+function attachEggsLaid(planActions: Action[], resultActions: Action[], eggsLaid: number): void {
+  if (resultActions.length === 0) return;
+  const holder =
+    resultActions[0].type === 'shift' ? undefined : [...planActions].reverse().find(a => 'eggsLaid' in a.payload);
+  if (holder && 'eggsLaid' in holder.payload) {
+    holder.payload.eggsLaid = (holder.payload.eggsLaid || 0) + eggsLaid;
+  } else {
+    Object.assign(resultActions[0].payload, { eggsLaid });
+  }
+}
+
 type OpeningRun = ShiftResult & { shiftTimings: { name: string; ms: number }[] };
 
 /**
  * Continues an opening run (`base`) with the given C/K/I visits, using the C1/K1/I1 scripts:
  *  - C: research for `c1TimeLimit` (default C1's 30 minutes). Visits after the first shift back to
  *    Curiosity first.
- *  - K: vehicles — skipped if it wouldn't buy any.
+ *  - K: vehicles.
  *  - I: the best habs reachable within I1's 4-hour cap (see `runI1`), or `finalI1TimeLimit` for
  *    the last I in `visits`.
+ * Any visit but the ascension's first C1 is skipped if it wouldn't buy anything.
  * `base` is left untouched (its end state is deep-copied), so one run can be the shared prefix of
  * several longer ones. The returned `shiftTimings` cover only the new visits; `label` prefixes them.
  */
@@ -169,14 +191,7 @@ function continueOpening(
 
   const pushShiftResult = (name: string, result: ShiftResult, ms: number) => {
     tagShiftName(result.actions, name);
-    const eggsLaid = calculateEggsLaidDuringActions(result.actions, currentState, context);
-    // Not gated on `actions[0].type === 'shift'`: some shifts (e.g. C1) lead with a non-shift
-    // action (equipping the earnings set), so requiring 'shift' silently dropped eggsLaid for
-    // them — the UI only looks for the field, not a specific action type, so any first action
-    // works as the attachment point.
-    if (result.actions.length > 0) {
-      Object.assign(result.actions[0].payload, { eggsLaid });
-    }
+    attachEggsLaid(actions, result.actions, calculateEggsLaidDuringActions(result.actions, currentState, context));
     actions.push(...result.actions);
     currentState = result.endState;
     elapsedSeconds += result.elapsedSeconds;
@@ -198,16 +213,25 @@ function continueOpening(
   const lastIIndex = visits.lastIndexOf('I');
   [...visits].forEach((visit, i) => {
     currentState.lastStepTime = elapsedSeconds;
+    // Only the ascension's first C1 is always kept: it equips the earnings set and has no shift.
+    const isFirstVisit = actions.length === 0;
     const t0 = performance.now();
+    let name: string;
+    let result: ShiftResult;
     if (visit === 'C') {
-      pushShiftResult('C1', runC1Visit(currentState), performance.now() - t0);
+      name = 'C1';
+      result = runC1Visit(currentState);
     } else if (visit === 'K') {
-      const k1 = runK1(currentState, context);
-      if (k1.actions.some(isPurchase)) pushShiftResult('K1', k1, performance.now() - t0);
+      name = 'K1';
+      result = runK1(currentState, context);
     } else {
+      name = 'I1';
       const timeLimit = i === lastIIndex ? finalI1TimeLimit : I1_TIME_LIMIT_SECONDS;
-      pushShiftResult('I1', runI1(currentState, context, timeLimit), performance.now() - t0);
+      result = runI1(currentState, context, timeLimit);
     }
+    // Same as `SKIP_WHEN_NO_PURCHASES`: a visit that buys nothing (e.g. a second-round I1 after the
+    // first already bought every affordable hab) is dropped rather than left as an empty shift.
+    if (isFirstVisit || result.actions.some(isPurchase)) pushShiftResult(name, result, performance.now() - t0);
   });
 
   return { actions, elapsedSeconds, endState: currentState, shiftTimings };
@@ -334,14 +358,7 @@ export function runUntilShift(
     tagShiftName(result.actions, shift.name);
 
     // Calculate eggs laid during this shift (assuming full habs)
-    const eggsLaid = calculateEggsLaidDuringActions(result.actions, currentState, context);
-    // Not gated on `actions[0].type === 'shift'`: some shifts (e.g. C1) lead with a non-shift
-    // action (equipping the earnings set), so requiring 'shift' silently dropped eggsLaid for
-    // them — the UI only looks for the field, not a specific action type, so any first action
-    // works as the attachment point.
-    if (result.actions.length > 0) {
-      Object.assign(result.actions[0].payload, { eggsLaid });
-    }
+    attachEggsLaid(currentActions, result.actions, calculateEggsLaidDuringActions(result.actions, currentState, context));
 
     currentActions.push(...result.actions);
     currentState = result.endState;
@@ -578,14 +595,7 @@ export function runAscension(
     tagShiftName(result.actions, shift.name);
 
     // Calculate eggs laid during this shift (assuming full habs)
-    const eggsLaid = calculateEggsLaidDuringActions(result.actions, currentState, context);
-    // Not gated on `actions[0].type === 'shift'`: some shifts (e.g. C1) lead with a non-shift
-    // action (equipping the earnings set), so requiring 'shift' silently dropped eggsLaid for
-    // them — the UI only looks for the field, not a specific action type, so any first action
-    // works as the attachment point.
-    if (result.actions.length > 0) {
-      Object.assign(result.actions[0].payload, { eggsLaid });
-    }
+    attachEggsLaid(currentActions, result.actions, calculateEggsLaidDuringActions(result.actions, currentState, context));
 
     ascShiftTimings.push({ name: shift.name, ms: performance.now() - t0 });
 

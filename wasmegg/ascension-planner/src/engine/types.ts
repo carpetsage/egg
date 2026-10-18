@@ -55,6 +55,11 @@ export interface SimulationContext {
   planStartOffset: number; // Seconds since ascension start at which planning begins
   assumeDoubleEarnings: boolean;
   rawBackup?: any; // ei.IBackup
+  /**
+   * Auto planner only: the artifact/stone inputs this ascension runs with. When set, C1/C3/H1 read
+   * the earnings set, delivery candidates and stones from here instead of from `rawBackup`.
+   */
+  loadoutInputs?: import('@/auto/loadout/types').AutoLoadoutInputs;
   deferForEarningsMode: boolean;
   // TODO: Add any other global context needed (e.g. events?)
 }

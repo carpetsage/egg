@@ -17,7 +17,7 @@ import {
   type PurchaseEventCrossings,
 } from './researchROI';
 import { calculateMaxVehicleSlots, calculateMaxTrainLength } from './shippingCapacity';
-import { getOptimalELRSet } from '@/lib/artifacts/virtue';
+import { getOptimalELRSetFromSource, type DeliverySource } from '@/lib/artifacts/virtue';
 import { calculateArtifactModifiers } from '@/lib/artifacts';
 import { computeRealisticELR } from './realisticELR';
 import type { SimulationContext, EngineState } from '@/engine/types';
@@ -517,7 +517,7 @@ export function rankResearchByROI(
  */
 export function rankResearchByELRImpact(
   researchLevels: Record<string, number>,
-  rawBackup: ei.IBackup | null | undefined,
+  rawBackup: DeliverySource | null | undefined,
   startSnapshot: CalculationsSnapshot,
   context: SimulationContext,
   mods: ResearchCostModifiers,
@@ -537,7 +537,7 @@ export function rankResearchByELRImpact(
   if (viewMode === 'realistic') {
     if (!rawBackup) return [];
 
-    const baselineOptimal = getOptimalELRSet(rawBackup, {
+    const baselineOptimal = getOptimalELRSetFromSource(rawBackup, {
       assumeMaxHabsVehicles: true,
       excludeGusset: false,
       commonResearch: researchLevels,
@@ -595,7 +595,7 @@ export function rankResearchByELRImpact(
         const secondsToBuyWithBank = withBankPurchase.waitSeconds;
 
         const tempLevels = { ...researchLevels, [r.id]: level + 1 };
-        const tempOptimal = getOptimalELRSet(rawBackup, {
+        const tempOptimal = getOptimalELRSetFromSource(rawBackup, {
           assumeMaxHabsVehicles: true,
           excludeGusset: false,
           commonResearch: tempLevels,
@@ -629,7 +629,7 @@ export function rankResearchByELRImpact(
         if (impact <= 0 && level + 1 < r.levels) {
           for (let n = 2; n <= r.levels - level; n++) {
             const laLevels = { ...researchLevels, [r.id]: level + n };
-            const laOptimal = getOptimalELRSet(rawBackup, {
+            const laOptimal = getOptimalELRSetFromSource(rawBackup, {
               assumeMaxHabsVehicles: true,
               excludeGusset: false,
               commonResearch: laLevels,

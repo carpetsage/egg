@@ -100,31 +100,22 @@
         <div v-if="ascensionChain.length === 0" class="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 space-y-2">
           <p class="font-bold uppercase tracking-wide text-amber-700">Before you generate — a few assumptions to know about</p>
           <ul class="space-y-1.5 list-disc list-inside leading-relaxed">
-            <li><span class="font-semibold">Habs are always full.</span> To keep processing fast, Auto-AP assumes full habs throughout. Results are most reliable once you're around 100 TE and time to fill habs is negligible.</li>
-            <li><span class="font-semibold">Your artifacts don't improve.</span> The plan is built around whatever artifacts you have right now — it won't account for better gear you might find later.</li>
-            <li><span class="font-semibold">No downtime between ascensions.</span> Each ascension is assumed to start the moment the previous one ends.</li>
-            <li><span class="font-semibold">You never sleep.</span> Auto-AP doesn't do any accounting for sleep hours.</li>
+            <li><span class="font-semibold">Habs are always full.</span> Most reliable from around 100 TE, once filling habs takes no real time.</li>
+            <li><span class="font-semibold">Artifacts and stones come from Artifacts &amp; Stones.</span> It starts from your inventory, and you can change it there or per ascension.</li>
+            <li><span class="font-semibold">No downtime between ascensions</span>, and <span class="font-semibold">you never sleep</span>.</li>
           </ul>
           <p class="text-amber-600 leading-relaxed">Use this as a starting point, not a final word. Your actual results may vary.</p>
 
           <div class="border-t border-amber-200 pt-3 mt-1">
-            <p class="font-bold uppercase tracking-wide text-amber-700 mb-2">Each ascension follows this shift order:</p>
+            <p class="font-bold uppercase tracking-wide text-amber-700 mb-2">How each ascension runs</p>
             <ul class="space-y-1.5 list-disc list-inside leading-relaxed">
-              <li><span class="font-semibold">C1 → K1 → I1</span> — If one pass doesn't max out Chicken Universes, the planner restarts from an empty farm, tries two rounds in each of CKI CKI, CKI CIK, CIK CIK and CIK CKI order, each with a 30-minute and a 4-hour second C visit (and up to 2 days for the last I visit), and keeps whichever ends with the best habs, then vehicles, then the earliest finish through C2.
-                <ul class="mt-1 ml-5 space-y-1 list-[circle] list-inside">
-                  <li><span class="font-semibold">C1</span> — Spends up to 30 minutes with the primary target being fleet size and Graviton Coupling.</li>
-                  <li><span class="font-semibold">K1</span> — Spends up to 30 minutes buying the best vehicles it can afford. Skipped if it can't buy anything.</li>
-                  <li><span class="font-semibold">I1</span> — Upgrades habs toward Chicken Universes for up to 4 hours.</li>
-                </ul>
-              </li>
-              <li><span class="font-semibold">C2</span> — Maxes fleet size research. If it can afford Graviton Coupling within 4 hours, it does. Skipped if there's nothing left to buy.</li>
-              <li><span class="font-semibold">K2</span> — Max Vehicles and Hyperloop Train Cars. Skipped if there's nothing left to buy.</li>
-              <li><span class="font-semibold">R1</span> — Buys as many silos as possible within one hour.</li>
-              <li><span class="font-semibold">C3</span> — Purchases remaining Delivery Rate-boosting research: lay rate, shipping capacity, and hab capacity.</li>
-              <li><span class="font-semibold">H1</span> — Swaps to the optimal artifact loadout for Delivery Rate.</li>
-              <li><span class="font-semibold">K3</span> — Buys new hyperloop cars unlocked by C3, then waits out the ascension until the TE goal is reached.</li>
-              <li><span class="font-semibold">C4 / I2 / R2 / H2</span> — Each shifts to its respective virtue egg and waits until that egg's share of the TE goal is met.</li>
+              <li><span class="font-semibold">Opening (C1, K1, I1)</span> — Builds the best habs and vehicles it can, trying a few shift orders and keeping whichever does best.</li>
+              <li><span class="font-semibold">C2 / K2 / R1</span> — Finishes fleet size and Graviton Coupling, maxes Hyperloops and train cars, then buys silos.</li>
+              <li><span class="font-semibold">C3</span> — Rides one to three weekly research sales, buying earnings research first and Delivery Rate research in the final sale.</li>
+              <li><span class="font-semibold">H1</span> — Equips the best delivery set for your research at that point.</li>
+              <li><span class="font-semibold">K3 → C4 / I2 / R2 / H2</span> — Waits on each virtue egg until the TE goal is reached.</li>
             </ul>
+            <p class="mt-2 text-amber-600 leading-relaxed">Auto-AP tries several build lengths and keeps the fastest; you can switch to another on each ascension's card.</p>
           </div>
         </div>
       </div>
@@ -204,6 +195,10 @@
             @set-plan-variant="(variant: VariantKey) => handleSetPlanVariant(idx, variant)"
             @save-single-to-library="saveSingleAscensionToLibrary(idx)"
             @override-end-time="(endTime: number | null) => handleSetEndTimeOverride(idx, endTime)"
+            :loadout-inputs="resolveLoadoutInputs(idx)"
+            :has-loadout-override="autoPlannerStore.loadoutOverrides[idx] !== undefined"
+            :inventory-delivery="autoPlannerStore.defaultLoadoutInputs?.delivery ?? null"
+            @override-loadout="(inputs: AutoLoadoutInputs | null) => requestLoadoutOverride(idx, inputs)"
           />
         </template>
       </div>
@@ -231,6 +226,27 @@
       :message="validationErrorMessage"
       @close="isValidationErrorOpen = false"
     />
+
+    <LoadoutOverrideScopeDialog
+      v-if="pendingLoadoutOverride"
+      :mode="pendingLoadoutOverride.inputs ? 'set' : 'remove'"
+      :current-index="pendingLoadoutOverride.idx"
+      :total="visibleTotal"
+      :overridden-indices="Object.keys(autoPlannerStore.loadoutOverrides).map(Number)"
+      @confirm="confirmLoadoutOverride"
+      @cancel="pendingLoadoutOverride = null"
+    />
+
+    <!-- Cancel (and the backdrop) keeps the overrides: the safe choice if dismissed by accident. -->
+    <ConfirmationDialog
+      v-if="isKeepOverridesPromptOpen"
+      title="Artifact Overrides"
+      :message="`You have artifact overrides on ${overriddenAscensionLabels}. Keep them or use the defaults?`"
+      confirm-label="Use defaults"
+      cancel-label="Keep them"
+      @confirm="finishGenerate(true)"
+      @cancel="finishGenerate(false)"
+    />
   </div>
 </template>
 
@@ -252,6 +268,9 @@ import SimulationErrorAlert from './SimulationErrorAlert.vue';
 import AscensionOverview from './AscensionOverview.vue';
 import ForcedAscensionPreview from './ForcedAscensionPreview.vue';
 import ValidationDialog from './ValidationDialog.vue';
+import LoadoutOverrideScopeDialog from './LoadoutOverrideScopeDialog.vue';
+import ConfirmationDialog from '@/components/ConfirmationDialog.vue';
+import type { AutoLoadoutInputs } from '@/auto/loadout';
 
 const autoPlannerStore = useAutoPlannerStore();
 const virtueStore = useVirtueStore();
@@ -346,15 +365,55 @@ const {
   saveSingleAscensionToLibrary,
   handleSetPlanVariant,
   handleSetEndTimeOverride,
+  handleSetLoadoutOverride,
+  resolveLoadoutInputs,
 } = useAscensionGenerator();
 
 // The main Generate/Update Plan button (and Enter in the Target TE field) always starts fresh —
 // see `regeneratePlan`'s own doc comment for why it clears both override maps rather than trying to
 // detect what actually changed. Per-ascension overrides (variant dropdown, end-time editor) still
 // regenerate surgically via their own handlers, which call `generate()` directly.
-const runGenerate = () => {
+//
+// Loadout overrides are the exception: if any exist, ask first whether to keep them.
+const isKeepOverridesPromptOpen = ref(false);
+const overriddenAscensionLabels = computed(() =>
+  Object.keys(autoPlannerStore.loadoutOverrides)
+    .map(Number)
+    .sort((a, b) => a - b)
+    .map(i => `A${i + 1}`)
+    .join(', ')
+);
+
+const finishGenerate = (clearLoadoutOverrides: boolean) => {
+  isKeepOverridesPromptOpen.value = false;
   console.clear();
-  regeneratePlan(() => nextTick(() => targetInput.value?.focus()));
+  regeneratePlan(() => nextTick(() => targetInput.value?.focus()), { clearLoadoutOverrides });
+};
+
+const runGenerate = () => {
+  if (Object.keys(autoPlannerStore.loadoutOverrides).length > 0) {
+    isKeepOverridesPromptOpen.value = true;
+    return;
+  }
+  finishGenerate(true);
+};
+
+// Setting or removing a per-ascension artifact override first asks which other ascensions it
+// applies to (a single-ascension chain skips the question).
+const pendingLoadoutOverride = ref<{ idx: number; inputs: AutoLoadoutInputs | null } | null>(null);
+
+const requestLoadoutOverride = (idx: number, inputs: AutoLoadoutInputs | null) => {
+  if (visibleTotal.value <= 1) {
+    handleSetLoadoutOverride([idx], inputs);
+    return;
+  }
+  pendingLoadoutOverride.value = { idx, inputs };
+};
+
+const confirmLoadoutOverride = (indices: number[]) => {
+  const pending = pendingLoadoutOverride.value;
+  pendingLoadoutOverride.value = null;
+  if (pending) handleSetLoadoutOverride(indices, pending.inputs);
 };
 
 const handleTargetTEInput = (e: Event) => {
