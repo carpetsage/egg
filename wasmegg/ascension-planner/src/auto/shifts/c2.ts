@@ -6,7 +6,7 @@ import { MAX_SILOS } from '@/stores/silos';
 import { isResearchSaleActive, getNextSaleEnd } from '@/lib/events';
 import { buildR1LookaheadNotePayload } from '@/lib/actions/notes';
 import type { DeferralCheckpoint } from './helpers/earningsEventDeferral';
-import { applyShiftAction } from './helpers/actionHelpers';
+import { applyShiftIfNeeded } from './helpers/actionHelpers';
 import {
   createMilestoneShiftHelpers,
   runTierUnlockMilestone,
@@ -45,11 +45,11 @@ const C2_TIME_LIMIT_SECONDS = 14400; // 4 hours
  * overall time budget.
  */
 export function runC2(startState: EngineState, context: SimulationContext): ShiftResult {
-  const shifted = applyShiftAction(startState, context, 'curiosity');
+  const shifted = applyShiftIfNeeded(startState, context, 'curiosity');
 
   let currentState = shifted.state;
   let elapsedSeconds = 0;
-  const actions = shifted.saleToggleAction ? [shifted.action, shifted.saleToggleAction] : [shifted.action];
+  const actions = [...shifted.actions];
 
   const remainingBudget = () => C2_TIME_LIMIT_SECONDS - elapsedSeconds;
 
