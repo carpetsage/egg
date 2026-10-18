@@ -2,6 +2,7 @@ import { downloadFile } from '@/utils/export';
 import type { Action } from '@/types/actions/meta';
 import type { AscensionSummary } from './types';
 import type { VariantKey, VariantResult } from '@/stores/autoPlanner';
+import type { AutoLoadoutInputs } from './loadout/types';
 
 interface ExportedPlanGoal {
   type: 'te' | 'date';
@@ -33,12 +34,17 @@ export interface ExportedPlan {
    * `endTimeOverrides` — see its doc comment in `stores/autoPlanner.ts`. Absent on exports made
    * before this field existed; treated as `{}` on import. */
   endTimeOverrides?: Record<number, number>;
+  /** Setup-form artifact/stone inputs and per-ascension overrides (see `stores/autoPlanner.ts`).
+   * Absent on exports made before these existed; the setup form then falls back to the backup. */
+  loadoutInputs?: AutoLoadoutInputs | null;
+  loadoutOverrides?: Record<number, AutoLoadoutInputs>;
   /** @deprecated use planVariantOverrides */
   a1ForceMode?: 'continue' | 'prestige' | null;
   ascensions: {
     index: number;
     targetTE: number;
     variants: Partial<Record<VariantKey, VariantResult>>;
+    loadoutHash?: string;
     result3SkippedReason?: string;
     goal: ExportedPlanGoal;
   }[];

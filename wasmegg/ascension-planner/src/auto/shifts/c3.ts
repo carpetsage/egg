@@ -13,6 +13,7 @@ import { advanceTimeWithBoundaries } from './helpers/advanceTime';
 import { runWithEarningsEventDeferral, MULTI_LAYERING_ID } from './helpers/earningsEventDeferral';
 import { computeSnapshot } from '../../engine/compute';
 import { calculateArtifactModifiers } from '../../lib/artifacts';
+import { contextDeliverySource } from '../loadout/resolve';
 import { simulateSaleAwareBuy, simulateSaleEndsBuy, simulateFinalSaleGapBuy } from '../../calculations/smartBuyPreview';
 import {
   buildSaleAwareBuyNotePayload,
@@ -310,7 +311,7 @@ export function runC3(
       deadline,
       'realistic',
       'efficiency',
-      context.rawBackup
+      contextDeliverySource(context)
     );
     executePlanToLevels(
       plan.researchIds,
@@ -341,7 +342,7 @@ export function runC3(
       buildPhaseEnd,
       'realistic',
       'efficiency',
-      context.rawBackup
+      contextDeliverySource(context)
     );
     executePlanToLevels(
       plan.purchases.map(p => p.researchId),

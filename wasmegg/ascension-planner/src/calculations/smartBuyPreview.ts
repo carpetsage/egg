@@ -15,6 +15,7 @@ import { applyAction, applyTime, boostTransitionsFrom } from '@/engine/apply';
 import { isResearchSaleActive, getNextSaleEnd } from '@/lib/events';
 import { DEBUG_SALE_AWARE_BUY } from '@/lib/debugFlags';
 import { ei } from 'lib';
+import type { DeliverySource } from '@/lib/artifacts/virtue';
 
 /**
  * Safety-net cap shared by every dry run below — protects against a runaway loop, not a real
@@ -416,7 +417,7 @@ export function runDeliveryBuyLoop(
   researchSaleDeadline: number,
   elrViewMode: 'realistic' | 'potential',
   elrSortMode: 'efficiency' | 'impact',
-  rawBackup: ei.IBackup | null | undefined,
+  rawBackup: DeliverySource | null | undefined,
   maxIterations: number = MAX_SIMULATED_PURCHASES
 ): DeliveryLoopResult {
   let simState: EngineState = { ...createBaseEngineState(snapshot), researchLevels: { ...researchLevels } };
@@ -567,7 +568,7 @@ export function simulateSaleEndsBuy(
   researchSaleDeadline: number,
   elrViewMode: 'realistic' | 'potential',
   elrSortMode: 'efficiency' | 'impact',
-  rawBackup: ei.IBackup | null | undefined
+  rawBackup: DeliverySource | null | undefined
 ): SaleEndsPlan {
   const checkpoints = simulateEarningsPreludeForSaleEnd(
     researchLevels,
@@ -726,7 +727,7 @@ export function simulateFinalSaleGapBuy(
   buildPhaseEnd: number,
   elrViewMode: 'realistic' | 'potential',
   elrSortMode: 'efficiency' | 'impact',
-  rawBackup: ei.IBackup | null | undefined
+  rawBackup: DeliverySource | null | undefined
 ): FinalSaleGapPlan {
   if (absoluteSimTime >= finalSaleStart) {
     return { purchases: [], endLevels: researchLevels, endSnapshot: snapshot };

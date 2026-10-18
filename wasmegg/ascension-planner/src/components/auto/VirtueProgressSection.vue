@@ -82,11 +82,47 @@
         </div>
       </div>
     </div>
+
+    <!-- Artifacts & Stones: what C1/C3/H1 use in place of the backup's inventory -->
+    <div v-if="autoPlannerStore.loadoutInputs" class="bg-slate-50 border border-slate-100 rounded-xl">
+      <button
+        class="w-full flex items-center justify-between gap-3 px-3 py-2.5 text-left"
+        :aria-expanded="isLoadoutOpen"
+        @click="isLoadoutOpen = !isLoadoutOpen"
+      >
+        <div class="min-w-0">
+          <div class="text-[10px] font-black text-slate-700 uppercase tracking-widest">Artifacts &amp; Stones</div>
+          <div class="text-[10px] font-bold text-slate-500 truncate">{{ loadoutSummary }}</div>
+        </div>
+        <svg
+          class="w-4 h-4 text-slate-400 flex-shrink-0 transition-transform"
+          :class="{ 'rotate-180': isLoadoutOpen }"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      <div v-if="isLoadoutOpen" class="px-3 pb-3 space-y-2">
+        <p v-if="!initialStateStore.rawBackup" class="text-[10px] font-bold text-amber-600">
+          No inventory — enter stones manually.
+        </p>
+        <AutoLoadoutEditor
+          :model-value="autoPlannerStore.loadoutInputs"
+          :default-value="autoPlannerStore.defaultLoadoutInputs"
+          :inventory-delivery="autoPlannerStore.defaultLoadoutInputs?.delivery ?? null"
+          reset-label="Reset to inventory"
+          default-label="Inventory"
+          @update:model-value="handleLoadoutChange"
+        />
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { iconURL } from 'lib';
 import { formatNumber } from '@/lib/format';
 import { useTruthEggsStore, VIRTUE_TE_ORDER } from '@/stores/truthEggs';
@@ -104,6 +140,22 @@ import { computeSnapshot } from '@/engine/compute';
 import { rollUpPendingTE } from '@/lib/modes';
 import { consumeAutoPlannerTEInputs, saveAutoPlannerTEInputs } from '@/lib/autoPlannerFormCache';
 import type { VirtueEgg } from '@/types';
+import { useAutoPlannerStore } from '@/stores/autoPlanner';
+import { calculateClothedTEForSet } from '@/lib/artifacts/virtue';
+import {
+  buildLoadoutInputsFromBackup,
+  buildLoadoutInputsFromSets,
+  cloneLoadoutInputs,
+  loadoutInputsEqual,
+  socketEarningsStones,
+  summarizeLoadoutInputs,
+  type AutoLoadoutInputs,
+} from '@/auto/loadout';
+import {
+  consumeAutoPlannerLoadoutInputs,
+  saveAutoPlannerLoadoutInputs,
+} from '@/lib/autoPlannerFormCache';
+import AutoLoadoutEditor from './AutoLoadoutEditor.vue';
 
 const VIRTUE_EGGS_MAP: Record<number, VirtueEgg> = {
   50: 'curiosity',
@@ -119,6 +171,7 @@ const initialStateStore = useInitialStateStore();
 const virtueStore = useVirtueStore();
 const fuelTankStore = useFuelTankStore();
 const silosStore = useSilosStore();
+const autoPlannerStore = useAutoPlannerStore();
 
 // Snapshot "today's" starting TE — whatever the fresh backup fetch put into the store before this
 // component mounted — so the Reset button below has something to reset back to, independent of
@@ -131,8 +184,20 @@ const currentTE = computed(() => {
   return Object.values(snapshot.teEarned).reduce((a, b) => a + b, 0);
 });
 
-// Clothed TE for the earnings set as of the current simulation snapshot.
-const { clothedTE: earningsClothedTe } = useEarningsClothedTE();
+// Clothed TE for the setup form's earnings set (socketed from its stone pool, as C1 will), falling
+// back to the earnings set in the current simulation snapshot when there are no loadout inputs.
+const { clothedTE: snapshotClothedTe } = useEarningsClothedTE();
+const earningsClothedTe = computed<number | null>(() => {
+  const inputs = autoPlannerStore.loadoutInputs;
+  if (!inputs) return snapshotClothedTe.value;
+  const context = getSimulationContext();
+  return calculateClothedTEForSet(socketEarningsStones(inputs.earnings, inputs.stones), {
+    truthEggs: currentTE.value,
+    colleggtibleModifiers: context.colleggtibleModifiers,
+    labUpgradeLevel: context.epicResearchLevels['cheaper_research'] ?? 0,
+    permitLevel: initialStateStore.rawBackup?.game?.permitLevel ?? null,
+  });
+});
 
 const currentELR = computed(() => {
   const farmState = initialStateStore.currentFarmState;
@@ -245,6 +310,59 @@ function resetTEInputsToDefault() {
     }
   }
   cacheTEInputs();
+}
+
+// --- Artifacts & Stones ---
+
+const isLoadoutOpen = ref(false);
+
+const loadoutSummary = computed(() =>
+  autoPlannerStore.loadoutInputs
+    ? summarizeLoadoutInputs(
+        autoPlannerStore.loadoutInputs,
+        !loadoutInputsEqual(autoPlannerStore.loadoutInputs, autoPlannerStore.defaultLoadoutInputs)
+      )
+    : ''
+);
+
+function inventoryLoadoutInputs(): AutoLoadoutInputs {
+  return initialStateStore.rawBackup
+    ? buildLoadoutInputsFromBackup(initialStateStore.rawBackup)
+    : buildLoadoutInputsFromSets(initialStateStore.artifactSets);
+}
+
+/**
+ * Seed the setup inputs from the inventory. The fresh inventory always becomes Reset's target. The
+ * inputs themselves are replaced only when there are none yet or the backup changed since they were
+ * seeded — not when the store already holds this session's edits (an Auto/Manual remount) or a
+ * restored plan's inputs. Like the TE inputs, cached edits from a previous visit then apply on top,
+ * once per page load.
+ */
+function seedLoadoutInputs({ applyCache }: { applyCache: boolean }) {
+  const fresh = inventoryLoadoutInputs();
+  const previousDefault = autoPlannerStore.defaultLoadoutInputs;
+  const restoredFromPlan = !!autoPlannerStore.loadoutInputs && !previousDefault;
+  autoPlannerStore.defaultLoadoutInputs = fresh;
+  if (!autoPlannerStore.loadoutInputs || (previousDefault && !loadoutInputsEqual(previousDefault, fresh))) {
+    autoPlannerStore.loadoutInputs = cloneLoadoutInputs(fresh);
+  }
+  if (applyCache) {
+    const cached = consumeAutoPlannerLoadoutInputs(initialStateStore.playerId);
+    if (cached && !restoredFromPlan) autoPlannerStore.loadoutInputs = cached;
+  }
+}
+
+seedLoadoutInputs({ applyCache: true });
+watch(
+  () => initialStateStore.rawBackup,
+  () => seedLoadoutInputs({ applyCache: false })
+);
+
+function handleLoadoutChange(inputs: AutoLoadoutInputs) {
+  autoPlannerStore.loadoutInputs = inputs;
+  // Back at the inventory default = nothing worth caching.
+  const customized = !loadoutInputsEqual(inputs, autoPlannerStore.defaultLoadoutInputs);
+  saveAutoPlannerLoadoutInputs(initialStateStore.playerId, customized ? inputs : null);
 }
 </script>
 
