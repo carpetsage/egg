@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import type { AscensionSummary } from '@/auto/types';
 import type { Action } from '@/types/actions/meta';
 import type { AutoLoadoutInputs } from '@/auto/loadout/types';
+import type { ChainHandoff } from '@/lib/instantSearch/autoPlannerHandoff';
 
 export type SaleCount = 1 | 2 | 3;
 export type BuildVariantKey = `${SaleCount}-sale` | `${SaleCount}-sale-tier13`;
@@ -96,6 +97,9 @@ export const useAutoPlannerStore = defineStore('autoPlanner', () => {
   /** Per-ascension artifact/stone overrides from Show Details: index -> inputs. Setting or removing
    * one forces that ascension and every one after it to be recomputed, like `endTimeOverrides`. */
   const loadoutOverrides = ref<Record<number, AutoLoadoutInputs>>({});
+  /** A Chain Finder route this tab was opened with (`?chain=`), waiting for AutomaticPlanner.vue to
+   *  apply it and generate. */
+  const pendingChain = ref<ChainHandoff | null>(null);
 
   function setPlan(data: {
     ascensionChain: ChainedAscension[];
@@ -160,6 +164,7 @@ export const useAutoPlannerStore = defineStore('autoPlanner', () => {
     loadoutInputs,
     defaultLoadoutInputs,
     loadoutOverrides,
+    pendingChain,
     setPlan,
     clear,
   };

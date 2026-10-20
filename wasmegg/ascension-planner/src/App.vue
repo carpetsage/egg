@@ -594,6 +594,8 @@ import TableBuilder from '@/components/chainFinder/ChainFinder.vue';
 import ChainFinder from '@/components/instantSearch/InstantSearch.vue';
 import { useSalesStore } from '@/stores/sales';
 import { useInstantSearchStore } from '@/stores/instantSearch';
+import { useAutoPlannerStore } from '@/stores/autoPlanner';
+import { readHandoff, searchWithoutHandoff } from '@/lib/instantSearch/autoPlannerHandoff';
 import { hashID, saveMetadata, loadMetadata } from '@/lib/storage/db';
 import { useActionExecutor } from '@/composables/useActionExecutor';
 import { usePersistence } from '@/composables/usePersistence';
@@ -631,6 +633,7 @@ const truthEggsStore = useTruthEggsStore();
 const eventsStore = useEventsStore();
 const salesStore = useSalesStore();
 const chainFinderStore = useInstantSearchStore();
+const autoPlannerStore = useAutoPlannerStore();
 
 const notesStore = useNotesStore();
 const { prepareExecution, completeExecution } = useActionExecutor();
@@ -750,6 +753,15 @@ onMounted(async () => {
     !startAction.payload.isQuickContinue
   ) {
     actionsStore.pushWaitForFullHabsAction();
+  }
+
+  // A Chain Finder route opened here (`?chain=`): the Auto Planner applies it once it's set up. Off
+  // the URL right away, so a refresh doesn't load it over the user's changes again.
+  const handoff = readHandoff(window.location.search);
+  if (handoff) {
+    autoPlannerStore.pendingChain = handoff;
+    const search = searchWithoutHandoff(window.location.search);
+    history.replaceState(history.state, '', `${window.location.pathname}${search}${window.location.hash}`);
   }
 
   // Reopen the tab the URL names, once the saved plan and backup are back.

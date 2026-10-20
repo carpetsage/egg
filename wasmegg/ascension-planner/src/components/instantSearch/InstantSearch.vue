@@ -147,12 +147,19 @@
     </p>
 
     <InstantSearchResults v-if="store.answer" :answer="store.answer" class="mt-6" />
+    <ChainComparison
+      v-if="store.answer && store.comparison"
+      :answer="store.answer"
+      :comparison="store.comparison"
+      class="mt-4"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import InstantSearchResults from './InstantSearchResults.vue';
+import ChainComparison from './ChainComparison.vue';
 import InstantSearchFilters from './InstantSearchFilters.vue';
 import RefreshBackupButton from './RefreshBackupButton.vue';
 import SegmentedToggle from './SegmentedToggle.vue';
