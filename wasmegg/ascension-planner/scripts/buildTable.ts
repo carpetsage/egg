@@ -17,28 +17,15 @@
  * other hour then reuses its seed's prefix when no sale or boost boundary falls inside it.
  */
 import { fork } from 'node:child_process';
-import { execSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, writeFileSync } from 'node:fs';
 import { gzipSync } from 'node:zlib';
-import { cteFromArtifacts } from 'lib/virtue';
-import { equippedArtifactsToLibArtifacts } from '@/lib/artifacts/utils';
+import { EGG_ORDER, REFERENCE_WEEK, WEEK_HOURS, type BuildParams } from '@/buildTable/cell';
+import { checkPacked, packTable, type Cell } from '@/buildTable/pack';
+import { cteBonusOf, k3Record, runTask, type Task, type TaskResult } from '@/buildTable/task';
+import { maxedContext } from '@/buildTable/maxedAccount';
 import { socketEarningsStones } from '@/auto/loadout';
-import {
-  buildsFrom,
-  contextAt,
-  EGG_ORDER,
-  k3StateOf,
-  paramsOf,
-  prefixAt,
-  REFERENCE_WEEK,
-  startStateAt,
-  variantsFrom,
-  WEEK_HOURS,
-  type BuildParams,
-  type Prefix,
-} from '@/buildTable/cell';
-import { maxedBaseState, maxedContext } from '@/buildTable/maxedAccount';
-import { allHours, hourStart, prefixSourceFor, SEED_HOURS, type EventClass, type PrefixSource } from '@/buildTable/prefixReuse';
+import { allHours, prefixSourceFor, SEED_HOURS, type EventClass, type PrefixSource } from '@/buildTable/prefixReuse';
+import { simVersion } from './simVersion';
 
 /** Default range: AutoAutoAP's newest rebuilds stop at 339 and simulate the one ascension above live. */
 const TABLE_FROM = 120;
@@ -53,100 +40,23 @@ const teFile = (dir: string, te: number, ext: string) => `${dir}/te-${String(te)
 
 // --- Worker side ----------------------------------------------------------------------------------
 
-interface Task {
-  id: number;
-  te: number;
-  h: number;
-  /** The seed's prefix to reuse; absent = build the prefix fresh. */
-  prefix?: Prefix;
-  /** Send the fresh prefix back (seeds). */
-  keepPrefix?: boolean;
-  /** With `prefix`: also build fresh and compare. */
-  verify?: boolean;
-}
-
-interface TaskResult {
-  id: number;
-  builds: BuildParams[];
-  prefixSeconds: number;
-  prefix?: Prefix;
-  msPrefix: number;
-  msRest: number;
-  verify?: { prefixSame: boolean; buildsSame: boolean; freshBuilds?: BuildParams[]; freshPrefixSeconds: number };
-}
-
-function runTask(task: Task): TaskResult {
-  const ctx = contextAt(maxedContext(), hourStart(task.h));
-  const state = startStateAt(maxedBaseState(), task.te);
-  const t0 = performance.now();
-  const prefix = task.prefix ?? prefixAt(state, ctx);
-  const t1 = performance.now();
-  const builds = buildsFrom(prefix, ctx, task.te);
-  const t2 = performance.now();
-  const result: TaskResult = {
-    id: task.id,
-    builds,
-    prefixSeconds: prefix.elapsedSeconds,
-    msPrefix: task.prefix ? 0 : t1 - t0,
-    msRest: t2 - t1,
-  };
-  if (task.keepPrefix) result.prefix = prefix;
-  if (task.prefix && task.verify) {
-    const fresh = prefixAt(state, ctx);
-    const prefixSame = JSON.stringify(fresh) === JSON.stringify(task.prefix);
-    const freshBuilds = prefixSame ? builds : buildsFrom(fresh, ctx, task.te);
-    const buildsSame = JSON.stringify(freshBuilds) === JSON.stringify(builds);
-    result.verify = {
-      prefixSame,
-      buildsSame,
-      freshPrefixSeconds: fresh.elapsedSeconds,
-      ...(buildsSame ? {} : { freshBuilds }),
-    };
-  }
-  return result;
-}
-
 function workerMain(): void {
   process.on('message', (task: Task | { quit: true }) => {
     if ('quit' in task) return process.exit(0);
-    process.send!(runTask(task));
+    process.send!(runTask(task, maxedContext()));
   });
   process.send!({ ready: true });
 }
 
 // --- Generate ---------------------------------------------------------------------------------------
 
-/** Code a cell depends on: a change here outside a commit is marked `-dirty` on the stamp. */
-const SIM_PATHS = ['src/auto', 'src/engine', 'src/calculations', 'src/lib', 'src/buildTable', '../../lib'];
-
-/** The commit the cells are built from, e.g. `2da01de4` (AutoAutoAP compares it with its own `SIM_VERSION`). */
-function simVersion(): string {
-  const hash = execSync('git rev-parse --short=8 HEAD', { encoding: 'utf8' }).trim();
-  const dirty = execSync(`git status --porcelain -- ${SIM_PATHS.join(' ')}`, { encoding: 'utf8' }).trim();
-  return dirty ? `${hash}-dirty` : hash;
-}
-
-/** Where AutoAutoAP measures a player's peak against the table's: TE 400 at the reference week's hour 0. */
-const PEAK_TE = 400;
-
-/** The research a build waits with, its delivery set, and the table's peak delivery rate there. */
-function k3Record() {
-  const ctx = contextAt(maxedContext(), REFERENCE_WEEK);
-  const prefix = prefixAt(startStateAt(maxedBaseState(), PEAK_TE), ctx);
-  const variants = variantsFrom(prefix, ctx, PEAK_TE);
-  const { k3 } = k3StateOf(prefix, variants[0], ctx);
-  const peak = Math.max(...variants.map(v => paramsOf(prefix, v, ctx).peakELR));
-  return { research: k3.researchLevels, delivery: k3.artifactLoadout, peak };
-}
-
 function writeMeta(out: string, from: number, to: number): void {
   const context = maxedContext();
-  const earnings = socketEarningsStones(context.loadoutInputs!.earnings, context.loadoutInputs!.stones);
   const before = existsSync(`${out}/meta.json`) ? JSON.parse(readFileSync(`${out}/meta.json`, 'utf8')) : null;
   const version = simVersion();
   if (before && before.simVersion !== version && !has('allow-sim-change'))
     throw new Error(`${out} was built by ${before.simVersion}, this is ${version}. Use a new --out or --allow-sim-change.`);
-  if (!existsSync(`${out}/k3.json`)) writeFileSync(`${out}/k3.json`, JSON.stringify(k3Record(), null, 1));
+  if (!existsSync(`${out}/k3.json`)) writeFileSync(`${out}/k3.json`, JSON.stringify(k3Record(context), null, 1));
   writeFileSync(
     `${out}/meta.json`,
     JSON.stringify(
@@ -154,10 +64,10 @@ function writeMeta(out: string, from: number, to: number): void {
         version: 1,
         referenceWeek: REFERENCE_WEEK,
         reference: true,
-        cteBonus: Number(cteFromArtifacts(equippedArtifactsToLibArtifacts(earnings)).toFixed(2)),
+        cteBonus: cteBonusOf(context),
         deliveryScore: null,
         delivery: context.loadoutInputs!.delivery,
-        earnings,
+        earnings: socketEarningsStones(context.loadoutInputs!.earnings, context.loadoutInputs!.stones),
         eggOrder: EGG_ORDER,
         gear: null,
         from: Math.min(from, before?.from ?? from),
@@ -335,71 +245,6 @@ async function generate(): Promise<void> {
 }
 
 // --- Pack -------------------------------------------------------------------------------------------
-
-/** Numbers per build slot in table.bin: [sales + 8 if tier 13 (0 = empty), waitStart, saleEnd, peakELR, delivered x 5]. */
-const FIELDS = 9;
-
-/**
- * AutoAutoAP's table file (their src/search/precomputedTable.ts `packTable`, byte for byte): a
- * little-endian uint32 header length, the header as UTF-8 JSON, padding to 8 bytes, then float64s
- * for each start TE `from..to`, each of the 168 hours, `slots` builds.
- */
-function packTable(header: Record<string, unknown> & { from: number; to: number }, cells: Cell[]): Uint8Array {
-  const slots = Math.max(1, ...cells.map(c => c.builds.length));
-  const json = new TextEncoder().encode(JSON.stringify({ ...header, slots }));
-  const start = Math.ceil((4 + json.length) / 8) * 8;
-  const count = (header.to - header.from + 1) * WEEK_HOURS * slots * FIELDS;
-  const bytes = new Uint8Array(start + count * 8);
-  new DataView(bytes.buffer).setUint32(0, json.length, true);
-  bytes.set(json, 4);
-  const body = new Float64Array(bytes.buffer, start, count);
-  for (const c of cells) {
-    c.builds.forEach((b, i) => {
-      const at = (((c.te - header.from) * WEEK_HOURS + c.h) * slots + i) * FIELDS;
-      body[at] = b.sales + (b.tier13 ? 8 : 0);
-      body[at + 1] = b.waitStart;
-      body[at + 2] = b.saleEnd;
-      body[at + 3] = b.peakELR;
-      for (let e = 0; e < EGG_ORDER.length; e++) body[at + 4 + e] = b.delivered[e];
-    });
-  }
-  return bytes;
-}
-
-/** The packed file read back the way their `readTable` reads it: every cell must come back exact. */
-function checkPacked(bytes: Uint8Array, cells: Cell[]): void {
-  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-  const len = view.getUint32(0, true);
-  const header = JSON.parse(new TextDecoder().decode(bytes.subarray(4, 4 + len)));
-  const start = Math.ceil((4 + len) / 8) * 8;
-  const expected = start + (header.to - header.from + 1) * WEEK_HOURS * header.slots * FIELDS * 8;
-  if (bytes.byteLength !== expected) throw new Error(`packed ${bytes.byteLength} bytes, header says ${expected}`);
-  const body = new Float64Array(bytes.buffer.slice(bytes.byteOffset + start, bytes.byteOffset + bytes.byteLength));
-  for (const c of cells) {
-    const key = (c.te - header.from) * WEEK_HOURS + c.h;
-    const back: BuildParams[] = [];
-    for (let i = 0; i < header.slots; i++) {
-      const at = (key * header.slots + i) * FIELDS;
-      const flags = body[at];
-      if (!flags) continue;
-      back.push({
-        sales: flags % 8,
-        tier13: flags >= 8,
-        waitStart: body[at + 1],
-        saleEnd: body[at + 2],
-        peakELR: body[at + 3],
-        delivered: Array.from(body.subarray(at + 4, at + 4 + EGG_ORDER.length)),
-      });
-    }
-    if (JSON.stringify(back) !== JSON.stringify(c.builds)) throw new Error(`cell TE ${c.te} hour ${c.h} did not read back`);
-  }
-}
-
-interface Cell {
-  te: number;
-  h: number;
-  builds: BuildParams[];
-}
 
 function pack(): void {
   const dir = arg('table');

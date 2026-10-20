@@ -18,20 +18,21 @@ export const MAXED_DELIVERY = ['quantum-metronome-4-3', 'interstellar-compass-4-
 /** Enough to fill every stone slot of four 3-slot artifacts from one family. */
 const STONES_PER_FAMILY = 12;
 
-export function maxedLoadoutInputs(): AutoLoadoutInputs {
-  for (const id of [...MAXED_EARNINGS, ...MAXED_DELIVERY])
+/** `delivery`: the fixed delivery structure; the maxed set unless the Table Builder picks another. */
+export function maxedLoadoutInputs(delivery: string[] = MAXED_DELIVERY): AutoLoadoutInputs {
+  for (const id of [...MAXED_EARNINGS, ...delivery])
     if (!getArtifact(id)) throw new Error(`unknown artifact id ${id}`);
   const stones = createEmptyStonePool();
   for (const family of ['lunar', 'shell', 'quantum', 'tachyon'] as const) stones[family][4] = STONES_PER_FAMILY;
   return {
     earnings: withEmptyStones(MAXED_EARNINGS.map(artifactId => ({ artifactId, stones: [] }))),
-    delivery: { mode: 'fixed', artifactIds: [...MAXED_DELIVERY] },
+    delivery: { mode: 'fixed', artifactIds: [...delivery] },
     stones,
   };
 }
 
 /** The cell-independent context; `contextAt` adds each cell's start time. */
-export function maxedContext(): SimulationContext {
+export function maxedContext(delivery: string[] = MAXED_DELIVERY): SimulationContext {
   return {
     epicResearchLevels: Object.fromEntries(epicResearchDefs.map(r => [r.id, r.maxLevel])),
     colleggtibleModifiers: modifiersFromColleggtibleTiers(Object.fromEntries(colleggtibleDefs.map(d => [d.id, 3]))),
@@ -39,7 +40,7 @@ export function maxedContext(): SimulationContext {
     planStartOffset: 0,
     assumeDoubleEarnings: false,
     deferForEarningsMode: false,
-    loadoutInputs: maxedLoadoutInputs(),
+    loadoutInputs: maxedLoadoutInputs(delivery),
   };
 }
 

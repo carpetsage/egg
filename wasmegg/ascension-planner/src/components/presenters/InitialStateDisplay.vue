@@ -12,24 +12,11 @@
             <div class="hidden md:block text-[10px] uppercase font-black text-slate-400 tracking-wider">When this journey begins</div>
           </div>
           <div class="flex flex-col md:flex-row md:items-center md:flex-wrap md:justify-end gap-2 w-full md:w-auto mt-1 md:mt-0">
-            <input
-              type="date"
-              v-model="localAscensionDate"
-              class="input-premium w-full md:w-auto text-sm font-mono-premium font-bold text-slate-900 py-2.5 px-4"
+            <DateTimeZonePicker
+              v-model:date="localAscensionDate"
+              v-model:time="localAscensionTime"
+              v-model:timezone="localAscensionTimezone"
             />
-            <input
-              type="time"
-              v-model="localAscensionTime"
-              class="input-premium w-full md:w-auto text-sm font-mono-premium font-bold text-slate-900 py-2.5 px-4"
-            />
-            <select
-              v-model="localAscensionTimezone"
-              class="input-premium w-full md:w-auto text-sm font-mono-premium font-bold text-slate-900 py-2.5 pl-4 pr-12"
-            >
-              <option v-for="tz in allTimezones" :key="tz.value" :value="tz.value">
-                {{ tz.label }}
-              </option>
-            </select>
             <button
               class="btn-premium btn-primary w-full md:w-auto px-4 py-2.5 text-xs font-black uppercase tracking-widest transition-all disabled:opacity-30"
               :disabled="!hasAscensionChanges"
@@ -624,6 +611,7 @@ import type { EquippedArtifact } from '@/lib/artifacts';
 import { TANK_CAPACITIES, VIRTUE_FUEL_ORDER } from '@/stores/fuelTank';
 import { formatNumber, parseNumber, formatFullNumber } from '@/lib/format';
 import ArtifactSelector from '@/components/ArtifactSelector.vue';
+import DateTimeZonePicker from '@/components/DateTimeZonePicker.vue';
 import { createEmptyLoadout } from '@/lib/artifacts';
 import {
   colleggtibleDefs,
@@ -800,45 +788,6 @@ function getRoundingShortfall(actual: number): number {
   }
   return 0;
 }
-
-// Get all available timezones grouped by region
-const allTimezones = computed(() => {
-  try {
-    const zones = Intl.supportedValuesOf('timeZone');
-    return zones
-      .map(tz => {
-        // Format: "America/New_York" -> "New York (America)"
-        const parts = tz.split('/');
-        const city = parts[parts.length - 1].replace(/_/g, ' ');
-        const region = parts.length > 1 ? parts[0] : '';
-        return {
-          value: tz,
-          label: region ? `${city} (${region})` : city,
-          region,
-          city,
-        };
-      })
-      .sort((a, b) => {
-        // Sort by region first, then by city
-        if (a.region !== b.region) return a.region.localeCompare(b.region);
-        return a.city.localeCompare(b.city);
-      });
-  } catch {
-    // Fallback for older browsers
-    return [
-      { value: 'America/Los_Angeles', label: 'Los Angeles (America)', region: 'America', city: 'Los Angeles' },
-      { value: 'America/Denver', label: 'Denver (America)', region: 'America', city: 'Denver' },
-      { value: 'America/Chicago', label: 'Chicago (America)', region: 'America', city: 'Chicago' },
-      { value: 'America/New_York', label: 'New York (America)', region: 'America', city: 'New York' },
-      { value: 'Europe/London', label: 'London (Europe)', region: 'Europe', city: 'London' },
-      { value: 'Europe/Paris', label: 'Paris (Europe)', region: 'Europe', city: 'Paris' },
-      { value: 'Asia/Tokyo', label: 'Tokyo (Asia)', region: 'Asia', city: 'Tokyo' },
-      { value: 'Australia/Sydney', label: 'Sydney (Australia)', region: 'Australia', city: 'Sydney' },
-      { value: 'UTC', label: 'UTC', region: '', city: 'UTC' },
-    ];
-  }
-});
-
 
 const epicResearchList = computed(() =>
   epicResearchDefs.map(def => ({

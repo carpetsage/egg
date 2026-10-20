@@ -11,25 +11,17 @@ import { getLocalTimestampInTimezone } from '@/lib/events';
 import { runUntilShift, deriveNextStartState, runContinueCurrent, runAscensionFromC3Variant } from '@/auto/ascension';
 import { runC3Variants } from '@/auto/shifts/c3';
 import { rollUpPendingTE } from '@/lib/modes';
-import { getArtifactLoadoutFromBackup, getOptimalEarningsSet } from '@/lib/artifacts';
+import { getOptimalEarningsSet } from '@/lib/artifacts';
+import { makeContinueState, VIRTUE_EGGS_MAP } from '@/auto/continueState';
 import { triggerPlanExport, type ExportedPlan } from '@/auto/export';
 import { buildLibraryPlansFromExport } from '@/auto/buildLibraryPlans';
 import { savePlanToLibrary, type PlanData } from '@/lib/storage/db';
 import { usePersistence } from '@/composables/usePersistence';
 import type { AscensionSummary } from '@/auto/types';
-import type { VirtueEgg } from '@/types';
 import type { ChainedAscension, VariantKey, VariantResult } from '@/stores/autoPlanner';
 import { pickVariant } from '@/stores/autoPlanner';
 import { hashLoadoutInputs, socketEarningsStones, type AutoLoadoutInputs } from '@/auto/loadout';
 
-
-const VIRTUE_EGGS_MAP: Record<number, VirtueEgg> = {
-  50: 'curiosity',
-  51: 'integrity',
-  52: 'humility',
-  53: 'resilience',
-  54: 'kindness',
-};
 
 // Below this starting TE, an ascension's build phase can't realistically reach a Tier 13 unlock —
 // so `runC3Variants` is told to skip every tier13 combo outright for that ascension (see its own
@@ -421,45 +413,18 @@ export function useAscensionGenerator() {
             generateProgress.value = `Simulating A${i + 1} of ${loops} (Continue Current)...`;
             await new Promise(resolve => setTimeout(resolve, 15));
 
-            const farmState = initialStateStore.currentFarmState;
-            const rawLoadout = initialStateStore.rawBackup
-              ? getArtifactLoadoutFromBackup(initialStateStore.rawBackup)
-              : currentBaseState.artifactLoadout;
-
             const optimalEarnings = stepLoadoutInputs
               ? socketEarningsStones(stepLoadoutInputs.earnings, stepLoadoutInputs.stones)
               : initialStateStore.rawBackup
                 ? getOptimalEarningsSet(initialStateStore.rawBackup)
                 : currentBaseState.artifactSets.earnings || null;
 
-            const continueState: import('@/engine/types').EngineState = {
-              currentEgg: (VIRTUE_EGGS_MAP[farmState.eggType] || 'curiosity') as VirtueEgg,
-              shiftCount: currentBaseState.shiftCount,
-              te: currentBaseState.te,
-              soulEggs: currentBaseState.soulEggs,
-              vehicles: farmState.vehicles || [{ vehicleId: 0, trainLength: 1 }],
-              habIds: farmState.habs || [0, null, null, null],
-              researchLevels: { ...farmState.commonResearches },
-              siloCount: farmState.numSilos || 1,
-              tankLevel: currentBaseState.tankLevel,
-              artifactLoadout: rawLoadout.map((slot: any) => ({
-                artifactId: slot.artifactId,
-                stones: [...slot.stones],
-              })),
-              activeArtifactSet: 'elr',
-              artifactSets: {
-                earnings: optimalEarnings ? JSON.parse(JSON.stringify(optimalEarnings)) : null,
-                elr: JSON.parse(JSON.stringify(rawLoadout)),
-              },
-              fuelTankAmounts: { ...currentBaseState.fuelTankAmounts },
-              eggsDelivered: { ...currentBaseState.eggsDelivered },
-              teEarned: { ...currentBaseState.teEarned },
-              population: farmState.population || 0,
-              lastStepTime: farmState.lastStepTime || 0,
-              bankValue: farmState.cash || 0,
-              activeSales: { research: false, hab: false, vehicle: false },
-              earningsBoost: { active: false, multiplier: 1 },
-            };
+            const continueState = makeContinueState(
+              currentBaseState,
+              initialStateStore.currentFarmState,
+              initialStateStore.rawBackup,
+              optimalEarnings
+            );
 
             const continueContext = getSimulationContext();
             continueContext.ascensionStartTime = currentStartTime;
