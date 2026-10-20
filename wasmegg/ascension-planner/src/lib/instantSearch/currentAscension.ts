@@ -4,10 +4,12 @@
  * as it is, laying at its own delivery rate, with every egg it would have laid between the backup and
  * now counted as laid.
  *
- * Claimed and pending TE, the eggs delivered and the farm come from the backup itself
- * (lib/backupVirtue.ts), never the stores: after loading, the stores' farm is caught up to the plan
- * start and pending TE can be rolled into claimed, so they no longer describe the save. The sync time
- * is the backup's `approxTime`, as the page header shows it (App.vue "Player Backup From").
+ * Claimed and pending TE, the eggs delivered, the farm, epic research and colleggtibles come from the
+ * backup itself (lib/backupVirtue.ts), never the stores: after loading, the stores' farm is caught up
+ * to the plan start and pending TE can be rolled into claimed, so they no longer describe the save;
+ * and the backup Chain Finder fetches for itself may be the only one loaded, the stores' epic research
+ * and colleggtibles left at nothing. The sync time is the backup's `approxTime`, as the page header
+ * shows it (App.vue "Player Backup From").
  *
  * As a table build (`BuildParams`) it is a build with nothing left to buy: no sale, waits starting at
  * once, at the farm's rate (AutoAutoAP's `continueTailParams`), so the route search prices continuing
@@ -20,6 +22,8 @@ import { makeContinueState, VIRTUE_EGGS_MAP } from '@/auto/continueState';
 import { getOptimalEarningsSet } from '@/lib/artifacts';
 import { parseVirtueFarm, parseVirtueProgress } from '@/lib/backupVirtue';
 import { countTEThresholdsPassed } from '@/lib/truthEggs';
+import { epicResearchDefs } from '@/lib/epicResearch';
+import { getColleggtibleTiers, modifiersFromColleggtibleTiers } from 'lib/collegtibles';
 import { EGG_ORDER, type BuildParams } from './precomputedLeg';
 import type { VirtueEgg } from '@/types';
 
@@ -51,7 +55,14 @@ export function readCurrentAscension(backup: ei.IBackup, now: number): CurrentAs
   // Permanent progress (soul eggs, shifts, tank) from the loaded save; the egg counts from this backup.
   const base = { ...createBaseEngineState(null), eggsDelivered: progress.eggsDelivered, teEarned: progress.teEarned };
   const state = makeContinueState(base, farm, backup, getOptimalEarningsSet(backup));
-  const context = { ...getSimulationContext(), ascensionStartTime: now, planStartOffset: 0, rawBackup: backup };
+  const context = {
+    ...getSimulationContext(),
+    epicResearchLevels: epicResearchOf(backup),
+    colleggtibleModifiers: modifiersFromColleggtibleTiers(getColleggtibleTiers(backup)),
+    ascensionStartTime: now,
+    planStartOffset: 0,
+    rawBackup: backup,
+  };
   const elr = computeSnapshot(state, context, { skipGrowth: true }).elr;
 
   const delivered = { ...progress.eggsDelivered };
@@ -74,4 +85,12 @@ export function readCurrentAscension(backup: ei.IBackup, now: number): CurrentAs
     delivered: counts,
     build: { sales: 0, tier13: false, waitStart: 0, saleEnd: 0, peakELR: elr, delivered: counts },
   };
+}
+
+/** Epic research levels in `backup`, every one the game has (0 when not bought), as the initial state
+ *  store reads them on loading a save. */
+function epicResearchOf(backup: ei.IBackup): Record<string, number> {
+  const levels: Record<string, number> = Object.fromEntries(epicResearchDefs.map(r => [r.id, 0]));
+  for (const r of backup.game?.epicResearch ?? []) if (r.id && r.level != null) levels[r.id] = r.level;
+  return levels;
 }

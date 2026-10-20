@@ -1,6 +1,6 @@
 /**
  * Web Worker for Chain Finder: keeps the loaded table and runs the route search on it (find, then
- * the quick polish), so the page stays responsive for the second or two a search takes.
+ * the polish and any waits for eggs), so the page stays responsive while a search runs.
  */
 import { findRoutes, polishFound } from '@/lib/instantSearch/routeFinder';
 import { readTable, unpackTableBytes, type Table } from '@/lib/instantSearch/table';
@@ -29,7 +29,9 @@ ctx.onmessage = async (event: MessageEvent<InstantSearchRequest>) => {
       ...msg.options,
       onProgress: (done: number, of: number) => post({ type: 'progress', requestId: msg.requestId, done, of }),
     };
-    const found = polishFound(table.lookup, msg.options, findRoutes(table.lookup, options));
+    const found = polishFound(table.lookup, msg.options, findRoutes(table.lookup, options), (done, of) =>
+      msg.options.waitForEggs ? post({ type: 'progress', requestId: msg.requestId, done, of, stage: 'waits' }) : undefined
+    );
     post({ type: 'result', requestId: msg.requestId, found, ms: performance.now() - t0 });
   } catch (err) {
     post({ type: 'error', requestId: msg.requestId, message: err instanceof Error ? err.message : String(err) });

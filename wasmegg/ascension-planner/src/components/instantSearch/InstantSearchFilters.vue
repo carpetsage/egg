@@ -47,6 +47,19 @@
       </div>
 
       <div>
+        <label class="flex cursor-pointer items-start gap-2">
+          <input v-model="store.waitForEggs" type="checkbox" class="mt-0.5 h-4 w-4 accent-emerald-600" />
+          <span>
+            <span class="block text-xs font-bold text-slate-700">Wait for eggs before prestiging</span>
+            <span class="block text-[11px] text-slate-400">
+              A prestige may wait whole hours after reaching its stop when the eggs your farm lays meanwhile (or a
+              better hour to start the next build) get you to the target sooner. Makes the search take longer.
+            </span>
+          </span>
+        </label>
+      </div>
+
+      <div>
         <div class="mb-2 flex flex-wrap items-baseline gap-2">
           <h4 class="text-xs font-bold text-slate-700">Dates to avoid</h4>
           <span class="text-[11px] text-slate-400">
@@ -73,8 +86,9 @@
 </template>
 
 <script setup lang="ts">
-/** Chain Finder's filters, collapsed by default: which numbers of ascensions to show, and days no
- *  prestige may start on (stores/instantSearch.ts `ascensionCounts`, `avoidDates`). */
+/** Chain Finder's filters, collapsed by default: which numbers of ascensions to show, whether
+ *  prestiges may wait for eggs, and days and hours no prestige may start in (stores/instantSearch.ts
+ *  `ascensionCounts`, `waitForEggs`, `avoidDates`, `blockedHours`). */
 import { computed, ref } from 'vue';
 import AvoidDatesPicker from './AvoidDatesPicker.vue';
 import BlockedHoursPicker from './BlockedHoursPicker.vue';
@@ -93,12 +107,17 @@ function toggleCount(n: number) {
 
 const countsFiltered = computed(() => store.ascensionCounts.length < MAX_ASCENSIONS);
 const activeCount = computed(
-  () => (countsFiltered.value ? 1 : 0) + (store.avoidDates.length ? 1 : 0) + (store.blockedHours.length ? 1 : 0)
+  () =>
+    (countsFiltered.value ? 1 : 0) +
+    (store.waitForEggs ? 0 : 1) +
+    (store.avoidDates.length ? 1 : 0) +
+    (store.blockedHours.length ? 1 : 0)
 );
 /** What's on, for the closed header. */
 const summary = computed(() => {
   const bits: string[] = [];
   if (countsFiltered.value) bits.push(store.ascensionCounts.length ? `ascensions ${store.ascensionCounts.join(', ')}` : 'no ascension counts');
+  if (!store.waitForEggs) bits.push('no waiting for eggs');
   if (store.avoidDates.length) bits.push(`${store.avoidDates.length} day${store.avoidDates.length === 1 ? '' : 's'} avoided`);
   if (store.blockedHours.length) bits.push(`${store.blockedHours.length} h/week blocked`);
   return bits.join(' · ');

@@ -11,7 +11,21 @@ import { runContinueCurrent } from '@/auto/ascension';
 import { maxedBaseState, maxedContext } from '@/buildTable/maxedAccount';
 import { startStateAt } from '@/buildTable/cell';
 import { canonicalDelivered, EGG_ORDER, tailTo, type BuildParams } from './precomputedLeg';
-import { CONTINUE_MAX_SECONDS, findRoutes, firstLegOptions, holdArrival, lastTE, mergeBlocked, nextAllowed, polishFound, type Blocked, type Route } from './routeFinder';
+import {
+  CONTINUE_MAX_SECONDS,
+  findRoutes,
+  firstLegOptions,
+  holdArrival,
+  lastTE,
+  MAX_WAIT_HOURS,
+  mergeBlocked,
+  nextAllowed,
+  nextHour,
+  polishFound,
+  type Blocked,
+  type FoundRoutes,
+  type Route,
+} from './routeFinder';
 import { hoursBlocked, nextDate } from './blockedTime';
 import { readTable } from './table';
 
@@ -46,7 +60,7 @@ describe('instant search', () => {
     const start = pt('2026-10-22', '01:30');
     const found = search({ startTE: 226, start, final: 490, maxAscensions: 12 });
     expect(found.best?.chain).toEqual([257, 288, 329, 490]);
-    expect(found.best!.seconds / 86400).toBeCloseTo(606.63, 2);
+    expect(found.best!.seconds / 86400).toBeCloseTo(606.59, 2);
     // Every count's route ends at the target, its legs chained end to start.
     for (const r of found.byAscensions.filter(r => r !== null)) {
       expect(r.chain.at(-1)).toBe(490);
@@ -73,7 +87,8 @@ describe('instant search', () => {
     const start = pt('2026-10-20', '08:13');
     const cont = inProgress(226, 0.02, 1e15);
     const found = search({ startTE: 226, start, final: 490, maxAscensions: 12, startDelivered: cont.delivered, cont });
-    expect(found.best?.chain).toEqual([257, 288, 329, 490]);
+    // A 1-TE ascension at 287 lays an hour's eggs and starts the next build at a better hour.
+    expect(found.best?.chain).toEqual([257, 287, 288, 329, 490]);
     expect(found.best!.legs[0].continued).toBeUndefined();
     // A prestige starts on the next whole hour.
     expect(found.best!.legs[0].start).toBe(Math.ceil(start / 3600) * 3600);
@@ -122,14 +137,16 @@ describe('instant search', () => {
     const prestigesClear = (r: Route, avoid: Blocked) =>
       r.legs.every(l => l.continued || avoid.every(([a, b]) => l.start < a || l.start >= b));
 
-    it('holds a prestige that falls on an avoided day, and the route is never sooner for it', () => {
+    it('holds a prestige that falls on an avoided day, and the route is never sooner than with waits for eggs', () => {
       const free = search(base).best!;
+      // A held prestige's eggs can beat not waiting at all, but never the best waits.
+      const waits = search({ ...base, waitForEggs: true }).best!;
       // The day of the route's second prestige.
       const pacificDay = new Intl.DateTimeFormat('en-CA', { timeZone: PACIFIC_TIMEZONE }).format(free.legs[1].start * 1000);
       const avoid = mergeBlocked([day(pacificDay)]);
       const found = search({ ...base, avoid });
       for (const r of found.byAscensions.filter(r => r !== null)) expect(prestigesClear(r, avoid)).toBe(true);
-      expect(found.best!.end).toBeGreaterThanOrEqual(free.end);
+      expect(found.best!.end).toBeGreaterThanOrEqual(waits.end);
     });
 
     it('waits out a vacation of several days in a row', () => {
@@ -162,11 +179,13 @@ describe('instant search', () => {
       const h = holdArrival(reached, eggs, farm, avoid);
       expect(h.held).toBe(true);
       expect(h.at).toBe(pt('2026-12-26', '00:00'));
-      // From the next whole hour (07:00) to the prestige: the usual round-up isn't credited.
-      expect(h.delivered[2] - eggs[2]).toBeCloseTo(1e12 * (h.at - pt('2026-12-25', '07:00')), -3);
+      // From the stop's reaching to the prestige, the round-up to the next whole hour included.
+      expect(h.delivered[2] - eggs[2]).toBeCloseTo(1e12 * (h.at - reached), -3);
       expect(h.te).toBeGreaterThanOrEqual(300);
-      // Nothing blocked: nothing credited.
-      expect(holdArrival(reached, eggs, farm, []).delivered).toEqual(eggs);
+      // Nothing blocked: the round-up to 07:00 alone, not held.
+      const free = holdArrival(reached, eggs, farm, []);
+      expect(free.held).toBe(false);
+      expect(free.delivered[2] - eggs[2]).toBeCloseTo(1e12 * (pt('2026-12-25', '07:00') - reached), -3);
     });
 
     it('carries the eggs laid while waiting into the next ascension, TE and all', () => {
@@ -186,7 +205,9 @@ describe('instant search', () => {
         expect(prestigesClear(r, avoid)).toBe(true);
         r.legs.forEach((l, i) => {
           if (l.continued) return;
-          expect(l.held).toBe(true);
+          // Held exactly when the prestige came after the next whole hour from the stop (or the start).
+          const reachedAt = i ? r.legs[i - 1].end : s;
+          expect(l.held === true).toBe(l.start > nextHour(reachedAt));
           // Each ascension starts at no less than the TE the last one reached; more when the wait made more.
           const before = i ? r.legs[i - 1].endTE : 300;
           expect(l.from).toBeGreaterThanOrEqual(before);
@@ -227,11 +248,91 @@ describe('instant search', () => {
     });
   });
 
+  describe('waiting for eggs', () => {
+    const start = pt('2026-10-22', '01:30');
+    const base = { startTE: 226, start, final: 490, maxAscensions: 12 };
+    let plainFound: FoundRoutes | null = null;
+    let waitFound: FoundRoutes | null = null;
+    const plain = () => (plainFound ??= search(base));
+    const waited = () => (waitFound ??= search({ ...base, waitForEggs: true }));
+
+    /** Each leg starts no sooner than the last ended, a prestige that waited exactly its wait past the
+     *  next whole hour (nothing blocked), from at least the TE reached. */
+    function checkWaits(r: Route, avoid?: Blocked) {
+      r.legs.forEach((l, i) => {
+        if (!l.waited) return;
+        expect(l.held).toBeUndefined();
+        expect(l.waited).toBeGreaterThan(0);
+        expect(l.waited).toBeLessThanOrEqual(MAX_WAIT_HOURS * 3600);
+        expect(l.start % 3600).toBe(0);
+        if (i === 0) return;
+        const prev = r.legs[i - 1];
+        expect(l.from).toBeGreaterThanOrEqual(prev.endTE);
+        if (!avoid) expect(l.start).toBe(nextHour(prev.end) + l.waited);
+        // The wait to tell runs from the last whole TE reached: the stop, or a threshold the wait passed.
+        expect(l.waitFrom).toBeGreaterThanOrEqual(prev.end);
+        expect(l.waitFrom).toBeLessThanOrEqual(l.start);
+        if (l.from > prev.endTE) expect(l.waitFrom).toBeGreaterThan(prev.end);
+        else expect(l.waitFrom).toBe(prev.end);
+      });
+      r.legs.forEach((l, i) => i && expect(l.start).toBeGreaterThanOrEqual(r.legs[i - 1].end));
+    }
+
+    it('ends every count no later, and the fastest sooner, with prestiges that wait', () => {
+      const a = plain();
+      const b = waited();
+      for (const [k, r] of b.byAscensions.entries()) {
+        if (!a.byAscensions[k]) continue;
+        expect(r).not.toBeNull();
+        expect(r!.chain.at(-1)).toBe(490);
+        expect(r!.end).toBeLessThanOrEqual(a.byAscensions[k]!.end);
+        checkWaits(r!);
+      }
+      expect(b.best!.end).toBeLessThan(a.best!.end - 3600);
+      expect(b.best!.legs.some(l => l.waited)).toBe(true);
+    }, 120_000);
+
+    it('changes nothing when off', () => {
+      for (const r of plain().byAscensions) r?.legs.forEach(l => expect(l.waited).toBeUndefined());
+    }, 120_000);
+
+    it('keeps waiting prestiges out of blocked hours', () => {
+      const sleep = [0, 1, 2, 3, 4, 5, 6].flatMap(d => [23, 0, 1, 2, 3, 4, 5, 6].map(h => d * 24 + h));
+      const avoid = hoursBlocked(sleep, PACIFIC_TIMEZONE, start);
+      const found = search({ ...base, avoid, waitForEggs: true });
+      const hourOf = (t: number) =>
+        Number(new Intl.DateTimeFormat('en-US', { hour: 'numeric', hourCycle: 'h23', timeZone: PACIFIC_TIMEZONE }).format(t * 1000));
+      for (const r of found.byAscensions.filter((r): r is Route => r !== null)) {
+        checkWaits(r, avoid);
+        for (const l of r.legs) {
+          const h = hourOf(l.start);
+          expect(h >= 7 && h < 23).toBe(true);
+        }
+      }
+    }, 120_000);
+
+    it('can wait before ending the ascension in progress, its farm laying meanwhile', () => {
+      const s = pt('2026-10-20', '08:13');
+      const cont = inProgress(226, 0.02, 1e15);
+      const o = { startTE: 226, start: s, final: 490, maxAscensions: 6, startDelivered: cont.delivered, cont, contEgg: 2 };
+      const a = search(o);
+      const b = search({ ...o, waitForEggs: true });
+      for (const [k, r] of b.byAscensions.entries()) {
+        if (!a.byAscensions[k]) continue;
+        expect(r!.end).toBeLessThanOrEqual(a.byAscensions[k]!.end);
+        checkWaits(r!);
+        // A waiting first prestige starts its build from the farm's extra eggs.
+        const first = r!.legs[0];
+        if (first.waited) expect(first.start).toBe(nextHour(s) + first.waited);
+      }
+    }, 120_000);
+  });
+
   it('finds the highest TE by a date', () => {
     const start = pt('2026-10-24', '06:59');
     const deadline = pt('2027-07-14', '09:00');
     const found = search({ startTE: 180, start, final: 490, maxAscensions: 12, deadline });
-    expect(found.byDate?.chain).toEqual([181, 203, 229, 263, 287]);
+    expect(found.byDate?.chain).toEqual([181, 203, 229, 259, 287]);
     expect(found.byDate!.end).toBeLessThanOrEqual(deadline);
     for (const r of found.byDateByAscensions.filter(r => r !== null)) {
       expect(r.end).toBeLessThanOrEqual(deadline);

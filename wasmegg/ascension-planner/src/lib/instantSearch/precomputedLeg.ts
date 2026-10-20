@@ -7,8 +7,8 @@
  *
  * Kept free of the simulator's shift code so the Chain Finder worker stays small: auto/shifts/
  * te-wait.ts pulls in the engine and the game data, so its `distributeTargetTE` is replaced by
- * `greedyOrder` (the same goal sharing, one TE at a time), and the single-target `tailTo` by a one-
- * target `sweepTails`. Both give the simulator's numbers to the bit; AutoAutoAP's `tailTo` and
+ * `greedyOrder` (the same goal sharing, one TE at a time), and `tailTo` takes `sweepTails`' steps for
+ * its one target. Both give the simulator's numbers to the bit; AutoAutoAP's `tailTo` and
  * `canonicalDelivered`, run alongside, agreed on every route tried.
  */
 import { getTimezoneOffsetAt, PACIFIC_TIMEZONE } from '@/lib/events';
@@ -80,12 +80,48 @@ export function rebase(b: BuildParams, te: number, delivered: number[]): BuildPa
  * sale's end that much sooner.
  */
 export function tailTo(p: BuildParams, target: number, lateBy = 0): Tail | null {
-  const sweep = sweepTails(p, target, lateBy, target);
-  const i = target - sweep.from;
-  if (i < 0 || i >= sweep.seconds.length || Number.isNaN(sweep.seconds[i])) return null;
+  // `sweepTails` for the one target, without its arrays: the same steps in the same order, so the
+  // same numbers to the bit (precomputedLeg.spec.ts). The route finder's hold pass prices many.
+  const d = p.delivered;
+  let now = 0;
+  for (let e = 0; e < 5; e++) now += countTE(d[e] || 0);
+  const m = Math.max(0, target - now);
+  const all = greedyOrder(d, GREEDY_IDX, m);
+  if (m > all.length) return null;
+  let needK = 0;
+  for (let i = 0; i < m; i++) if (all[i] === KIND) needK++;
+  const rate = p.peakELR;
+  const dk0 = d[KIND] || 0;
+  let kWait = Math.max(0, p.saleEnd - lateBy - p.waitStart);
+  if (needK > 0) {
+    const tw = teWait(dk0, rate, needK);
+    if (!Number.isFinite(tw)) return null;
+    kWait = Math.max(kWait, tw);
+  }
+  const kEggs = kWait > 0 ? dk0 + rate * kWait : dk0;
+  let t = p.waitStart;
+  if (kWait > 0) t += kWait;
+  let total = countTE(kEggs);
+  const othersNow = now - countTE(dk0);
+  const left = target - total - othersNow;
+  if (left > m - needK) return null;
+  const need = [0, 0, 0, 0, 0];
+  for (let i = 0, k = 0; i < all.length && k < left; i++) {
+    if (all[i] === KIND) continue;
+    need[all[i]]++;
+    k++;
+  }
   const delivered = [0, 0, 0, 0, 0];
-  sweep.deliveredInto(i, delivered);
-  return { seconds: sweep.seconds[i], endTE: sweep.endTE[i], delivered };
+  delivered[KIND] = kEggs;
+  for (const e of OTHERS_IDX) {
+    const de = d[e] || 0;
+    const tw = need[e] > 0 ? teWait(de, rate, need[e]) : 0;
+    if (!Number.isFinite(tw)) return null;
+    if (need[e] > 0 && tw > 0) t += tw;
+    delivered[e] = need[e] > 0 && tw > 0 ? de + rate * tw : de;
+    total += countTE(delivered[e]);
+  }
+  return total >= target ? { seconds: t, endTE: total, delivered } : null;
 }
 
 /** The fastest of a start's builds to `target` (least time, the first of equals), or null. */
@@ -115,6 +151,26 @@ function countTE(d: number): number {
     else hi = mid;
   }
   return lo;
+}
+
+/**
+ * TE with a fraction: the TE the eggs have passed, plus how far the egg nearest its next threshold
+ * is toward it. Never a whole TE more than is earned (summing every egg's fraction would be). For
+ * showing how far past a stop a route is, never for the search.
+ */
+export function exactTE(delivered: ArrayLike<number>): number {
+  let te = 0;
+  let nearest = 0;
+  for (let e = 0; e < 5; e++) {
+    const d = delivered[e] || 0;
+    const n = countTE(d);
+    te += n;
+    if (n < MAX_TE) {
+      const from = n > 0 ? TE_BREAKPOINTS[n - 1] : 0;
+      nearest = Math.max(nearest, Math.min(1, Math.max(0, d - from) / (TE_BREAKPOINTS[n] - from)));
+    }
+  }
+  return te + Math.min(nearest, 0.999);
 }
 
 /** `timeToEarnTE`, the same arithmetic. */

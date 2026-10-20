@@ -16,6 +16,13 @@
     >
       Your dates or hours to avoid have changed since this answer: press Find routes again to use them.
     </div>
+    <div
+      v-if="store.waitsChanged"
+      class="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-800"
+    >
+      Waiting for eggs was turned {{ store.waitForEggs ? 'on' : 'off' }} since this answer: press Find routes again to
+      use it.
+    </div>
 
     <div v-if="!lead" class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
       <template v-if="byDate">No route reaches a higher TE by {{ show(answer.deadline!) }}.</template>
@@ -97,20 +104,36 @@
                 <li v-if="endsInProgress(route)">
                   <span class="font-bold text-slate-800">{{ answer.inProgress!.claimedTE }} → {{ route.legs[0].from }}</span>:
                   end your current ascension
-                  {{ route.legs[0].held ? 'once your blocked dates or hours are past' : 'now' }}, claiming
+                  <template v-if="route.legs[0].waited">{{ wait(route.legs[0]) }} after reaching {{ route.legs[0].from }} TE</template>
+                  <template v-else>{{ route.legs[0].held ? 'once your blocked dates or hours are past' : 'now' }}</template>, claiming
                   {{ route.legs[0].from - answer.inProgress!.claimedTE }} pending TE ({{ show(route.legs[0].start) }})
                 </li>
-                <li v-for="(leg, i) in route.legs" :key="i">
-                  <span class="font-bold text-slate-800">{{ legFrom(leg, i) }} → {{ leg.to }}</span>
-                  <span v-if="leg.endTE > leg.to"> (ends at {{ leg.endTE }})</span>:
-                  <template v-if="leg.continued">continue your current ascension, </template>
-                  <template v-else-if="i === 0 && endsInProgress(route)">the fresh build, </template>
-                  <template v-else-if="leg.held">prestige waited for your blocked dates or hours (the eggs laid meanwhile count), </template>
-                  <template v-else-if="i === 0">{{ answer.hypothetical ? 'prestige' : 'prestige now' }}, </template>
-                  {{ show(leg.start) }} to {{ show(leg.end) }} · {{ days(leg.end - leg.start) }}<template
-                    v-if="!leg.continued"
-                    > · {{ leg.sales }}-sale build{{ leg.tier13 ? ', tier 13' : '' }}</template
-                  >
+                <li v-for="(leg, i) in route.legs" :key="i" class="flex gap-1">
+                  <span class="shrink-0">
+                    <span class="font-bold text-slate-800"
+                      >{{ teText(i === 0 && leg.continued ? legFrom(leg, i) : leg.exactFrom) }} →
+                      {{ teText(legExactEnd(route, i)) }}</span
+                    >
+                    <span class="text-slate-500"> ({{ formatNumber(leg.rate * 3600) }})</span>:
+                  </span>
+                  <span>
+                    <span class="block">
+                      {{ shortDays(legEnd(route, i) - leg.start) }}
+                      <template v-if="leg.continued">· continue your current ascension to {{ show(legEnd(route, i)) }}</template>
+                      <template v-else>
+                        · {{ leg.sales }}-sale{{ leg.tier13 ? ' + T13' : '' }} · {{ show(leg.start) }} to
+                        {{ show(legEnd(route, i)) }}
+                      </template>
+                    </span>
+                    <span v-if="route.legs[i + 1]?.waited" class="block">
+                      wait {{ wait(route.legs[i + 1]) }} after reaching {{ route.legs[i + 1].from }}
+                    </span>
+                    <span v-if="!leg.continued && (leg.held || i === 0)" class="block">
+                      <template v-if="i === 0 && endsInProgress(route)">the fresh build</template>
+                      <template v-else-if="leg.held">prestige waited for your blocked dates or hours</template>
+                      <template v-else-if="i === 0">{{ answer.hypothetical ? 'prestige' : 'prestige now' }}</template>
+                    </span>
+                  </span>
                 </li>
               </ol>
             </td>
@@ -125,6 +148,7 @@
 import { computed, reactive } from 'vue';
 import { lastTE, type Route } from '@/lib/instantSearch/routeFinder';
 import { MAX_ASCENSIONS, useInstantSearchStore, type InstantAnswer } from '@/stores/instantSearch';
+import { formatDuration, formatNumber } from '@/lib/format';
 
 const props = defineProps<{ answer: InstantAnswer }>();
 const store = useInstantSearchStore();
@@ -182,6 +206,8 @@ const spareClass = (r: Route) => (tight(r) ? 'text-amber-700' : 'text-emerald-70
 /** The first ascension in words: continue to its stop, or prestige (on the next whole hour). */
 function firstStepText(r: Route): string {
   const l = r.legs[0];
+  if (l.waited)
+    return `keep your current farm laying until ${wait(l)} after reaching ${l.from} TE, then prestige (the build starts ${show(l.start)}).`;
   if (l.held) return `prestige once your blocked dates or hours are past (the build starts ${show(l.start)}).`;
   return l.continued
     ? `continue your current ascension to ${l.to} TE (${show(l.end)})${r.legs.length > 1 ? ', then prestige' : ''}.`
@@ -198,6 +224,19 @@ function chainText(r: Route): string {
   return [...head, ...r.chain].join(' → ');
 }
 const days = (seconds: number) => `${(seconds / 86400).toFixed(2)} days`;
+const shortDays = (seconds: number) => `${(seconds / 86400).toFixed(2)}d`;
+/** When a leg's farm is done: its stop reached, or, when the next prestige waits for eggs, that
+ *  prestige (the wait is spent on this leg's farm). */
+/** TE with fractions where a leg's farm leaves off: what the next build starts from (the farm lays on
+ *  until that prestige), or, for the last, its stop. */
+const legExactEnd = (r: Route, i: number) => r.legs[i + 1]?.exactFrom ?? r.legs[i].exactEnd;
+/** TE to a tenth, always with one decimal so the rows line up, cut rather than rounded (288.97 is
+ *  not 289). */
+const teText = (te: number) => (Math.floor(te * 10 + 1e-9) / 10).toFixed(1);
+const legEnd = (r: Route, i: number) => (r.legs[i + 1]?.waited ? r.legs[i + 1].start : r.legs[i].end);
+/** How long to wait before a prestige that waits for eggs: from reaching the TE it starts from (the
+ *  last whole TE the wait passed, else the stop) to the prestige. */
+const wait = (leg: Route['legs'][number]) => formatDuration(leg.start - (leg.waitFrom ?? leg.start - (leg.waited ?? 0)));
 
 /** In the time zone the search was run with (the picker's). */
 const dateFormat = computed(

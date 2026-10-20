@@ -14,7 +14,8 @@
     <p class="text-xs text-slate-500 mb-6">
       Every ascension a maxed account can make was simulated ahead of time, from every TE at every hour of the week, so
       finding a route is arithmetic: it tries every stop at every TE, with up to {{ MAX_ASCENSIONS }} ascensions. Every
-      prestige is a fresh build on the next whole hour, on maxed gear (not adjusted for yours).
+      prestige is a fresh build on the next whole hour (or later, when waiting for eggs gets you there sooner), on
+      maxed gear (not adjusted for yours).
     </p>
 
     <fieldset :disabled="store.status === 'running'" class="space-y-6 disabled:opacity-50">
@@ -75,10 +76,6 @@
               </template>
               <template v-else>No backup time in the save, so nothing was added for time since.</template>
             </div>
-            <div class="mt-1 text-[11px] text-indigo-700/80">
-              Each route either continues this ascension or prestiges now; either way it counts as one of the
-              route's ascensions.
-            </div>
           </div>
           <div v-else class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-600">
             No ascension in progress in your save ({{ store.saveTE }} TE), so every route starts with a prestige on
@@ -125,7 +122,10 @@
         {{ store.status === 'running' ? 'Searching…' : 'Find routes' }}
       </button>
       <span v-if="store.status === 'running' && store.progress" class="text-xs text-slate-500">
-        {{ store.progress.done }} of {{ store.progress.of }} ascension counts done…
+        <template v-if="store.progress.stage === 'waits'">
+          Finding prestiges worth waiting for: {{ store.progress.done }} of {{ store.progress.of }} routes…
+        </template>
+        <template v-else>{{ store.progress.done }} of {{ store.progress.of }} ascension counts done…</template>
       </span>
       <span v-else-if="store.problem" class="text-xs text-amber-700">{{ store.problem }}</span>
     </div>

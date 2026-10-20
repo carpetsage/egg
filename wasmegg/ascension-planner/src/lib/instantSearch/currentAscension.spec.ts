@@ -9,6 +9,7 @@ import type { ei } from 'lib';
 import { useInitialStateStore } from '@/stores/initialState';
 import { TE_BREAKPOINTS } from '@/lib/truthEggs';
 import { readCurrentAscension } from './currentAscension';
+import { epicResearchDefs } from '@/lib/epicResearch';
 
 const BACKUP_TIME = 1_792_470_300; // Mon 19 Oct 2026, 11:25 PM Central
 const FARM_STEP = BACKUP_TIME - 36 * 3600; // the farm's own last step, older than the backup
@@ -79,6 +80,16 @@ describe('readCurrentAscension', () => {
     // One hour of laying since the backup, on integrity.
     expect(c.catchUpEggs).toBeCloseTo(c.elr * 3600, 0);
     expect(c.delivered[2]).toBeCloseTo((b.virtue!.eggsDelivered![1] as number) + c.catchUpEggs, 0);
+  });
+
+  it("takes epic research from the backup, not the stores (Chain Finder's own fetch may be all that's loaded)", () => {
+    // No save loaded into the stores: their epic research is all zero.
+    const now = BACKUP_TIME + 3600;
+    const without = readCurrentAscension(backup(), now)!.elr;
+    const b = backup();
+    b.game!.epicResearch = epicResearchDefs.map(r => ({ id: r.id, level: r.maxLevel }));
+    const withEpic = readCurrentAscension(b, now)!.elr;
+    expect(withEpic).toBeGreaterThan(without * 1.5);
   });
 
   it('is null without a virtue farm', () => {

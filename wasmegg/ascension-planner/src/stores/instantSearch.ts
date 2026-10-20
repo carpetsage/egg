@@ -57,6 +57,8 @@ export interface InstantAnswer {
   /** The filters the search ran with (`blockFilters`): days to avoid and blocked weekly hours, in
    *  `timezone`. */
   blocks: BlockFilters;
+  /** Prestiges could wait for eggs (`waitForEggs`). */
+  waitForEggs: boolean;
 }
 
 /** What the prestige filters are set to: compared to tell whether an answer is out of date. */
@@ -123,6 +125,9 @@ export const useInstantSearchStore = defineStore('instantSearch', () => {
     hours: [...blockedHours.value].sort((a, b) => a - b),
     timezone: timezone.value,
   }));
+  /** Filter: let a prestige wait whole hours when the eggs laid meanwhile end the route sooner
+   *  (routeFinder.ts `holdRoute`). */
+  const waitForEggs = ref(true);
   const anyBlocks = (f: BlockFilters) => f.dates.length > 0 || f.hours.length > 0;
   /** The prestige filters differ from what the shown answer was found with (the zone only counts
    *  when some filter is on, either then or now). */
@@ -133,12 +138,14 @@ export const useInstantSearchStore = defineStore('instantSearch', () => {
     if (!anyBlocks(was) && !anyBlocks(now)) return false;
     return JSON.stringify(was) !== JSON.stringify(now);
   });
+  /** Waiting for eggs was turned on or off since the shown answer. */
+  const waitsChanged = computed(() => !!answer.value && answer.value.waitForEggs !== waitForEggs.value);
 
   const header = shallowRef<TableHeader | null>(null);
   const tableSource = ref('');
   const tableStatus = ref<'idle' | 'loading' | 'ready' | 'error'>('idle');
   const status = ref<'idle' | 'running' | 'done' | 'error'>('idle');
-  const progress = ref<{ done: number; of: number } | null>(null);
+  const progress = ref<{ done: number; of: number; stage?: 'waits' } | null>(null);
   const answer = shallowRef<InstantAnswer | null>(null);
   const error = ref('');
 
@@ -296,6 +303,7 @@ export const useInstantSearchStore = defineStore('instantSearch', () => {
       hypothetical: !fromSave.value,
       inProgress: cont && current.value ? { claimedTE: current.value.claimedTE } : null,
       blocks: blockFilters.value,
+      waitForEggs: waitForEggs.value,
     };
     const avoid = anyBlocks(asked.blocks) ? blockedSpans(asked.blocks, asked.start) : [];
     // The save's real counts only when starting from the save's own TE; a typed start TE uses the
@@ -308,7 +316,7 @@ export const useInstantSearchStore = defineStore('instantSearch', () => {
     await new Promise<void>(resolve => {
       pending.set(requestId, r => {
         if (r.type === 'progress') {
-          progress.value = { done: r.done, of: r.of };
+          progress.value = { done: r.done, of: r.of, ...(r.stage ? { stage: r.stage } : {}) };
           return;
         }
         pending.delete(requestId);
@@ -334,6 +342,7 @@ export const useInstantSearchStore = defineStore('instantSearch', () => {
           ...(cont ? { cont: { ...cont, delivered: [...cont.delivered] } } : {}),
           ...(avoid.length ? { avoid } : {}),
           ...(cont && current.value ? { contEgg: EGG_ORDER.indexOf(current.value.egg) } : {}),
+          ...(asked.waitForEggs ? { waitForEggs: true } : {}),
         },
       });
     });
@@ -354,6 +363,8 @@ export const useInstantSearchStore = defineStore('instantSearch', () => {
     avoidDates,
     blockedHours,
     avoidChanged,
+    waitForEggs,
+    waitsChanged,
     header,
     tableSource,
     tableStatus,
