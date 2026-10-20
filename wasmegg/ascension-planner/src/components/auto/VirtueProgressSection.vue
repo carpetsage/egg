@@ -132,13 +132,13 @@ import { useInitialStateStore } from '@/stores/initialState';
 import { useVirtueStore } from '@/stores/virtue';
 import { useFuelTankStore } from '@/stores/fuelTank';
 import { useSilosStore } from '@/stores/silos';
-import { countTEThresholdsPassed } from '@/lib/truthEggs';
-import { getSimulationContext, createBaseEngineState } from '@/engine/adapter';
+import { getSimulationContext } from '@/engine/adapter';
 import { getArtifactLoadoutFromBackup, getOptimalEarningsSet } from '@/lib/artifacts';
 import { useEarningsClothedTE } from '@/composables/useEarningsClothedTE';
 import { computeSnapshot } from '@/engine/compute';
 import { rollUpPendingTE } from '@/lib/modes';
 import { consumeAutoPlannerTEInputs, saveAutoPlannerTEInputs } from '@/lib/autoPlannerFormCache';
+import { setAutoStartingTE } from '@/auto/startingTE';
 import type { VirtueEgg } from '@/types';
 import { useAutoPlannerStore } from '@/stores/autoPlanner';
 import { calculateClothedTEForSet } from '@/lib/artifacts/virtue';
@@ -246,24 +246,8 @@ const handleTEEarnedChange = (egg: VirtueEgg, value: string) => {
   const count = parseInt(value);
   if (isNaN(count)) return;
 
-  truthEggsStore.setTEEarnedWithSync(egg, count);
-  syncTEAcrossStores(egg);
+  setAutoStartingTE(egg, count);
   cacheTEInputs();
-};
-
-const syncTEAcrossStores = async (egg: VirtueEgg) => {
-  initialStateStore.setInitialEggsDelivered(egg, truthEggsStore.eggsDelivered[egg]);
-  initialStateStore.setInitialTeEarned(egg, truthEggsStore.teEarned[egg]);
-
-  const theoreticalTE = countTEThresholdsPassed(truthEggsStore.eggsDelivered[egg]);
-  initialStateStore.setInitialTePending(egg, Math.max(0, theoreticalTE - truthEggsStore.teEarned[egg]));
-
-  virtueStore.setInitialTE(truthEggsStore.totalTE);
-  virtueStore.setTE(truthEggsStore.totalTE);
-
-  const baseState = createBaseEngineState(null);
-  const initialSnapshot = computeSnapshot(baseState, getSimulationContext());
-  await actionsStore.setInitialSnapshot(initialSnapshot);
 };
 
 // Restore cached starting TE inputs from a previous visit, if any, so a page reload doesn't wipe
@@ -277,8 +261,7 @@ if (cachedTEInputs?.teEarned) {
   for (const egg of VIRTUE_TE_ORDER) {
     const cachedValue = cachedTEInputs.teEarned[egg];
     if (cachedValue !== undefined && cachedValue !== truthEggsStore.teEarned[egg]) {
-      truthEggsStore.setTEEarnedWithSync(egg, cachedValue);
-      syncTEAcrossStores(egg);
+      setAutoStartingTE(egg, cachedValue);
     }
   }
 }
@@ -305,8 +288,7 @@ function resetTEInputsToDefault() {
   for (const egg of VIRTUE_TE_ORDER) {
     const value = defaultTeEarned[egg];
     if (value !== undefined) {
-      truthEggsStore.setTEEarnedWithSync(egg, value);
-      syncTEAcrossStores(egg);
+      setAutoStartingTE(egg, value);
     }
   }
   cacheTEInputs();

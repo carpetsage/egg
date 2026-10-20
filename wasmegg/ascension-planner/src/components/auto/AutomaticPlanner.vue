@@ -251,7 +251,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from 'vue';
+import { ref, computed, watch, nextTick, onMounted } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useAutoPlannerStore, type VariantKey } from '@/stores/autoPlanner';
 import { useVirtueStore } from '@/stores/virtue';
@@ -271,6 +271,9 @@ import ValidationDialog from './ValidationDialog.vue';
 import LoadoutOverrideScopeDialog from './LoadoutOverrideScopeDialog.vue';
 import ConfirmationDialog from '@/components/ConfirmationDialog.vue';
 import type { AutoLoadoutInputs } from '@/auto/loadout';
+import { setAutoStartingTE } from '@/auto/startingTE';
+import { formatUnixToDateInput, formatUnixToTimeInput } from '@/lib/format';
+import type { VirtueEgg } from '@/types';
 
 const autoPlannerStore = useAutoPlannerStore();
 const virtueStore = useVirtueStore();
@@ -356,6 +359,7 @@ const {
   validationErrorMessage,
   copySuccess,
   bestResults,
+  generate,
   regeneratePlan,
   copySummary,
   exportCurrentPlan,
@@ -415,6 +419,30 @@ const confirmLoadoutOverride = (indices: number[]) => {
   pendingLoadoutOverride.value = null;
   if (pending) handleSetLoadoutOverride(indices, pending.inputs);
 };
+
+// A Chain Finder route this tab was opened with (App.vue): load its start, starting TE, targets,
+// silo mode, end-time overrides (the prestiges that wait) and builds, then generate. On mount, so it
+// lands after VirtueProgressSection restores its cached TE inputs. `generate`, not `regeneratePlan`:
+// that would clear the overrides.
+onMounted(async () => {
+  const chain = autoPlannerStore.pendingChain;
+  if (!chain) return;
+  autoPlannerStore.pendingChain = null;
+  timezone.value = chain.timezone;
+  startDate.value = formatUnixToDateInput(chain.start, chain.timezone);
+  startTime.value = formatUnixToTimeInput(chain.start, chain.timezone);
+  targetTE.value = chain.targets.join(' ');
+  deferForEarningsMode.value = chain.siloMode;
+  for (const [egg, te] of Object.entries(chain.teEarned) as [VirtueEgg, number][]) {
+    if (truthEggsStore.teEarned[egg] !== te) await setAutoStartingTE(egg, te);
+  }
+  autoPlannerStore.ascensionChain = [];
+  autoPlannerStore.planVariantOverrides = { ...chain.variantOverrides };
+  autoPlannerStore.endTimeOverrides = { ...chain.endTimeOverrides };
+  autoPlannerStore.loadoutOverrides = {};
+  console.clear();
+  generate(() => nextTick(() => targetInput.value?.focus()));
+});
 
 const handleTargetTEInput = (e: Event) => {
   const input = e.target as HTMLInputElement;

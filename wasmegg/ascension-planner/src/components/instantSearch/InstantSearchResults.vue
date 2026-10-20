@@ -136,6 +136,18 @@
                   </span>
                 </li>
               </ol>
+              <div class="ml-5 mt-2 flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  class="rounded-lg bg-indigo-600 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-white hover:bg-indigo-700"
+                  @click="openInAutoPlanner(route)"
+                >
+                  Open in AAP ↗
+                </button>
+                <span class="text-[10px] text-slate-400">
+                  New tab: these targets, start, waits and builds{{ answer.siloMode ? ', silo mode on' : '' }}
+                </span>
+              </div>
             </td>
           </tr>
         </template>
@@ -149,6 +161,7 @@ import { computed, reactive } from 'vue';
 import { lastTE, type Route } from '@/lib/instantSearch/routeFinder';
 import { MAX_ASCENSIONS, useInstantSearchStore, type InstantAnswer } from '@/stores/instantSearch';
 import { formatDuration, formatNumber } from '@/lib/format';
+import { handoffUrl, routeToHandoff } from '@/lib/instantSearch/autoPlannerHandoff';
 
 const props = defineProps<{ answer: InstantAnswer }>();
 const store = useInstantSearchStore();
@@ -191,6 +204,11 @@ const open = reactive(new Set<number>());
 function toggle(k: number) {
   if (open.has(k)) open.delete(k);
   else open.add(k);
+}
+
+/** The route loaded into the Auto Planner in a new tab, so this answer stays put. */
+function openInAutoPlanner(r: Route) {
+  window.open(handoffUrl(routeToHandoff(props.answer, r)), '_blank', 'noopener');
 }
 
 /** Prestiging now ends the ascension in progress: that is an ascension of its own (routeFinder.ts). */

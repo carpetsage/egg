@@ -22,6 +22,8 @@ export interface TableHeader {
   builtAt: string;
   /** The simulator commit the cells came from (scripts/simVersion.ts). */
   simVersion?: string;
+  /** Built in silo mode (the auto-planner's defer for earnings); absent in tables from before it. */
+  deferForEarnings?: boolean;
 }
 
 export interface Table {

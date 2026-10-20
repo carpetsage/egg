@@ -8,7 +8,7 @@
 import { defineStore } from 'pinia';
 import { computed, ref, shallowRef } from 'vue';
 import { useInitialStateStore } from '@/stores/initialState';
-import { EGG_ORDER } from '@/lib/instantSearch/precomputedLeg';
+import { canonicalDelivered, EGG_ORDER } from '@/lib/instantSearch/precomputedLeg';
 import { mergeBlocked, type Blocked, type FoundRoutes } from '@/lib/instantSearch/routeFinder';
 import { avoidBlocked, hoursBlocked } from '@/lib/instantSearch/blockedTime';
 import type { TableHeader } from '@/lib/instantSearch/table';
@@ -59,6 +59,10 @@ export interface InstantAnswer {
   blocks: BlockFilters;
   /** Prestiges could wait for eggs (`waitForEggs`). */
   waitForEggs: boolean;
+  /** Eggs delivered per egg (EGG_ORDER) at the start: the save's, or the table's share of `startTE`. */
+  startDelivered: number[];
+  /** The table was built in silo mode (its header's `deferForEarnings`). */
+  siloMode: boolean;
 }
 
 /** What the prestige filters are set to: compared to tell whether an answer is out of date. */
@@ -293,6 +297,9 @@ export const useInstantSearchStore = defineStore('instantSearch', () => {
     if (fromSave.value) detect(now);
     const te = startTE.value;
     const cont = fromSave.value ? (current.value?.build ?? null) : null;
+    // The save's real counts only when starting from the save's own TE; a typed start TE uses the
+    // table's canonical share.
+    const delivered = fromSave.value ? saveDelivered.value : null;
     const asked: Omit<InstantAnswer, 'found' | 'ms'> = {
       mode: mode.value,
       startTE: te,
@@ -304,11 +311,10 @@ export const useInstantSearchStore = defineStore('instantSearch', () => {
       inProgress: cont && current.value ? { claimedTE: current.value.claimedTE } : null,
       blocks: blockFilters.value,
       waitForEggs: waitForEggs.value,
+      startDelivered: [...(delivered ?? canonicalDelivered(te))],
+      siloMode: !!header.value?.deferForEarnings,
     };
     const avoid = anyBlocks(asked.blocks) ? blockedSpans(asked.blocks, asked.start) : [];
-    // The save's real counts only when starting from the save's own TE; a typed start TE uses the
-    // table's canonical share.
-    const delivered = fromSave.value ? saveDelivered.value : null;
     const requestId = nextRequestId++;
     status.value = 'running';
     progress.value = null;
