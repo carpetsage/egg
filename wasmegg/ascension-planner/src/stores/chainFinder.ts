@@ -16,8 +16,13 @@ import {
   type TableBuildResult,
 } from '@/lib/chainFinder/tableBuild';
 
-/** Test build: two start TEs only. The file spans 200..300 with the TEs between left empty. */
-export const CHAIN_FINDER_TEST_TES = [200, 300];
+/** Every start TE the CLI covers with `--to 489` (490 is the last target, not a start). */
+export const CHAIN_FINDER_TE_FROM = 120;
+export const CHAIN_FINDER_TE_TO = 489;
+const CHAIN_FINDER_TES = Array.from(
+  { length: CHAIN_FINDER_TE_TO - CHAIN_FINDER_TE_FROM + 1 },
+  (_, i) => CHAIN_FINDER_TE_FROM + i
+);
 
 export type TableBuildStatus = 'idle' | 'running' | 'done' | 'error' | 'cancelled';
 
@@ -29,6 +34,8 @@ export function defaultWorkerCount(): number {
 export const useChainFinderStore = defineStore('chainFinder', () => {
   const deliverySelection = ref<ChainFinderDeliverySelection>(defaultDeliverySelection());
   const workerCount = ref(defaultWorkerCount());
+  /** The auto-planner's silo mode (defer for earnings), turned on by typing "g" in the workers input. */
+  const siloMode = ref(false);
   const status = ref<TableBuildStatus>('idle');
   const progress = shallowRef<TableBuildProgress | null>(null);
   const result = shallowRef<(TableBuildResult & { fileName: string }) | null>(null);
@@ -38,6 +45,7 @@ export const useChainFinderStore = defineStore('chainFinder', () => {
   async function startBuild() {
     if (status.value === 'running') return;
     const selection = { ...deliverySelection.value };
+    const silo = siloMode.value;
     controller = new AbortController();
     status.value = 'running';
     progress.value = null;
@@ -46,12 +54,14 @@ export const useChainFinderStore = defineStore('chainFinder', () => {
     try {
       const built = await buildChainFinderTable({
         deliveryIds: chainFinderDeliveryIds(selection),
-        tes: CHAIN_FINDER_TEST_TES,
+        deferForEarnings: silo,
+        tes: CHAIN_FINDER_TES,
         workers: workerCount.value,
         onProgress: p => (progress.value = p),
         signal: controller.signal,
       });
-      result.value = { ...built, fileName: `table-${deliverySelectionTag(selection)}-te${built.from}-${built.to}.bin.gz` };
+      const tag = `${deliverySelectionTag(selection)}${silo ? '-silo' : ''}`;
+      result.value = { ...built, fileName: `table-${tag}-te${built.from}-${built.to}.bin.gz` };
       status.value = 'done';
     } catch (err) {
       if (err instanceof DOMException && err.name === 'AbortError') {
@@ -84,6 +94,7 @@ export const useChainFinderStore = defineStore('chainFinder', () => {
   return {
     deliverySelection,
     workerCount,
+    siloMode,
     status,
     progress,
     result,

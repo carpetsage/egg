@@ -32,14 +32,14 @@ export function maxedLoadoutInputs(delivery: string[] = MAXED_DELIVERY): AutoLoa
 }
 
 /** The cell-independent context; `contextAt` adds each cell's start time. */
-export function maxedContext(delivery: string[] = MAXED_DELIVERY): SimulationContext {
+export function maxedContext(delivery: string[] = MAXED_DELIVERY, deferForEarnings = false): SimulationContext {
   return {
     epicResearchLevels: Object.fromEntries(epicResearchDefs.map(r => [r.id, r.maxLevel])),
     colleggtibleModifiers: modifiersFromColleggtibleTiers(Object.fromEntries(colleggtibleDefs.map(d => [d.id, 3]))),
     ascensionStartTime: 0,
     planStartOffset: 0,
     assumeDoubleEarnings: true,
-    deferForEarningsMode: false,
+    deferForEarningsMode: deferForEarnings,
     loadoutInputs: maxedLoadoutInputs(delivery),
   };
 }

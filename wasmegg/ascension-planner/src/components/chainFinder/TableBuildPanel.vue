@@ -27,11 +27,23 @@
           :max="maxWorkers"
           :disabled="store.status === 'running'"
           class="w-16 px-2 py-1 rounded-lg border border-slate-200 text-xs disabled:bg-slate-50"
+          @keydown="handleWorkersKeydown"
         />
         <span class="text-slate-400">of {{ maxWorkers }} cores</span>
       </label>
 
-      <span class="text-xs text-slate-500">Start TEs {{ CHAIN_FINDER_TEST_TES.join(' and ') }} (test)</span>
+      <button
+        v-if="store.siloMode"
+        type="button"
+        title="Defer for earnings mode is on — click to turn it off"
+        :disabled="store.status === 'running'"
+        class="flex-shrink-0 w-9 h-9 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center hover:bg-indigo-100 transition-colors disabled:hover:bg-indigo-50"
+        @click="store.siloMode = false"
+      >
+        <img :src="iconURL('egginc-extras/silo.png', 64)" class="w-5 h-5 object-contain" alt="silo" />
+      </button>
+
+      <span class="text-xs text-slate-500">Start TEs {{ CHAIN_FINDER_TE_FROM }}–{{ CHAIN_FINDER_TE_TO }}</span>
     </div>
 
     <div v-if="progress" class="space-y-3">
@@ -66,7 +78,11 @@
         </div>
       </div>
 
-      <table class="w-full text-xs">
+      <div class="text-[10px] font-black uppercase tracking-widest text-slate-400">
+        {{ progress.tesDone }} / {{ progress.tesTotal }} start TEs done
+      </div>
+
+      <table v-if="progress.tes.length" class="w-full text-xs">
         <thead>
           <tr class="text-[10px] text-slate-400 uppercase font-black tracking-widest text-left">
             <th class="py-1">Start TE</th>
@@ -117,9 +133,21 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { WEEK_HOURS } from '@/buildTable/cell';
-import { CHAIN_FINDER_TEST_TES, useChainFinderStore } from '@/stores/chainFinder';
+import { iconURL } from 'lib';
+import { isTestingEnvironment } from '@/lib/isTestingEnvironment';
+import { CHAIN_FINDER_TE_FROM, CHAIN_FINDER_TE_TO, useChainFinderStore } from '@/stores/chainFinder';
 
 const store = useChainFinderStore();
+
+/**
+ * A number input never shows a "g" (or fires input for one), so the auto-planner's Target TE trick
+ * is caught on keydown here instead.
+ */
+function handleWorkersKeydown(e: KeyboardEvent) {
+  if (e.key.toLowerCase() !== 'g' || e.ctrlKey || e.metaKey || e.altKey) return;
+  e.preventDefault();
+  if (isTestingEnvironment) store.siloMode = true;
+}
 const progress = computed(() => store.progress);
 const maxWorkers = navigator.hardwareConcurrency || 2;
 
