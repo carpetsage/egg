@@ -593,6 +593,7 @@ import AutomaticPlanner from '@/components/auto/AutomaticPlanner.vue';
 import TableBuilder from '@/components/chainFinder/ChainFinder.vue';
 import ChainFinder from '@/components/instantSearch/InstantSearch.vue';
 import { useSalesStore } from '@/stores/sales';
+import { useInstantSearchStore } from '@/stores/instantSearch';
 import { hashID, saveMetadata, loadMetadata } from '@/lib/storage/db';
 import { useActionExecutor } from '@/composables/useActionExecutor';
 import { usePersistence } from '@/composables/usePersistence';
@@ -629,6 +630,7 @@ const fuelTankStore = useFuelTankStore();
 const truthEggsStore = useTruthEggsStore();
 const eventsStore = useEventsStore();
 const salesStore = useSalesStore();
+const chainFinderStore = useInstantSearchStore();
 
 const notesStore = useNotesStore();
 const { prepareExecution, completeExecution } = useActionExecutor();
@@ -958,10 +960,12 @@ async function handleAutoPlannerTabClick() {
   }
 }
 
-/** The Chain Finder reads the loaded save's egg counts only, so switching to it loads nothing. */
+/** The Chain Finder starts from the player's latest backup, so switching to it fetches one (for that tab
+ *  only: the rest of the page keeps the save it loaded). */
 function handleChainFinderTabClick() {
   plannerTab.value = 'chainFinder';
   isHeaderCollapsed.value = true;
+  chainFinderStore.refreshBackup();
 }
 
 /** The Table Builder doesn't use the player's plan or backup, so switching to it loads nothing either. */

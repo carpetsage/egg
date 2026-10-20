@@ -12,6 +12,7 @@ export type InstantSearchRequest =
 
 export type InstantSearchResponse =
   | { type: 'loaded'; requestId: number; header: TableHeader }
-  | { type: 'progress'; requestId: number; done: number; of: number }
+  /** `stage` 'waits': the routes found, their prestiges' waits being worked out (`waitForEggs`). */
+  | { type: 'progress'; requestId: number; done: number; of: number; stage?: 'waits' }
   | { type: 'result'; requestId: number; found: FoundRoutes; ms: number }
   | { type: 'error'; requestId: number; message: string };
