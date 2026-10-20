@@ -4,7 +4,6 @@ import type {
   ResearchLevels,
   VirtueEgg,
   CurrentFarmState,
-  VehicleSlot,
   ActiveMissionInfo,
 } from '@/types';
 import { ei, Mission } from 'lib';
@@ -25,7 +24,7 @@ import {
   getOptimalEarningsSet,
   getOptimalELRSet,
 } from '@/lib/artifacts';
-import { countTEThresholdsPassed } from '@/lib/truthEggs';
+import { parseVirtueFarm, parseVirtueProgress } from '@/lib/backupVirtue';
 import { useTruthEggsStore, VIRTUE_TE_ORDER } from './truthEggs';
 import { useFuelTankStore } from './fuelTank';
 
@@ -252,28 +251,9 @@ export const useInitialStateStore = defineStore('initialState', {
         this.setActiveArtifactSet('elr');
       }
 
-      // Parse TE data from eovEarned array
-      // Indices 0-4 map to: Curiosity, Integrity, Humility, Resilience, Kindness
-      const eovEarned = backup.virtue?.eovEarned ?? [];
-      const teEarnedPerEgg: Record<VirtueEgg, number> = {
-        curiosity: eovEarned[0] ?? 0,
-        integrity: eovEarned[1] ?? 0,
-        humility: eovEarned[2] ?? 0,
-        resilience: eovEarned[3] ?? 0,
-        kindness: eovEarned[4] ?? 0,
-      };
+      // Claimed TE, eggs delivered and pending TE per egg (lib/backupVirtue.ts)
+      const { teEarned: teEarnedPerEgg, eggsDelivered, tePending: tePendingPerEgg } = parseVirtueProgress(backup);
       const initialTE = Object.values(teEarnedPerEgg).reduce((sum, val) => sum + val, 0);
-
-      // Parse eggs delivered data
-      // Indices 0-4 map to: Curiosity, Integrity, Humility, Resilience, Kindness
-      const eggsDeliveredArray = backup.virtue?.eggsDelivered ?? [];
-      const eggsDelivered: Record<VirtueEgg, number> = {
-        curiosity: eggsDeliveredArray[0] ?? 0,
-        integrity: eggsDeliveredArray[1] ?? 0,
-        humility: eggsDeliveredArray[2] ?? 0,
-        resilience: eggsDeliveredArray[3] ?? 0,
-        kindness: eggsDeliveredArray[4] ?? 0,
-      };
 
       // Parse fuel tank data
       const tankLevel = backup.artifacts?.tankLevel ?? 0;
@@ -293,77 +273,10 @@ export const useInitialStateStore = defineStore('initialState', {
       this.initialEggsDelivered = { ...eggsDelivered };
       this.initialTeEarned = { ...teEarnedPerEgg };
 
-      // Calculate pending TE based on delivered vs earned
-      // Pending = (Theoretical TE from delivered) - (Actual Earned TE)
-      const tePendingPerEgg: Record<VirtueEgg, number> = {
-        curiosity: 0,
-        integrity: 0,
-        humility: 0,
-        resilience: 0,
-        kindness: 0,
-      };
-
-      for (const [egg, delivered] of Object.entries(eggsDelivered) as [VirtueEgg, number][]) {
-        const theoreticalTE = countTEThresholdsPassed(delivered);
-        const earned = teEarnedPerEgg[egg];
-        tePendingPerEgg[egg] = Math.max(0, theoreticalTE - earned);
-      }
-
       this.initialTePending = { ...tePendingPerEgg };
 
       // Load current farm state if on a virtue egg (IDs 50-54)
-      this.currentFarmState = null;
-      if (backup.farms && backup.farms.length > 0) {
-        // Find the active virtue farm (IDs 50-54)
-        const farm = backup.farms.find(f => f.eggType && f.eggType >= 50 && f.eggType <= 54);
-        
-        if (farm) {
-          const commonResearches: ResearchLevels = {};
-          const rawResearch = farm.commonResearch || [];
-          for (const r of rawResearch) {
-            if (r.id && r.level !== null && r.level !== undefined) {
-              commonResearches[r.id] = r.level;
-            }
-          }
-
-          // Parse habs (can be numbers or objects with type field)
-          const habs: (number | null)[] = (farm.habs || []).map(h => {
-            return (h as number) === 19 ? null : (h as number);
-          });
-          // Ensure at least 4 slots for consistency
-          while (habs.length < 4) habs.push(null);
-
-          // Parse vehicles (can be numbers with farm.trainLength or objects)
-          const rawVehicles = farm.vehicles || [];
-          const trainLength = farm.trainLength || [];
-          const vehicles: VehicleSlot[] = rawVehicles.map((v, idx: number) => {
-            return {
-              vehicleId: v as number | null,
-              trainLength: trainLength[idx] || 1,
-            };
-          });
-
-          // Calculate population from hab populations if available, otherwise use numChickens
-          let population = farm.numChickens || 0;
-          if (farm.habPopulation && Array.isArray(farm.habPopulation)) {
-            population = farm.habPopulation.reduce((sum: number, p: number) => sum + (p || 0), 0);
-          }
-
-          this.currentFarmState = {
-            eggType: farm.eggType as number,
-            cash: farm.unclaimedCash || Math.max(0, (farm.cashEarned || 0) - (farm.cashSpent || 0)),
-            numSilos: farm.silosOwned || 1,
-            commonResearches,
-            habs,
-            vehicles,
-            population,
-            deliveredEggs: farm.eggsLaid || 0,
-            lastStepTime: farm.lastStepTime || 0,
-            cashEarned: farm.cashEarned || 0,
-            cashSpent: farm.cashSpent || 0,
-          };
-        }
-      }
+      this.currentFarmState = parseVirtueFarm(backup);
 
       // Return virtue and tank data
       return {

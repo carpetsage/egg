@@ -1,0 +1,225 @@
+<template>
+  <div class="section-premium p-4 sm:p-8 max-w-4xl mx-auto mt-4">
+    <div class="flex items-center gap-4 mb-6">
+      <div
+        class="w-12 h-12 bg-emerald-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-emerald-200"
+      >
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+        </svg>
+      </div>
+      <h2 class="text-xl font-black text-slate-900 uppercase tracking-tight">Chain Finder</h2>
+    </div>
+
+    <p class="text-xs text-slate-500 mb-6">
+      Every ascension a maxed account can make was simulated ahead of time, from every TE at every hour of the week, so
+      finding a route is arithmetic: it tries every stop at every TE, with up to {{ MAX_ASCENSIONS }} ascensions. Every
+      prestige is a fresh build on the next whole hour, on maxed gear (not adjusted for yours).
+    </p>
+
+    <fieldset :disabled="store.status === 'running'" class="space-y-6 disabled:opacity-50">
+      <section>
+        <h3 class="text-sm font-bold text-slate-800 mb-2">Target</h3>
+        <SegmentedToggle v-model="store.mode" :options="targetModes" class="mb-3" />
+        <label v-if="store.mode === 'te'" class="block text-xs text-slate-600">
+          Reach
+          <input
+            v-model.number="store.targetTE"
+            type="number"
+            :min="store.startTE + 1"
+            :max="MAX_TE"
+            class="input-premium mx-1 w-28 text-sm font-mono-premium font-bold text-slate-900 py-2.5 px-4"
+          />
+          TE as soon as possible
+        </label>
+        <div v-else class="text-xs text-slate-600 space-y-2">
+          <div>The highest TE by</div>
+          <div class="flex flex-col md:flex-row md:flex-wrap md:items-center gap-2">
+            <DateTimeZonePicker
+              v-model:date="store.deadlineDate"
+              v-model:time="store.deadlineTime"
+              v-model:timezone="store.timezone"
+            />
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h3 class="text-sm font-bold text-slate-800 mb-2">Start</h3>
+        <SegmentedToggle v-model="startMode" :options="startModes" class="mb-3" />
+
+        <template v-if="store.fromSave">
+          <div
+            v-if="store.current"
+            class="rounded-xl border border-indigo-200 bg-indigo-50/70 px-4 py-3 text-xs text-indigo-900"
+          >
+            <div class="flex flex-wrap items-start gap-3">
+              <div class="flex-1 min-w-[16rem]">
+                <span class="font-black">Current ascension detected:</span>
+                {{ store.current.claimedTE }} TE claimed + {{ store.current.pendingTE }} pending |
+                {{ formatNumber(store.current.elr * 3600) }}/hr delivery rate |
+                {{ formatNumber(store.current.catchUpEggs) }} eggs laid since last sync accounted for.
+              </div>
+              <RefreshBackupButton />
+            </div>
+            <div class="mt-0.5 text-[11px] text-indigo-700/80">
+              On {{ VIRTUE_EGG_NAMES[store.current.egg] }}.
+              <template v-if="store.current.pendingTE > store.current.pendingAtBackup">
+                {{ store.current.pendingAtBackup }} pending in the backup, +{{
+                  store.current.pendingTE - store.current.pendingAtBackup
+                }}
+                from the eggs laid since.
+              </template>
+              <template v-if="store.current.lastSync">
+                Backup from {{ showTime(store.current.lastSync) }} ({{ formatDuration(syncAge) }} ago).
+              </template>
+              <template v-else>No backup time in the save, so nothing was added for time since.</template>
+            </div>
+            <div class="mt-1 text-[11px] text-indigo-700/80">
+              The first step continues this ascension or prestiges now, whichever reaches each stop sooner.
+            </div>
+          </div>
+          <div v-else class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-600">
+            No ascension in progress in your save ({{ store.saveTE }} TE), so every route starts with a prestige on
+            the next whole hour.
+            <RefreshBackupButton class="ml-2" />
+          </div>
+        </template>
+
+        <div v-else class="space-y-2 text-xs text-slate-600">
+          <div class="flex flex-col md:flex-row md:flex-wrap md:items-center gap-2">
+            <DateTimeZonePicker
+              v-model:date="store.hypotheticalDate"
+              v-model:time="store.hypotheticalTime"
+              v-model:timezone="store.timezone"
+            />
+          </div>
+          <label class="block">
+            Prestige at
+            <input
+              v-model.number="hypotheticalTE"
+              type="number"
+              :min="store.header?.from"
+              :max="store.header?.to"
+              class="input-premium mx-1 w-28 text-sm font-mono-premium font-bold text-slate-900 py-2.5 px-4"
+            />
+            TE
+          </label>
+          <p class="text-[11px] text-slate-400">
+            Ignores your save: a fresh prestige on the first whole hour from then, with each egg's count exactly on its
+            last threshold.
+          </p>
+        </div>
+      </section>
+
+      <InstantSearchFilters />
+    </fieldset>
+
+    <div class="mt-6 flex flex-wrap items-center gap-3">
+      <button
+        class="px-5 py-2.5 rounded-xl bg-emerald-600 text-white text-[11px] font-black uppercase tracking-[0.15em] shadow-lg shadow-emerald-100 hover:bg-emerald-700 disabled:opacity-50"
+        :disabled="store.status === 'running' || store.tableStatus === 'loading' || !!store.problem"
+        @click="store.search()"
+      >
+        {{ store.status === 'running' ? 'Searching…' : 'Find routes' }}
+      </button>
+      <span v-if="store.status === 'running' && store.progress" class="text-xs text-slate-500">
+        {{ store.progress.done }} of {{ store.progress.of }} ascension counts done…
+      </span>
+      <span v-else-if="store.problem" class="text-xs text-amber-700">{{ store.problem }}</span>
+    </div>
+
+    <div class="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-slate-400">
+      <template v-if="store.tableStatus === 'loading'">Loading the table…</template>
+      <template v-else-if="store.header">
+        Table: {{ store.tableSource }} · start TE {{ store.header.from }}–{{ store.header.to }} · simulator
+        {{ store.header.simVersion ?? 'unstamped' }}
+      </template>
+      <label class="cursor-pointer font-bold text-emerald-700 hover:underline">
+        Load a table file…
+        <input type="file" accept=".bin,.gz" class="hidden" @change="onFile" />
+      </label>
+    </div>
+
+    <p v-if="store.error" class="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700">
+      {{ store.error }}
+    </p>
+
+    <InstantSearchResults v-if="store.answer" :answer="store.answer" class="mt-6" />
+  </div>
+</template>
+
+<script setup lang="ts">
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import InstantSearchResults from './InstantSearchResults.vue';
+import InstantSearchFilters from './InstantSearchFilters.vue';
+import RefreshBackupButton from './RefreshBackupButton.vue';
+import SegmentedToggle from './SegmentedToggle.vue';
+import DateTimeZonePicker from '@/components/DateTimeZonePicker.vue';
+import {
+  MAX_ASCENSIONS,
+  MAX_TE,
+  useInstantSearchStore,
+  type InstantTargetMode,
+  type StartMode,
+} from '@/stores/instantSearch';
+import { useInitialStateStore } from '@/stores/initialState';
+import { formatDuration, formatNumber } from '@/lib/format';
+import { VIRTUE_EGG_NAMES } from '@/types';
+
+const store = useInstantSearchStore();
+const initialState = useInitialStateStore();
+
+// The current ascension is read on opening the tab and whenever another save is loaded; its catch-up
+// is worked out again when a search starts.
+onMounted(() => store.detect());
+watch(
+  () => initialState.rawBackup,
+  () => store.onSaveLoaded()
+);
+
+/** Ticks once a minute so "last sync … ago" stays current. */
+const now = ref(Date.now() / 1000);
+const timer = setInterval(() => (now.value = Date.now() / 1000), 60_000);
+onUnmounted(() => clearInterval(timer));
+const syncAge = computed(() => Math.max(0, now.value - (store.current?.lastSync ?? now.value)));
+
+const showTime = (unix: number) =>
+  new Date(unix * 1000).toLocaleString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZone: store.timezone,
+  });
+
+const targetModes: { id: InstantTargetMode; label: string }[] = [
+  { id: 'te', label: 'Target TE' },
+  { id: 'date', label: 'By a date' },
+];
+/** Right now needs a save; without one the start is hypothetical. */
+const startModes = computed<{ id: StartMode; label: string; disabled?: boolean }[]>(() => [
+  { id: 'now', label: 'Right now', disabled: store.saveTE === null },
+  { id: 'hypothetical', label: 'Hypothetical' },
+]);
+const startMode = computed({
+  get: () => (store.fromSave ? 'now' : 'hypothetical'),
+  set: (m: StartMode) => (store.startMode = m),
+});
+/** The hypothetical TE, shown as the save's until one is typed. */
+const hypotheticalTE = computed({
+  get: () => store.startTE,
+  set: (v: number) => (store.hypotheticalTE = Number.isFinite(v) ? v : null),
+});
+
+onMounted(() => {
+  if (store.tableStatus === 'idle') store.loadDefaultTable();
+});
+
+function onFile(event: Event) {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (file) store.loadFile(file);
+  input.value = '';
+}
+</script>

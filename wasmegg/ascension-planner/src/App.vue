@@ -4,7 +4,7 @@
   <div
     :class="[
       'min-h-screen bg-gray-100 transition-all duration-300',
-      plannerTab === 'automatic' || isFooterCollapsed ? 'pb-8' : 'pb-24',
+      plannerTab !== 'manual' || isFooterCollapsed ? 'pb-8' : 'pb-24',
     ]"
   >
     <div class="max-w-6xl mx-auto p-4">
@@ -33,7 +33,7 @@
             <div
               v-if="playerId && !loading"
               class="mt-6 flex justify-center animate-in fade-in slide-in-from-top-4 duration-500"
-              :class="plannerTab === 'automatic' ? 'pb-8' : ''"
+              :class="plannerTab !== 'manual' ? 'pb-8' : ''"
             >
               <div class="bg-slate-50 p-1.5 rounded-2xl border border-slate-200/50 shadow-sm flex gap-1">
                 <button
@@ -76,6 +76,44 @@
                   <span class="bg-indigo-500 text-[8px] px-1.5 py-0.5 rounded-md ml-1 border border-indigo-400/30"
                     >BETA</span
                   >
+                </button>
+                <button
+                  class="px-6 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-[0.15em] transition-all duration-300 flex items-center gap-2"
+                  :class="
+                    plannerTab === 'chainFinder'
+                      ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-100'
+                      : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
+                  "
+                  @click="handleChainFinderTabClick"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+                    />
+                  </svg>
+                  Chain Finder
+                </button>
+                <button
+                  class="px-6 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-[0.15em] transition-all duration-300 flex items-center gap-2"
+                  :class="
+                    plannerTab === 'tableBuilder'
+                      ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-100'
+                      : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
+                  "
+                  @click="handleTableBuilderTabClick"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M3 10h18M3 14h18M10 4v16M14 4v16M4 4h16a1 1 0 011 1v14a1 1 0 01-1 1H4a1 1 0 01-1-1V5a1 1 0 011-1z"
+                    />
+                  </svg>
+                  Table Builder
                 </button>
               </div>
             </div>
@@ -417,6 +455,14 @@
         <AutomaticPlanner />
       </div>
 
+      <div v-else-if="plannerTab === 'chainFinder'">
+        <ChainFinder />
+      </div>
+
+      <div v-else-if="plannerTab === 'tableBuilder'">
+        <TableBuilder />
+      </div>
+
       <!-- Undo Confirmation Dialog -->
       <UndoConfirmationDialog
         v-if="undoAction"
@@ -521,7 +567,7 @@ import ThePlayerIdForm from 'ui/components/PlayerIdForm.vue';
 import { useInitialStateStore } from '@/stores/initialState';
 import { useActionsStore } from '@/stores/actions';
 import { useVirtueStore } from '@/stores/virtue';
-import { useUIStore } from '@/stores/ui';
+import { useUIStore, tabFromSearch, searchWithTab, type PlannerTab } from '@/stores/ui';
 import { useFuelTankStore } from '@/stores/fuelTank';
 import { useTruthEggsStore } from '@/stores/truthEggs';
 import { useEventsStore } from '@/stores/events';
@@ -542,6 +588,10 @@ import LoadingOverlay from '@/components/LoadingOverlay.vue';
 import PlanLibrary from '@/components/PlanLibrary.vue';
 import PlanSelectionDialog from '@/components/PlanSelectionDialog.vue';
 import AutomaticPlanner from '@/components/auto/AutomaticPlanner.vue';
+// The Table Builder lives in components/chainFinder/ and the Chain Finder in components/instantSearch/
+// (their names before the tabs were renamed).
+import TableBuilder from '@/components/chainFinder/ChainFinder.vue';
+import ChainFinder from '@/components/instantSearch/InstantSearch.vue';
 import { useSalesStore } from '@/stores/sales';
 import { hashID, saveMetadata, loadMetadata } from '@/lib/storage/db';
 import { useActionExecutor } from '@/composables/useActionExecutor';
@@ -699,6 +749,10 @@ onMounted(async () => {
   ) {
     actionsStore.pushWaitForFullHabsAction();
   }
+
+  // Reopen the tab the URL names, once the saved plan and backup are back.
+  const urlTab = tabFromSearch(window.location.search);
+  if (urlTab !== 'manual') openTab(urlTab);
 });
 
 // Auto-save logic
@@ -903,6 +957,38 @@ async function handleAutoPlannerTabClick() {
     }
   }
 }
+
+/** The Chain Finder reads the loaded save's egg counts only, so switching to it loads nothing. */
+function handleChainFinderTabClick() {
+  plannerTab.value = 'chainFinder';
+  isHeaderCollapsed.value = true;
+}
+
+/** The Table Builder doesn't use the player's plan or backup, so switching to it loads nothing either. */
+function handleTableBuilderTabClick() {
+  plannerTab.value = 'tableBuilder';
+  isHeaderCollapsed.value = true;
+}
+
+/** Open a tab the way clicking it does (the Auto Planner sets itself up on the way in). */
+function openTab(tab: PlannerTab) {
+  if (tab === 'automatic') handleAutoPlannerTabClick();
+  else if (tab === 'chainFinder') handleChainFinderTabClick();
+  else if (tab === 'tableBuilder') handleTableBuilderTabClick();
+  else plannerTab.value = 'manual';
+}
+
+// The open tab lives in the URL (`?tab=`, stores/ui.ts), so a refresh or a shared link keeps it. Each
+// change is a history entry, so Back and Forward move between tabs.
+watch(plannerTab, tab => {
+  const search = searchWithTab(window.location.search, tab);
+  if (search !== window.location.search)
+    history.pushState(history.state, '', `${window.location.pathname}${search}${window.location.hash}`);
+});
+window.addEventListener('popstate', () => {
+  const tab = tabFromSearch(window.location.search);
+  if (tab !== plannerTab.value) openTab(tab);
+});
 
 /**
  * Load player data from the server when the player ID form is submitted.

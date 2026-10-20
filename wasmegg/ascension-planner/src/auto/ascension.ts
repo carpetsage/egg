@@ -16,6 +16,7 @@ import { runC3, type C3Params, type C3Variant } from './shifts/c3';
 import { runH1 } from './shifts/h1';
 import { runK3 } from './shifts/k3';
 import { runC4, runI2, runR2, runH2, runTEWaitShift, distributeTargetTE, solveTEDistributionForDeadline } from './shifts/te-wait';
+import { runMaxVehiclesPlan } from './shifts/helpers/vehicles';
 import { countSalesThrough, isResearchSaleActive, isEarningsBoostActive } from '@/lib/events';
 import { calculateArtifactModifiers } from '@/lib/artifacts';
 import { computeRealisticELR } from '@/calculations/realisticELR';
@@ -109,6 +110,15 @@ const allShifts: { name: string; run: ShiftRunner }[] = [
   { name: 'R2', run: runR2 },
   { name: 'H2', run: runH2 },
 ];
+
+// The egg each TE-earning shift waits on.
+const TE_SHIFT_EGGS: Record<string, VirtueEgg> = {
+  K3: 'kindness',
+  C4: 'curiosity',
+  I2: 'integrity',
+  R2: 'resilience',
+  H2: 'humility',
+};
 
 // Two-round openings tried (each from the ascension's empty starting farm) when a single C1 -> K1
 // -> I1 pass can't max habs. See `runC1K1I1Segment`.
@@ -479,8 +489,8 @@ export function runAscension(
 
   let skip = resumeData ? true : false;
   const ascShiftTimings: { name: string; ms: number }[] = [];
-  // Set once H1 finishes below — H1 and K3 are adjacent in `allShifts`, so "end of H1" and
-  // "start of K3" are the same instant.
+  // Set by H1 below, before any build-phase wait H1 takes over from K3 — H1 and K3 are adjacent in
+  // `allShifts`, so otherwise "end of H1" and "start of K3" are the same instant.
   let buildDurationSeconds = 0;
   // Eggs whose TE-earning shift (K3/C4/I2/R2/H2) has already run this ascension. Passed to
   // distributeTargetTE/solveTEDistributionForDeadline so they stop being candidates for the *next* shift's
@@ -508,6 +518,63 @@ export function runAscension(
     );
   }
 
+  // The egg whose TE-earning shift also waits out the build phase (K3's job, unless H1 takes it over).
+  let buildWaitEgg: VirtueEgg = 'kindness';
+
+  /** Runs one TE-earning shift on `egg` from `state`, `elapsedSeconds` into the ascension. */
+  const runTEEarningShift = (state: EngineState, egg: VirtueEgg, elapsedSeconds: number): ShiftResult => {
+    const currentTEs: Record<VirtueEgg, number> = {
+      curiosity: countTEThresholdsPassed(state.eggsDelivered['curiosity'] || 0),
+      integrity: countTEThresholdsPassed(state.eggsDelivered['integrity'] || 0),
+      resilience: countTEThresholdsPassed(state.eggsDelivered['resilience'] || 0),
+      humility: countTEThresholdsPassed(state.eggsDelivered['humility'] || 0),
+      kindness: countTEThresholdsPassed(state.eggsDelivered['kindness'] || 0),
+    };
+    const isBuildWait = egg === buildWaitEgg;
+
+    let peakELR = state.maxELR || 0;
+    if (isBuildWait && peakELR === 0) {
+      peakELR = calculatePeakELR(state, context);
+    }
+
+    // Two mutually exclusive goal modes: an explicit whole-ascension TE target (`targetTE`), or a
+    // hard end-time deadline (`targetEndTime`) — an end-date override recomputed fresh at every
+    // one of these 5 shifts, exactly like `targetTE`'s own `distributeTargetTE` call always was,
+    // so a shift's actual drift from its predicted share (e.g. K3 overshooting kindness while
+    // riding out the build phase's own mandatory wait) is absorbed by the next shift's recompute
+    // rather than compounding. `maxWaitSeconds` stays Infinity (a no-op clamp) in `targetTE` mode.
+    let targets: Record<VirtueEgg, number>;
+    let maxWaitSeconds = Infinity;
+
+    if (targetTE) {
+      // lockedEggs excludes eggs already processed by an earlier shift this ascension — see the
+      // comment on `lockedEggs` above for why that's required (bug: 2026-08-05, off-by-one-TE).
+      targets = distributeTargetTE(state.eggsDelivered, targetTE, lockedEggs);
+    } else if (targetEndTime) {
+      const remaining = Math.max(0, targetEndTime - (startTime + elapsedSeconds));
+      const dist = solveTEDistributionForDeadline(currentTEs, state.eggsDelivered, peakELR, remaining, lockedEggs);
+      targets = dist.targets;
+      maxWaitSeconds = remaining;
+      // This shift's own egg is the one with fractional leftover progress at the deadline: ask
+      // for one TE more than its last confirmed-affordable whole target. `solveTEDistributionForDeadline`
+      // already guarantees that request can't fully complete within `remaining`, so
+      // `runTEWaitShift`/`runK3`'s own `maxWaitSeconds` clamp is guaranteed to bind, landing
+      // exactly on the fractional `computeTEEarned` result rather than a whole extra threshold.
+      if (dist.partial && dist.partial.egg === egg) {
+        targets = { ...targets, [egg]: targets[egg] + 1 };
+      }
+    } else {
+      // No goal at all (shouldn't normally happen — every caller supplies one or the other):
+      // don't force any additional progress.
+      targets = currentTEs;
+    }
+
+    lockedEggs.push(egg);
+    return isBuildWait
+      ? runK3(state, context, buildPhaseEnd, targets[egg], maxWaitSeconds, egg)
+      : runTEWaitShift(state, context, egg, targets[egg], peakELR, maxWaitSeconds);
+  };
+
   for (const shift of allShifts) {
     if (skip) {
       if (shift.name === resumeData!.resumeShiftName) skip = false;
@@ -520,72 +587,31 @@ export function runAscension(
     let result: ShiftResult;
     if (shift.name === 'C3') {
       result = runC3(currentState, context, buildPhaseEnd, undefined, c3Params);
-    } else if (shift.name === 'K3' || shift.name === 'C4' || shift.name === 'I2' || shift.name === 'R2' || shift.name === 'H2') {
-      // For these shifts, we need the target TE split
-      const currentTEs: Record<VirtueEgg, number> = {
-        curiosity: countTEThresholdsPassed(currentState.eggsDelivered['curiosity'] || 0),
-        integrity: countTEThresholdsPassed(currentState.eggsDelivered['integrity'] || 0),
-        resilience: countTEThresholdsPassed(currentState.eggsDelivered['resilience'] || 0),
-        humility: countTEThresholdsPassed(currentState.eggsDelivered['humility'] || 0),
-        kindness: countTEThresholdsPassed(currentState.eggsDelivered['kindness'] || 0),
-      };
-
-      const activeEgg: VirtueEgg =
-        shift.name === 'K3' ? 'kindness' :
-        shift.name === 'C4' ? 'curiosity' :
-        shift.name === 'I2' ? 'integrity' :
-        shift.name === 'R2' ? 'resilience' : 'humility';
-
-      let peakELR = currentState.maxELR || 0;
-      if (shift.name === 'K3' && peakELR === 0) {
-        peakELR = calculatePeakELR(currentState, context);
-      }
-
-      // Two mutually exclusive goal modes: an explicit whole-ascension TE target (`targetTE`), or a
-      // hard end-time deadline (`targetEndTime`) — an end-date override recomputed fresh at every
-      // one of these 5 shifts, exactly like `targetTE`'s own `distributeTargetTE` call always was,
-      // so a shift's actual drift from its predicted share (e.g. K3 overshooting kindness while
-      // riding out the build phase's own mandatory wait) is absorbed by the next shift's recompute
-      // rather than compounding. `maxWaitSeconds` stays Infinity (a no-op clamp) in `targetTE` mode.
-      let targets: Record<VirtueEgg, number>;
-      let maxWaitSeconds = Infinity;
-
-      if (targetTE) {
-        // lockedEggs excludes eggs already processed by an earlier shift this ascension — see the
-        // comment on `lockedEggs` above for why that's required (bug: 2026-08-05, off-by-one-TE).
-        targets = distributeTargetTE(currentState.eggsDelivered, targetTE, lockedEggs);
-      } else if (targetEndTime) {
-        const remaining = Math.max(0, targetEndTime - (startTime + totalElapsedSeconds));
-        const dist = solveTEDistributionForDeadline(currentTEs, currentState.eggsDelivered, peakELR, remaining, lockedEggs);
-        targets = dist.targets;
-        maxWaitSeconds = remaining;
-        // This shift's own egg is the one with fractional leftover progress at the deadline: ask
-        // for one TE more than its last confirmed-affordable whole target. `solveTEDistributionForDeadline`
-        // already guarantees that request can't fully complete within `remaining`, so
-        // `runTEWaitShift`/`runK3`'s own `maxWaitSeconds` clamp is guaranteed to bind, landing
-        // exactly on the fractional `computeTEEarned` result rather than a whole extra threshold.
-        if (dist.partial && dist.partial.egg === activeEgg) {
-          targets = { ...targets, [activeEgg]: targets[activeEgg] + 1 };
-        }
+    } else if (shift.name === 'H1') {
+      const h1 = runH1(currentState, context);
+      buildDurationSeconds = totalElapsedSeconds + h1.elapsedSeconds;
+      // When C3 left no vehicles or train cars to buy, equipping the delivery set already reaches the
+      // peak delivery rate, so H1 does K3's build-phase wait on Humility rather than shifting to
+      // Kindness first. K3 then becomes a plain TE wait like C4, and H2 drops out (Humility is done).
+      const h1Shift = h1.actions.find(a => a.type === 'shift');
+      if (h1Shift?.type === 'shift' && !runMaxVehiclesPlan(h1.endState, context, Infinity).actions.some(isPurchase)) {
+        buildWaitEgg = 'humility';
+        h1.endState.lastStepTime = totalElapsedSeconds + h1.elapsedSeconds;
+        const wait = runTEEarningShift(h1.endState, 'humility', totalElapsedSeconds + h1.elapsedSeconds);
+        h1Shift.payload.peakELR = wait.endState.maxELR;
+        result = {
+          actions: [...h1.actions, ...wait.actions],
+          elapsedSeconds: h1.elapsedSeconds + wait.elapsedSeconds,
+          endState: wait.endState,
+        };
       } else {
-        // No goal at all (shouldn't normally happen — every caller supplies one or the other):
-        // don't force any additional progress.
-        targets = currentTEs;
+        result = h1;
       }
-
-      if (shift.name === 'K3') {
-        result = runK3(currentState, context, buildPhaseEnd, targets[activeEgg], maxWaitSeconds);
-      } else if (shift.name === 'C4') {
-        result = runC4(currentState, context, targets[activeEgg], peakELR, maxWaitSeconds);
-      } else if (shift.name === 'I2') {
-        result = runI2(currentState, context, targets[activeEgg], peakELR, maxWaitSeconds);
-      } else if (shift.name === 'R2') {
-        result = runR2(currentState, context, targets[activeEgg], peakELR, maxWaitSeconds);
-      } else {
-        result = runH2(currentState, context, targets[activeEgg], peakELR, maxWaitSeconds);
-      }
-
-      lockedEggs.push(activeEgg);
+    } else if (shift.name in TE_SHIFT_EGGS) {
+      const egg = TE_SHIFT_EGGS[shift.name];
+      result = lockedEggs.includes(egg)
+        ? { actions: [], elapsedSeconds: 0, endState: currentState }
+        : runTEEarningShift(currentState, egg, totalElapsedSeconds);
     } else {
       result = shift.run(currentState, context);
     }
@@ -603,7 +629,6 @@ export function runAscension(
     currentState = result.endState;
     totalElapsedSeconds += result.elapsedSeconds;
 
-    if (shift.name === 'H1') buildDurationSeconds = totalElapsedSeconds;
   }
 
   logShiftTimings(`Ascension ${id} (${resumeData ? `resume from ${resumeData.resumeShiftName}` : 'C1 to H2'})`, ascShiftTimings);

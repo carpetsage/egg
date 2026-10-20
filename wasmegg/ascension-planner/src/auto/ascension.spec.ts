@@ -1,8 +1,12 @@
 import { describe, expect, test } from 'vitest';
 import { modifiersFromColleggtibleTiers } from 'lib/collegtibles';
-import { runContinueCurrent } from './ascension';
+import { deriveNextStartState, runAscensionFromC3Variant, runContinueCurrent, runUntilShift } from './ascension';
 import { timeToEarnTE } from './te-thresholds';
-import type { EngineState, SimulationContext } from './types';
+import { runMaxVehiclesPlan } from './shifts/helpers/vehicles';
+import { maxedBaseState, maxedContext } from '@/buildTable/maxedAccount';
+import { contextAt, variantsFrom } from '@/buildTable/cell';
+import { TE_BREAKPOINTS } from '@/lib/truthEggs';
+import type { AscensionSummary, EngineState, SimulationContext } from './types';
 
 function fakeState(overrides: Partial<EngineState> = {}): EngineState {
   return {
@@ -114,4 +118,35 @@ describe('runContinueCurrent: targetEndTime (deadline) mode', () => {
     expect(summary.endTE).toBe(0);
     expect(summary.endTime).toBe(0);
   });
+});
+
+describe('runAscension: H1 takes over the build-phase wait when K3 has nothing to buy', () => {
+  test('waits on humility in H1, then K3/C4/I2/R2 only — no H2', () => {
+    const te = { curiosity: 39, integrity: 40, humility: 39, resilience: 39, kindness: 40 };
+    const delivered = Object.fromEntries(Object.entries(te).map(([e, n]) => [e, TE_BREAKPOINTS[n - 1]]));
+    const state = deriveNextStartState(
+      { finalTE: te, endSoulEggs: 1e30, endShiftCount: 0, eggsDelivered: delivered } as unknown as AscensionSummary,
+      maxedBaseState()
+    );
+    const start = 1_793_368_800; // 2026-10-30 08:00 America/Denver
+    const context = contextAt(maxedContext(), start);
+    const preC3 = runUntilShift(state, context, 'C3');
+    const variant = variantsFrom(preC3, context, 197)[0];
+    // Leave C3 with a full fleet, so K3 would have nothing to buy.
+    variant.result.endState.vehicles = runMaxVehiclesPlan(variant.result.endState, context, Infinity).endState.vehicles;
+
+    const { actions, summary } = runAscensionFromC3Variant(state, preC3, variant, context, start, 'a', 401);
+
+    const shifts = actions.filter(a => a.type === 'shift');
+    const names = shifts.map(a => (a.type === 'shift' ? a.payload.autoShiftName : undefined));
+    expect(names.slice(-5)).toEqual(['H1', 'K3', 'C4', 'I2', 'R2']);
+
+    const h1 = shifts.find(a => a.type === 'shift' && a.payload.autoShiftName === 'H1')!;
+    const k3 = shifts.find(a => a.type === 'shift' && a.payload.autoShiftName === 'K3')!;
+    const h1Actions = actions.slice(actions.indexOf(h1), actions.indexOf(k3));
+    expect(h1.type === 'shift' && h1.payload.peakELR).toBeGreaterThan(0);
+    expect(h1Actions.some(a => a.type === 'wait_for_te' && a.payload.egg === 'humility')).toBe(true);
+    expect(summary.endTE).toBe(401);
+    expect(summary.endTime).toBeGreaterThanOrEqual(variant.buildPhaseEnd);
+  }, 60000);
 });
