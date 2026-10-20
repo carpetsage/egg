@@ -1,13 +1,25 @@
 <template>
   <div class="rounded-2xl border border-emerald-200 bg-white p-4 sm:p-6">
-    <div class="flex flex-wrap items-center gap-3 mb-3">
+    <div class="flex flex-wrap items-center gap-3" :class="store.answerCollapsed ? '' : 'mb-3'">
+      <button
+        v-if="store.comparison"
+        type="button"
+        class="text-slate-400 hover:text-slate-700"
+        :aria-expanded="!store.answerCollapsed"
+        @click="store.answerCollapsed = !store.answerCollapsed"
+      >
+        {{ store.answerCollapsed ? '›' : '⌄' }}
+      </button>
       <h3 class="text-lg font-black text-slate-900">Instant answer</h3>
       <span
         class="text-[10px] font-black uppercase tracking-widest text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md"
         >precomputed</span
       >
+      <span v-if="store.answerCollapsed && lead" class="text-xs text-slate-500">{{ chainText(lead) }}</span>
       <span class="ml-auto text-[11px] text-slate-400">{{ answer.found.checked.toLocaleString() }} routes checked in {{ (answer.ms / 1000).toFixed(1) }} s</span>
     </div>
+
+    <template v-if="!store.answerCollapsed">
 
     <div v-if="filterNote" class="mb-4 text-[11px] text-slate-500">{{ filterNote }}</div>
     <div
@@ -148,11 +160,25 @@
                   New tab: these targets, start, waits and builds{{ answer.siloMode ? ', silo mode on' : '' }}
                 </span>
               </div>
+              <div class="ml-5 mt-2 flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  class="rounded-lg border border-indigo-200 bg-white px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-indigo-700 hover:bg-indigo-50 disabled:opacity-50"
+                  :disabled="store.status === 'running'"
+                  @click="store.exploreSimilar(route)"
+                >
+                  Explore similar plans
+                </button>
+                <span class="text-[10px] text-slate-400">
+                  Every {{ count(route) }}-ascension chain close to this one, to filter down and compare
+                </span>
+              </div>
             </td>
           </tr>
         </template>
       </tbody>
     </table>
+    </template>
   </div>
 </template>
 

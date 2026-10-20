@@ -228,7 +228,7 @@ function startInSale(table: BuildLookup, te: number, t: number): { lateBy: numbe
 /** One ascension from `te` at `t` to `target`: from the next whole hour's cell, `farm` laying on
  *  until then, or from this hour's inside the sale, at once; whichever ends sooner. `from` and
  *  `startDelivered`: the TE and counts the chosen build starts from. */
-function priceLeg(
+export function priceLeg(
   table: BuildLookup,
   te: number,
   t: number,
@@ -296,7 +296,7 @@ interface Label {
  * it covers that. With a wait that adds TE, `terminal` is the stop as reached, for By a date to end
  * on (the held arrival is filed at the higher TE and its leg still says what was reached when).
  */
-function settleArrival(
+export function settleArrival(
   endTE: number,
   end: number,
   eggs: number[],
@@ -349,7 +349,7 @@ const KEEP = 6;
  * (AutoAutoAP measured no fastest route with a stop above 338 over 650 routes). A route can still END
  * above it.
  */
-const USEFUL_STOP_MAX = 360;
+export const USEFUL_STOP_MAX = 360;
 
 type Kept<T> = T & { time: number; delivered: number[] };
 
@@ -369,7 +369,7 @@ function keepUnbeaten<T>(list: Kept<T>[] | undefined, item: Kept<T>): Kept<T>[] 
  * Sweeps kept across a search's steps (the same counts at the same TE and hour come back at other
  * numbers of ascensions), held to a memory budget, least recently used out first.
  */
-class SweepCache {
+export class SweepCache {
   private map = new Map<string, TailSweep>();
   private bytes = 0;
   constructor(private readonly maxBytes = 512 * 1024 * 1024) {}
@@ -397,7 +397,7 @@ class SweepCache {
   }
 }
 
-interface Arrival {
+export interface Arrival {
   id: number;
   te: number;
   time: number;
@@ -419,9 +419,98 @@ interface Candidate {
   farm?: Farm;
 }
 
+/** What `legsFrom` hands over for each stop: the leg, the farm it leaves laying, and where the route
+ *  stands for its next prestige (`settleArrival`). `eggs` is reused between calls: copy to keep it. */
+export interface LegOffer {
+  leg: RouteLeg;
+  farm: Farm;
+  eggs: number[];
+  settled: NonNullable<ReturnType<typeof settleArrival>>;
+}
+
 /**
- * Carry each arrival one ascension further: every stop above it, from the table's builds for its TE
- * and start hour moved onto its egg counts, keeping per end TE only what nothing beats.
+ * Every stop above an arrival, one ascension on: from the table's builds for its TE and start hour
+ * moved onto its egg counts (or at once inside the sale, whichever ends sooner), each told to `visit`.
+ * `keepHighEnds`: offer stops above USEFUL_STOP_MAX that are not `top` too. `highest`: offer no stop
+ * above it (the sweeps stop there too, which is most of the work).
+ */
+export function legsFrom(
+  table: BuildLookup,
+  top: number,
+  keepHighEnds: boolean,
+  item: Arrival,
+  cache: SweepCache,
+  avoid: Blocked | undefined,
+  visit: (offer: LegOffer) => void,
+  highest = top
+): void {
+  const reach = Math.min(top, highest);
+  const sweepOf = (b: BuildParams, key: string, lateBy: number, lowest: number): TailSweep => {
+    let sw = cache.get(key);
+    if (!sw) {
+      sw = sweepTails(b, reach, lateBy, lowest);
+      cache.set(key, sw);
+    }
+    return sw;
+  };
+  const scratch = [0, 0, 0, 0, 0];
+  if (item.stop !== undefined && item.stop > USEFUL_STOP_MAX) return;
+  const te = item.te;
+  const startAt = prestigeAt(item.time, avoid);
+  // Held here only at the plan start; later holds were settled on arrival (`settleArrival`).
+  const held = item.held || startAt !== nextHour(item.time);
+  // On the hour, the farm lays on until the prestige (a held arrival is there already); inside the
+  // sale, the build can start at once.
+  const onEggs = laidOn(item.delivered, item.farm, startAt - item.time);
+  const onTE = Math.max(te, teOf(onEggs));
+  const raw = table(onTE, pacificHourOfWeek(startAt)) ?? [];
+  // At once inside the sale, unless that moment is an avoided one.
+  const late =
+    startAt !== item.time && nextAllowed(item.time, avoid) === item.time ? startInSale(table, te, item.time) : null;
+  if (!raw.length && !late) return;
+  const builds = raw.map(b => rebase(b, onTE, onEggs));
+  const exactOn = exactTE(onEggs);
+  const exactLate = exactTE(item.delivered);
+  const countsKey = `${onTE}|${startAt}|${onEggs.join(',')}|${reach}|`;
+  const sweeps = builds.map((b, j) => sweepOf(b, countsKey + j, 0, onTE + 1));
+  const lateBuilds = late ? late.builds.map(b => rebase(b, te, item.delivered)) : [];
+  const lateKey = `${te}|${item.time}|${item.delivered.join(',')}|${reach}|late|`;
+  const lateSweeps = lateBuilds.map((b, j) => sweepOf(b, lateKey + j, late!.lateBy, te + 1));
+  for (let target = te + 1; target <= reach; target++) {
+    // A stop above the cap that is not the target leads nowhere (it is never continued from).
+    if (target > USEFUL_STOP_MAX && target < top && !keepHighEnds) continue;
+    const onHour = fastest(sweeps, builds, target);
+    const early = late ? fastest(lateSweeps, lateBuilds, target) : null;
+    const takeEarly =
+      !!early && (!onHour || item.time + early.sweep.seconds[early.i] < startAt + onHour.sweep.seconds[onHour.i]);
+    const pick = takeEarly ? early : onHour;
+    if (!pick) continue;
+    const { sweep, build, i } = pick;
+    const legStart = takeEarly ? item.time : startAt;
+    const end = legStart + sweep.seconds[i];
+    const endTE = sweep.endTE[i];
+    sweep.deliveredInto(i, scratch);
+    const leg: RouteLeg = {
+      from: takeEarly ? te : onTE,
+      to: target,
+      endTE,
+      start: legStart,
+      end,
+      sales: build.sales,
+      tier13: build.tier13,
+      rate: build.peakELR,
+      exactFrom: takeEarly ? exactLate : exactOn,
+      exactEnd: exactTE(scratch),
+      ...(held && !takeEarly ? { held: true } : {}),
+    };
+    const farm = farmAfter(build, scratch);
+    const settled = settleArrival(endTE, end, scratch.slice(), farm, top, avoid);
+    if (settled) visit({ leg, farm, eggs: scratch, settled });
+  }
+}
+
+/**
+ * Carry each arrival one ascension further (`legsFrom`), keeping per end TE only what nothing beats.
  */
 function expandArrivals(
   table: BuildLookup,
@@ -449,72 +538,12 @@ function expandArrivals(
     }
     return false;
   };
-  const sweepOf = (b: BuildParams, key: string, lateBy: number, lowest: number): TailSweep => {
-    let sw = cache.get(key);
-    if (!sw) {
-      sw = sweepTails(b, top, lateBy, lowest);
-      cache.set(key, sw);
-    }
-    return sw;
-  };
-  const scratch = [0, 0, 0, 0, 0];
 
-  for (const item of items) {
-    if (item.stop !== undefined && item.stop > USEFUL_STOP_MAX) continue;
-    const te = item.te;
-    const startAt = prestigeAt(item.time, avoid);
-    // Held here only at the plan start; later holds were settled on arrival (`settleArrival`).
-    const held = item.held || startAt !== nextHour(item.time);
-    // On the hour, the farm lays on until the prestige (a held arrival is there already); inside the
-    // sale, the build can start at once.
-    const onEggs = laidOn(item.delivered, item.farm, startAt - item.time);
-    const onTE = Math.max(te, teOf(onEggs));
-    const raw = table(onTE, pacificHourOfWeek(startAt)) ?? [];
-    // At once inside the sale, unless that moment is an avoided one.
-    const late =
-      startAt !== item.time && nextAllowed(item.time, avoid) === item.time ? startInSale(table, te, item.time) : null;
-    if (!raw.length && !late) continue;
-    const builds = raw.map(b => rebase(b, onTE, onEggs));
-    const exactOn = exactTE(onEggs);
-    const exactLate = exactTE(item.delivered);
-    const countsKey = `${onTE}|${startAt}|${onEggs.join(',')}|`;
-    const sweeps = builds.map((b, j) => sweepOf(b, countsKey + j, 0, onTE + 1));
-    const lateBuilds = late ? late.builds.map(b => rebase(b, te, item.delivered)) : [];
-    const lateKey = `${te}|${item.time}|${item.delivered.join(',')}|late|`;
-    const lateSweeps = lateBuilds.map((b, j) => sweepOf(b, lateKey + j, late!.lateBy, te + 1));
-    for (let target = te + 1; target <= top; target++) {
-      // A stop above the cap that is not the target leads nowhere (it is never continued from).
-      if (target > USEFUL_STOP_MAX && target < top && !keepHighEnds) continue;
-      const onHour = fastest(sweeps, builds, target);
-      const early = late ? fastest(lateSweeps, lateBuilds, target) : null;
-      const takeEarly =
-        !!early && (!onHour || item.time + early.sweep.seconds[early.i] < startAt + onHour.sweep.seconds[onHour.i]);
-      const pick = takeEarly ? early : onHour;
-      if (!pick) continue;
-      const { sweep, build, i } = pick;
-      const legStart = takeEarly ? item.time : startAt;
-      const end = legStart + sweep.seconds[i];
-      const endTE = sweep.endTE[i];
-      sweep.deliveredInto(i, scratch);
-      const leg: RouteLeg = {
-        from: takeEarly ? te : onTE,
-        to: target,
-        endTE,
-        start: legStart,
-        end,
-        sales: build.sales,
-        tier13: build.tier13,
-        rate: build.peakELR,
-        exactFrom: takeEarly ? exactLate : exactOn,
-        exactEnd: exactTE(scratch),
-        ...(held && !takeEarly ? { held: true } : {}),
-      };
-      const farm = farmAfter(build, scratch);
-      const settled = settleArrival(endTE, end, scratch.slice(), farm, top, avoid);
-      if (!settled) continue;
+  for (const item of items)
+    legsFrom(table, top, keepHighEnds, item, cache, avoid, ({ leg, farm, eggs, settled }) => {
       if (settled.terminal)
-        terminals.push({ from: item.id, te: Math.min(endTE, top), time: end, delivered: scratch.slice(), leg });
-      if (beaten(settled.te, settled.time, settled.delivered)) continue;
+        terminals.push({ from: item.id, te: Math.min(leg.endTE, top), time: leg.end, delivered: eggs.slice(), leg });
+      if (beaten(settled.te, settled.time, settled.delivered)) return;
       lists.set(
         settled.te,
         keepUnbeaten(lists.get(settled.te), {
@@ -527,8 +556,7 @@ function expandArrivals(
           ...(settled.heldNext ? { heldNext: true } : {}),
         })
       );
-    }
-  }
+    });
   return { candidates: [...lists.keys()].sort((a, b) => a - b).flatMap(te => lists.get(te)!), terminals };
 }
 
@@ -761,7 +789,7 @@ export function findRoutes(table: BuildLookup, o: FindOptions): FoundRoutes {
   return { best, byAscensions, byDate, byDateByAscensions, checked };
 }
 
-function firstLeg(f: FirstLeg): RouteLeg {
+export function firstLeg(f: FirstLeg): RouteLeg {
   return {
     from: f.from,
     to: f.to,
@@ -1132,4 +1160,28 @@ export function polishFound(
     null
   );
   return { ...found, best, byAscensions, byDate, byDateByAscensions };
+}
+
+/** Chains of one kind (continuing first, or prestiging) priced under a search's options. */
+export interface ChainPricer {
+  /** As `findRoutes` prices it, no prestige waiting by choice; null when a stop is not above the TE
+   *  reached by then. */
+  price(chain: number[]): Route | null;
+  /** With `waitForEggs`, its waits found too (`holdRoute`); otherwise `price`. */
+  withWaits(chain: number[]): Route | null;
+}
+
+/** A `ChainPricer`, its first legs worked out once and its steps shared between chains. */
+export function chainPricer(table: BuildLookup, o: FindOptions, firstContinued: boolean): ChainPricer {
+  const firstLegs = o.cont ? firstLegOptions(table, { ...o, cont: o.cont }) : null;
+  const p: ChainPricing = { table, o, firstLegs, firstContinued, memo: new StepMemo() };
+  const ok = (r: Route) => o.deadline === undefined || r.end <= o.deadline;
+  return {
+    price: chain => priceChain(p, chain),
+    withWaits(chain) {
+      const r = priceChain(p, chain);
+      if (!r || !o.waitForEggs) return r;
+      return holdRoute(p, r, ok, chain.map(() => 0)).route;
+    },
+  };
 }

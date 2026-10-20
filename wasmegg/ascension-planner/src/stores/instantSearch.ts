@@ -6,10 +6,17 @@
  * The search itself runs on one Web Worker (workers/instantSearch.worker.ts) that keeps the table.
  */
 import { defineStore } from 'pinia';
-import { computed, ref, shallowRef } from 'vue';
+import { computed, markRaw, ref, shallowRef, watch } from 'vue';
 import { useInitialStateStore } from '@/stores/initialState';
 import { canonicalDelivered, EGG_ORDER } from '@/lib/instantSearch/precomputedLeg';
-import { mergeBlocked, type Blocked, type FoundRoutes } from '@/lib/instantSearch/routeFinder';
+import {
+  mergeBlocked,
+  type Blocked,
+  type FindOptions,
+  type FoundRoutes,
+  type Route,
+} from '@/lib/instantSearch/routeFinder';
+import { chainGaps, type SpaceFilter } from '@/lib/instantSearch/chainSpace';
 import { avoidBlocked, hoursBlocked } from '@/lib/instantSearch/blockedTime';
 import type { TableHeader } from '@/lib/instantSearch/table';
 import { readCurrentAscension, type CurrentAscension } from '@/lib/instantSearch/currentAscension';
@@ -20,7 +27,7 @@ import type { ei } from 'lib';
 import { countTEThresholdsPassed } from '@/lib/truthEggs';
 import { getLocalTimestampInTimezone, PACIFIC_TIMEZONE } from '@/lib/events';
 import { formatUnixToDateInput, formatUnixToTimeInput } from '@/lib/format';
-import type { InstantSearchRequest, InstantSearchResponse } from '@/workers/instantSearch.protocol';
+import type { InstantSearchRequest, InstantSearchResponse, SpaceSummary } from '@/workers/instantSearch.protocol';
 
 export type InstantTargetMode = 'te' | 'date';
 export type StartMode = 'now' | 'hypothetical';
@@ -63,6 +70,49 @@ export interface InstantAnswer {
   startDelivered: number[];
   /** The table was built in silo mode (its header's `deferForEarnings`). */
   siloMode: boolean;
+  /** What the worker was asked, for Chain comparison to price other plans the same way. */
+  options: Omit<FindOptions, 'onProgress'>;
+}
+
+/** A day at least one prestige should fall near: YYYY-MM-DD in the answer's zone, and how many days
+ *  either side count. */
+export interface PrestigeWindow {
+  date: string;
+  days: number;
+}
+
+/** Chain comparison's filters, as the page edits them. */
+export interface ExplorerFilter {
+  /** Most days slower than the explored route (as found, waits and all). */
+  slackDays: number;
+  /** TE between prestiges (chainSpace.ts `chainGaps`: the final ascension left out). */
+  minGap: number;
+  maxGap: number;
+  windows: PrestigeWindow[];
+}
+
+/** Chains are listed once no more than this many match. */
+export const SHOW_LIMIT = 200;
+/** Days slower than the fastest chain, to start with. */
+export const DEFAULT_SLACK_DAYS = 2;
+
+/** Chain comparison: every chain like one of the answer's routes, filtered down (chainSpace.ts). */
+export interface Comparison {
+  route: Route;
+  filter: ExplorerFilter;
+  /** Finding the chains ('finding'), or filtering them ('ready'). */
+  status: 'finding' | 'ready' | 'error';
+  progress: { stage: 'bound' | 'chains' | 'waits'; done: number; of: number } | null;
+  space: SpaceSummary | null;
+  /** Chains the filters let through, and those chains (no waits) once no more than SHOW_LIMIT. */
+  matches: number | null;
+  routes: Route[] | null;
+  /** The same chains with their waits for eggs, once worked out. */
+  waited: Route[] | null;
+  waits: 'none' | 'running' | 'done';
+  /** The worker's milliseconds per chain's waits: how many it will do at once. */
+  perWait: number;
+  error: string;
 }
 
 /** What the prestige filters are set to: compared to tell whether an answer is out of date. */
@@ -152,6 +202,9 @@ export const useInstantSearchStore = defineStore('instantSearch', () => {
   const progress = ref<{ done: number; of: number; stage?: 'waits' } | null>(null);
   const answer = shallowRef<InstantAnswer | null>(null);
   const error = ref('');
+  /** Chain comparison for one of the answer's routes, and whether the answer is folded away for it. */
+  const comparison = ref<Comparison | null>(null);
+  const answerCollapsed = ref(false);
 
   /** A backup fetched from this tab (`refreshBackup`), newer than the loaded save's. Only Instant
    *  Search reads it: the rest of the page keeps the save it loaded. */
@@ -300,7 +353,7 @@ export const useInstantSearchStore = defineStore('instantSearch', () => {
     // The save's real counts only when starting from the save's own TE; a typed start TE uses the
     // table's canonical share.
     const delivered = fromSave.value ? saveDelivered.value : null;
-    const asked: Omit<InstantAnswer, 'found' | 'ms'> = {
+    const asked: Omit<InstantAnswer, 'found' | 'ms' | 'options'> = {
       mode: mode.value,
       startTE: te,
       start: startAt(now),
@@ -315,6 +368,18 @@ export const useInstantSearchStore = defineStore('instantSearch', () => {
       siloMode: !!header.value?.deferForEarnings,
     };
     const avoid = anyBlocks(asked.blocks) ? blockedSpans(asked.blocks, asked.start) : [];
+    const options: InstantAnswer['options'] = {
+      startTE: asked.startTE,
+      start: asked.start,
+      final: asked.final,
+      maxAscensions: MAX_ASCENSIONS,
+      ...(asked.deadline !== undefined ? { deadline: asked.deadline } : {}),
+      ...(delivered ? { startDelivered: [...delivered] } : {}),
+      ...(cont ? { cont: { ...cont, delivered: [...cont.delivered] } } : {}),
+      ...(avoid.length ? { avoid } : {}),
+      ...(cont && current.value ? { contEgg: EGG_ORDER.indexOf(current.value.egg) } : {}),
+      ...(asked.waitForEggs ? { waitForEggs: true } : {}),
+    };
     const requestId = nextRequestId++;
     status.value = 'running';
     progress.value = null;
@@ -322,12 +387,14 @@ export const useInstantSearchStore = defineStore('instantSearch', () => {
     await new Promise<void>(resolve => {
       pending.set(requestId, r => {
         if (r.type === 'progress') {
-          progress.value = { done: r.done, of: r.of, ...(r.stage ? { stage: r.stage } : {}) };
+          progress.value = { done: r.done, of: r.of, ...(r.stage === 'waits' ? { stage: r.stage } : {}) };
           return;
         }
         pending.delete(requestId);
         if (r.type === 'result') {
-          answer.value = { ...asked, found: r.found, ms: r.ms };
+          answer.value = { ...asked, options, found: r.found, ms: r.ms };
+          comparison.value = null;
+          answerCollapsed.value = false;
           status.value = 'done';
         } else if (r.type === 'error') {
           status.value = 'error';
@@ -335,23 +402,144 @@ export const useInstantSearchStore = defineStore('instantSearch', () => {
         }
         resolve();
       });
-      send({
-        kind: 'search',
-        requestId,
-        options: {
-          startTE: asked.startTE,
-          start: asked.start,
-          final: asked.final,
-          maxAscensions: MAX_ASCENSIONS,
-          ...(asked.deadline !== undefined ? { deadline: asked.deadline } : {}),
-          ...(delivered ? { startDelivered: [...delivered] } : {}),
-          ...(cont ? { cont: { ...cont, delivered: [...cont.delivered] } } : {}),
-          ...(avoid.length ? { avoid } : {}),
-          ...(cont && current.value ? { contEgg: EGG_ORDER.indexOf(current.value.egg) } : {}),
-          ...(asked.waitForEggs ? { waitForEggs: true } : {}),
-        },
-      });
+      send({ kind: 'search', requestId, options });
     });
+  }
+
+  /** Open Chain comparison on one of the answer's routes, folding the answer away. Its filters start
+   *  from the route: its smallest and largest TE between prestiges. */
+  function exploreSimilar(route: Route): void {
+    const a = answer.value;
+    if (!a || status.value === 'running') return;
+    const gaps = chainGaps(route.chain, a.startTE);
+    // Routes and the worker's answers are never changed in place: kept raw, they post to the worker
+    // as they are (a reactive proxy can't be cloned) and aren't made deeply reactive for nothing.
+    comparison.value = {
+      route: markRaw(route),
+      filter: {
+        slackDays: DEFAULT_SLACK_DAYS,
+        minGap: gaps.length ? Math.min(...gaps) : 1,
+        maxGap: gaps.length ? Math.max(...gaps) : MAX_TE,
+        windows: [],
+      },
+      status: 'finding',
+      progress: null,
+      space: null,
+      matches: null,
+      routes: null,
+      waited: null,
+      waits: 'none',
+      perWait: 0,
+      error: '',
+    };
+    answerCollapsed.value = true;
+    findSpace();
+  }
+
+  /** The comparison open now, if it is still `c`. */
+  const still = (c: Comparison) => (comparison.value === c ? c : null);
+
+  let spaceRequest = -1;
+  /** Every chain the filters let through, found again (the worker keeps them for filtering). Only the
+   *  newest search counts: an older one still running is dropped when it answers. */
+  function findSpace(): void {
+    const a = answer.value;
+    const c = comparison.value;
+    if (!a || !c) return;
+    const requestId = (spaceRequest = nextRequestId++);
+    Object.assign(c, { status: 'finding', progress: null, matches: null, routes: null, waited: null, waits: 'none' });
+    pending.set(requestId, r => {
+      const live = spaceRequest === requestId ? still(c) : null;
+      if (r.type === 'progress') {
+        if (live && r.stage && r.stage !== 'waits') live.progress = { stage: r.stage, done: r.done, of: r.of };
+        return;
+      }
+      pending.delete(requestId);
+      if (!live) return;
+      live.progress = null;
+      if (r.type === 'space') {
+        live.space = markRaw(r.summary);
+        live.status = 'ready';
+        filterSpace();
+      } else if (r.type === 'error') Object.assign(live, { status: 'error', error: r.message });
+    });
+    send({ kind: 'space', requestId, options: a.options, route: c.route, filter: spaceFilter(c, a.timezone) });
+  }
+
+  let filterRequest = -1;
+  /** The filters as the worker reads them: the latest end from your plan's, windows as unix spans in
+   *  the answer's zone. */
+  function spaceFilter(c: Comparison, timezone: string): SpaceFilter {
+    const f = c.filter;
+    const windows = f.windows.flatMap(w => {
+      const day = getLocalTimestampInTimezone(w.date, '00:00', timezone);
+      const days = Math.max(0, Number(w.days) || 0);
+      return Number.isFinite(day) ? [[day - days * 86400, day + (days + 1) * 86400] as [number, number]] : [];
+    });
+    return {
+      limit: c.route.end + Math.max(0, Number(f.slackDays) || 0) * 86400,
+      minGap: Number.isFinite(f.minGap) ? f.minGap : 0,
+      maxGap: Number.isFinite(f.maxGap) ? f.maxGap : MAX_TE,
+      windows,
+    };
+  }
+
+  /** Apply the filters: in the worker's chains, or, when they let through anything the search left out
+   *  (more days slower, wider TE gaps, a window fewer), or it stopped early and they now ask for less,
+   *  after finding the chains again. */
+  function filterSpace(): void {
+    const a = answer.value;
+    const c = comparison.value;
+    if (!a || !c?.space || c.status === 'finding') return;
+    const f = spaceFilter(c, a.timezone);
+    const was = c.space.searched;
+    const span = (w: [number, number]) => w.join('-');
+    const wider =
+      f.limit > was.limit || f.minGap < was.minGap || f.maxGap > was.maxGap || was.windows.some(w => !f.windows.map(span).includes(span(w)));
+    if (wider || (c.space.capped && JSON.stringify(f) !== JSON.stringify(was))) return findSpace();
+    pending.delete(filterRequest);
+    const requestId = (filterRequest = nextRequestId++);
+    pending.set(requestId, r => {
+      const live = still(c);
+      if (!live || filterRequest !== requestId) return pending.delete(requestId);
+      if (r.type === 'progress') {
+        if (r.stage === 'waits') live.progress = { stage: 'waits', done: r.done, of: r.of };
+        return;
+      }
+      if (r.type === 'filtered') {
+        Object.assign(live, {
+          matches: r.matches,
+          routes: r.routes && markRaw(r.routes),
+          waited: null,
+          waits: r.waits ? 'running' : 'none',
+          perWait: r.perWait,
+          progress: null,
+        });
+        if (!r.waits) pending.delete(requestId);
+        return;
+      }
+      pending.delete(requestId);
+      live.progress = null;
+      if (r.type === 'waited') Object.assign(live, { waited: markRaw(r.routes), waits: 'done' });
+      else if (r.type === 'error') Object.assign(live, { status: 'error', error: r.message });
+    });
+    send({ kind: 'filter', requestId, filter: f, show: SHOW_LIMIT });
+  }
+
+  // Filtering again a moment after the filters stop changing.
+  let filterTimer: ReturnType<typeof setTimeout> | undefined;
+  watch(
+    () => comparison.value && JSON.stringify(comparison.value.filter),
+    (now, was) => {
+      if (!now || !was) return;
+      clearTimeout(filterTimer);
+      filterTimer = setTimeout(filterSpace, 300);
+    }
+  );
+
+  function closeComparison(): void {
+    comparison.value = null;
+    answerCollapsed.value = false;
   }
 
   return {
@@ -378,6 +566,10 @@ export const useInstantSearchStore = defineStore('instantSearch', () => {
     progress,
     answer,
     error,
+    comparison,
+    answerCollapsed,
+    exploreSimilar,
+    closeComparison,
     current,
     detect,
     backup,
