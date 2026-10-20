@@ -52,6 +52,8 @@ export interface InstantAnswer {
   timezone: string;
   /** A hypothetical start (a chosen TE and moment), not the save right now. */
   hypothetical: boolean;
+  /** The ascension in progress the routes start from (continued, or ended by prestiging now), or null. */
+  inProgress: { claimedTE: number } | null;
   /** The filters the search ran with (`blockFilters`): days to avoid and blocked weekly hours, in
    *  `timezone`. */
   blocks: BlockFilters;
@@ -292,6 +294,7 @@ export const useInstantSearchStore = defineStore('instantSearch', () => {
       ...(mode.value === 'date' ? { deadline: deadline.value } : {}),
       timezone: timezone.value,
       hypothetical: !fromSave.value,
+      inProgress: cont && current.value ? { claimedTE: current.value.claimedTE } : null,
       blocks: blockFilters.value,
     };
     const avoid = anyBlocks(asked.blocks) ? blockedSpans(asked.blocks, asked.start) : [];

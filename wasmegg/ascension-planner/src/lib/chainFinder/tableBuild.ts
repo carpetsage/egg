@@ -11,11 +11,14 @@ import { maxedContext } from '@/buildTable/maxedAccount';
 import { checkPacked, packTable, type Cell } from '@/buildTable/pack';
 import { allHours, prefixSourceFor, SEED_HOURS, type EventClass } from '@/buildTable/prefixReuse';
 import { cteBonusOf, type K3Record, type TaskResult } from '@/buildTable/task';
+import type { SimulationContext } from '@/auto/types';
 import { ChainFinderWorkerPool } from './workerPool';
 
 export interface TableBuildOptions {
   /** The fixed delivery structure (four artifact ids). */
   deliveryIds: string[];
+  /** Silo mode: the auto-planner's defer-for-earnings. */
+  deferForEarnings?: boolean;
   /** Start TEs to build. The file spans their min..max; TEs in between are left empty. */
   tes: number[];
   workers: number;
@@ -39,6 +42,9 @@ export interface TableBuildProgress {
   etaMs: number | null;
   workers: number;
   busyWorkers: number;
+  tesDone: number;
+  tesTotal: number;
+  /** Start TEs begun but not finished, highest first. */
   tes: TeProgress[];
 }
 
@@ -70,9 +76,11 @@ export function buildChainFinderTable(options: TableBuildOptions): Promise<Table
   return new Promise((resolve, reject) => {
     const t0 = performance.now();
     const builtAt = new Date().toISOString();
-    const pool = new ChainFinderWorkerPool(options.workers, options.deliveryIds);
+    const deferForEarnings = options.deferForEarnings ?? false;
+    const pool = new ChainFinderWorkerPool(options.workers, options.deliveryIds, deferForEarnings);
     const pending = [...tes];
     const jobs: TeJob[] = [];
+    const active = new Set<TeJob>();
     const cellsTotal = tes.length * WEEK_HOURS;
     let cellsDone = 0;
     let k3: K3Record | null = null;
@@ -100,10 +108,9 @@ export function buildChainFinderTable(options: TableBuildOptions): Promise<Table
         etaMs: cellsDone ? (elapsedMs / cellsDone) * (cellsTotal - cellsDone) : null,
         workers: pool.size,
         busyWorkers: pool.busyCount,
-        tes: tes.map(te => {
-          const job = jobs.find(j => j.te === te);
-          return { te, cellsDone: job?.cells.size ?? 0, reused: job?.reused ?? 0, fresh: job?.fresh ?? 0 };
-        }),
+        tesDone: jobs.length - active.size,
+        tesTotal: tes.length,
+        tes: [...active].map(j => ({ te: j.te, cellsDone: j.cells.size, reused: j.reused, fresh: j.fresh })),
       });
     };
 
@@ -113,7 +120,7 @@ export function buildChainFinderTable(options: TableBuildOptions): Promise<Table
       pool.terminate();
       const toError = (err: unknown) => (err instanceof Error ? err : new Error(String(err)));
       try {
-        const packed = pack(jobs, k3, options.deliveryIds, builtAt);
+        const packed = pack(jobs, k3, maxedContext(options.deliveryIds, deferForEarnings), builtAt);
         gzipBytes(packed.bytes).then(
           gzipped => resolve({ ...packed, gzipped, elapsedMs: performance.now() - t0 }),
           err => reject(toError(err))
@@ -128,6 +135,7 @@ export function buildChainFinderTable(options: TableBuildOptions): Promise<Table
       if (reused) job.reused++;
       else job.fresh++;
       cellsDone++;
+      if (job.cells.size === WEEK_HOURS) active.delete(job);
       report();
       finishIfDone();
     };
@@ -135,6 +143,7 @@ export function buildChainFinderTable(options: TableBuildOptions): Promise<Table
     const startTE = (te: number) => {
       const job: TeJob = { te, seeds: {}, cells: new Map(), reused: 0, fresh: 0 };
       jobs.push(job);
+      active.add(job);
       const classes = Object.keys(SEED_HOURS) as EventClass[];
       for (const cls of classes) {
         const h = SEED_HOURS[cls];
@@ -155,6 +164,8 @@ export function buildChainFinderTable(options: TableBuildOptions): Promise<Table
                 : undefined;
             pool.cell({ te, h: hh, prefix }, rr => record(job, hh, source.kind === 'reuse', rr));
           }
+          // The queued tasks hold their prefixes; drop ours so 370 TEs' seed states don't pile up.
+          job.seeds = {};
         });
       }
     };
@@ -176,7 +187,7 @@ export function buildChainFinderTable(options: TableBuildOptions): Promise<Table
 function pack(
   jobs: TeJob[],
   k3: K3Record,
-  deliveryIds: string[],
+  context: SimulationContext,
   builtAt: string
 ): Omit<TableBuildResult, 'gzipped' | 'elapsedMs'> {
   const cells = jobs.flatMap(j => [...j.cells.values()]).sort((a, b) => a.te - b.te || a.h - b.h);
@@ -186,7 +197,9 @@ function pack(
     {
       version: 1,
       referenceWeek: REFERENCE_WEEK,
-      cteBonus: cteBonusOf(maxedContext(deliveryIds)),
+      cteBonus: cteBonusOf(context),
+      doubleEarnings: context.assumeDoubleEarnings,
+      deferForEarnings: context.deferForEarningsMode,
       deliveryScore: 1,
       from,
       to,

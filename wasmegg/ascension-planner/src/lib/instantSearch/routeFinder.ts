@@ -173,6 +173,8 @@ export interface FoundRoutes {
   /** With `deadline`: the route to the highest TE in time, overall and for each count. */
   byDate: Route | null;
   byDateByAscensions: (Route | null)[];
+  /** Routes the search weighed: every arrival offered after each ascension, kept or beaten. */
+  checked: number;
 }
 
 /** The next whole hour at or after `t`. Pacific hours begin on UTC hour boundaries. */
@@ -470,8 +472,9 @@ function expandArrivals(
   return { candidates: [...lists.keys()].sort((a, b) => a - b).flatMap(te => lists.get(te)!), terminals };
 }
 
-/** Continue is not a candidate past this (AutoAutoAP's CONTINUE_MAX_SECONDS): a year on one farm
- *  is not a plan. */
+/** Continue is not a candidate past this on the way to a later stop (AutoAutoAP's
+ *  CONTINUE_MAX_SECONDS): a year on one farm is not a plan. Continuing to where the route ends is
+ *  always kept, however long, so the 1-ascension row says what not prestiging at all would take. */
 export const CONTINUE_MAX_SECONDS = 183 * 86400;
 
 /** The first ascension to one stop: where it ends, when, and whether it continued or prestiged. */
@@ -493,10 +496,13 @@ export interface FirstLeg {
 }
 
 /**
- * The first ascension to every stop above `startTE` (AutoAutoAP's `firstLegOptions`, its default
- * 'auto' first ascension): continuing the one in progress, from `start`, or a fresh build from the
- * table moved onto the real egg counts, on the next whole hour (or at once inside the sale), whichever
- * ends sooner. Ties go to the prestige, as the simulator's `pickVariant` meets the fresh variants first.
+ * The first ascension to every stop above `startTE`, both ways (after AutoAutoAP's `firstLegOptions`):
+ * continuing the one in progress, from `start`, and a fresh build from the table moved onto the real
+ * egg counts, on the next whole hour (or at once inside the sale, whichever ends sooner).
+ *
+ * Both are kept, because they count differently: prestiging now ends the ascension in progress, so
+ * it is an ascension of its own (`findRoutes` files a prestige-first route one count higher), where
+ * continuing it to the stop is that same ascension.
  */
 export function firstLegOptions(table: BuildLookup, o: FindOptions & { cont: BuildParams }): FirstLeg[] {
   const te = o.startTE;
@@ -546,13 +552,15 @@ export function firstLegOptions(table: BuildLookup, o: FindOptions & { cont: Bui
     const ci = target - contSweep.from;
     const contSeconds = ci >= 0 && ci < contSweep.seconds.length ? contSweep.seconds[ci] : NaN;
     let c: FirstLeg | null = null;
-    if (contSeconds <= CONTINUE_MAX_SECONDS) {
+    // Where the route can end: the target, or by a date anything reached in time.
+    const routeEnd = target === o.final || (o.deadline !== undefined && o.start + contSeconds <= o.deadline);
+    if (contSeconds <= CONTINUE_MAX_SECONDS || (routeEnd && Number.isFinite(contSeconds))) {
       const before = options.length;
       add(contSweep, ci, o.start, true, o.cont, te);
       c = options[before];
     }
-    const pick = c && (!f || c.end < f.end) ? c : f;
-    if (pick) out.push(pick);
+    if (f) out.push(f);
+    if (c) out.push(c);
   }
   return out;
 }
@@ -578,7 +586,9 @@ export function findRoutes(table: BuildLookup, o: FindOptions): FoundRoutes {
   arrivals[0].set(o.startTE, [
     label({ time: o.start, delivered: o.startDelivered ?? canonicalDelivered(o.startTE), prev: null, leg: null }),
   ]);
+  let checked = 0;
   const relax = (k: number, te: number, l: Omit<Label, 'id'>) => {
+    checked++;
     const list = arrivals[k].get(te);
     if (list?.some(x => dominates(x, l))) return;
     arrivals[k].set(te, keepUnbeaten(list, label(l)));
@@ -590,13 +600,19 @@ export function findRoutes(table: BuildLookup, o: FindOptions): FoundRoutes {
     o.onProgress?.(k, K);
     if (k === 0 && o.cont) {
       const start = arrivals[0].get(o.startTE)![0];
+      // The ascension in progress is the first: continuing it to a stop is one ascension; prestiging it
+      // now ends it, and the fresh build to the stop is a second.
       for (const f of firstLegOptions(table, { ...o, cont: o.cont })) {
+        const k1 = f.continued ? 1 : 2;
+        if (k1 > K) continue;
         const leg = firstLeg(f);
         const settled = settleArrival(f.endTE, f.end, f.delivered, f.farm, top, o.avoid);
         if (!settled) continue;
-        if (settled.terminal && keepHighEnds)
-          terminals[1].push(label({ time: f.end, delivered: f.delivered, prev: start, leg }));
-        relax(1, settled.te, {
+        if (settled.terminal && keepHighEnds) {
+          checked++;
+          terminals[k1].push(label({ time: f.end, delivered: f.delivered, prev: start, leg }));
+        }
+        relax(k1, settled.te, {
           time: settled.time,
           delivered: settled.delivered,
           prev: start,
@@ -627,9 +643,11 @@ export function findRoutes(table: BuildLookup, o: FindOptions): FoundRoutes {
         leg: c.leg,
         ...(c.heldNext ? { heldNext: true } : {}),
       });
-    if (keepHighEnds)
+    if (keepHighEnds) {
+      checked += ends.length;
       for (const c of ends)
         terminals[k + 1].push(label({ time: c.time, delivered: c.delivered, prev: byId.get(c.from) ?? null, leg: c.leg }));
+    }
   }
   o.onProgress?.(K, K);
 
@@ -665,7 +683,7 @@ export function findRoutes(table: BuildLookup, o: FindOptions): FoundRoutes {
     }
     byDate = overall ? routeTo(overall.label) : null;
   }
-  return { best, byAscensions, byDate, byDateByAscensions };
+  return { best, byAscensions, byDate, byDateByAscensions, checked };
 }
 
 function firstLeg(f: FirstLeg): RouteLeg {
@@ -685,7 +703,13 @@ function firstLeg(f: FirstLeg): RouteLeg {
 /** `chain` priced the way `findRoutes` prices a route: its first leg from `firstLegs` when there is an
  *  ascension in progress, then each stop on the hour (or late inside the sale). Null when a stop is
  *  not above the TE reached by then. */
-function priceChain(table: BuildLookup, o: FindOptions, chain: number[], firstLegs: FirstLeg[] | null): Route | null {
+function priceChain(
+  table: BuildLookup,
+  o: FindOptions,
+  chain: number[],
+  firstLegs: FirstLeg[] | null,
+  firstContinued: boolean
+): Route | null {
   const legs: RouteLeg[] = [];
   let t = o.start;
   let te = o.startTE;
@@ -706,7 +730,9 @@ function priceChain(table: BuildLookup, o: FindOptions, chain: number[], firstLe
     }
     if (target <= te) return null;
     if (i === 0 && firstLegs) {
-      const f = firstLegs.find(x => x.to === target);
+      // The same kind of first step as the route being priced: a prestige-first and a continue-first
+      // route are different numbers of ascensions.
+      const f = firstLegs.find(x => x.to === target && x.continued === firstContinued);
       if (!f) return null;
       legs.push(firstLeg(f));
       t = f.end;
@@ -749,8 +775,9 @@ function polishRoute(
   ok: (r: Route) => boolean
 ): Route {
   let best = route;
+  const continued = route.legs[0]?.continued === true;
   const tryChain = (c: number[]): boolean => {
-    const r = priceChain(table, o, c, firstLegs);
+    const r = priceChain(table, o, c, firstLegs, continued);
     if (!r || !ok(r) || !(r.end < best.end - 60)) return false;
     best = r;
     return true;
@@ -802,5 +829,5 @@ export function polishFound(table: BuildLookup, o: FindOptions, found: FoundRout
     (a, r) => (r && (!a || lastTE(r) > lastTE(a) || (lastTE(r) === lastTE(a) && r.end < a.end)) ? r : a),
     null
   );
-  return { best, byAscensions, byDate, byDateByAscensions };
+  return { ...found, best, byAscensions, byDate, byDateByAscensions };
 }

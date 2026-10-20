@@ -31,7 +31,8 @@ export class ChainFinderWorkerPool {
 
   constructor(
     size: number,
-    private readonly deliveryIds: string[]
+    private readonly deliveryIds: string[],
+    private readonly deferForEarnings: boolean
   ) {
     this.slots = Array.from({ length: Math.max(1, size) }, () => {
       const worker = new Worker(new URL('../../workers/chainFinderTable.worker.ts', import.meta.url), {
@@ -78,10 +79,11 @@ export class ChainFinderWorkerPool {
   private submit(request: Request, handler: Handler): void {
     if (this.terminated) return;
     const requestId = ++this.nextRequestId;
+    const { deliveryIds, deferForEarnings } = this;
     const message: ChainFinderWorkerRequest =
       request.kind === 'cell'
-        ? { kind: 'cell', requestId, deliveryIds: this.deliveryIds, task: { ...request.task, id: requestId } }
-        : { kind: 'k3', requestId, deliveryIds: this.deliveryIds };
+        ? { kind: 'cell', requestId, deliveryIds, deferForEarnings, task: { ...request.task, id: requestId } }
+        : { kind: 'k3', requestId, deliveryIds, deferForEarnings };
     this.queue.push({ message, handler });
     const idle = this.slots.find(s => !s.busy);
     if (idle) this.feed(idle);

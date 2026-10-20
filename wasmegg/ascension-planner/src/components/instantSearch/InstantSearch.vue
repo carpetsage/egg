@@ -76,7 +76,8 @@
               <template v-else>No backup time in the save, so nothing was added for time since.</template>
             </div>
             <div class="mt-1 text-[11px] text-indigo-700/80">
-              The first step continues this ascension or prestiges now, whichever reaches each stop sooner.
+              Each route either continues this ascension or prestiges now; either way it counts as one of the
+              route's ascensions.
             </div>
           </div>
           <div v-else class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-600">

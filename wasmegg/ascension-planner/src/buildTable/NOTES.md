@@ -43,7 +43,9 @@ node dist-scripts/buildTable.js --generate --out out/verify --tes 120,250,339 --
 - Start state: TE shared like `distributeTargetTE` from zero, each egg exactly on threshold (theirs).
 - Gear (maxed): 7 T4L artifacts. Earnings: lunar totem, puzzle cube, Demeter's necklace, tungsten ankh. Delivery
   (`fixed` mode): quantum metronome, interstellar compass, gusset, lunar totem. 12 of each T4 stone family.
-  Max epic research, all colleggtibles at top tier, video doubler off, defer-for-earnings off.
+  Max epic research, all colleggtibles at top tier, video doubler **on** (`assumeDoubleEarnings: true`
+  since 2026-10-20; tables built before that, e.g. `31b596bb`, had it off), defer-for-earnings off. Recorded as
+  `doubleEarnings` in `meta.json` and the packed header.
 - `simVersion` stamp = short commit hash; `-dirty` if simulator paths (or `src/buildTable`) are uncommitted.
 
 ## C1–R1 prefix reuse across hours

@@ -11,11 +11,11 @@ import type { ChainFinderWorkerRequest, ChainFinderWorkerResponse } from './chai
 // `Worker`, not `DedicatedWorkerGlobalScope`: see researchCalc.worker.ts (dom and webworker libs clash).
 const ctx = self as unknown as Worker;
 
-// A build sends one delivery set many times: build its context once.
+// A build sends one delivery set (and silo mode) many times: build its context once.
 let cached: { key: string; context: SimulationContext } | null = null;
-function contextFor(deliveryIds: string[]): SimulationContext {
-  const key = deliveryIds.join(',');
-  if (cached?.key !== key) cached = { key, context: maxedContext(deliveryIds) };
+function contextFor(deliveryIds: string[], deferForEarnings: boolean): SimulationContext {
+  const key = `${deliveryIds.join(',')}|${deferForEarnings}`;
+  if (cached?.key !== key) cached = { key, context: maxedContext(deliveryIds, deferForEarnings) };
   return cached.context;
 }
 
@@ -26,7 +26,7 @@ function post(message: ChainFinderWorkerResponse): void {
 ctx.onmessage = (event: MessageEvent<ChainFinderWorkerRequest>) => {
   const msg = event.data;
   try {
-    const context = contextFor(msg.deliveryIds);
+    const context = contextFor(msg.deliveryIds, msg.deferForEarnings);
     if (msg.kind === 'cell') post({ type: 'cell', requestId: msg.requestId, result: runTask(msg.task, context) });
     else post({ type: 'k3', requestId: msg.requestId, result: k3Record(context) });
   } catch (err) {

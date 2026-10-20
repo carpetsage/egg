@@ -6,8 +6,8 @@
 import type { K3Record, Task, TaskResult } from '@/buildTable/task';
 
 export type ChainFinderWorkerRequest =
-  | { kind: 'cell'; requestId: number; deliveryIds: string[]; task: Task }
-  | { kind: 'k3'; requestId: number; deliveryIds: string[] };
+  | { kind: 'cell'; requestId: number; deliveryIds: string[]; deferForEarnings: boolean; task: Task }
+  | { kind: 'k3'; requestId: number; deliveryIds: string[]; deferForEarnings: boolean };
 
 export type ChainFinderWorkerResponse =
   | { type: 'cell'; requestId: number; result: TaskResult }
