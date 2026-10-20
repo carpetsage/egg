@@ -6,7 +6,7 @@
         class="text-[10px] font-black uppercase tracking-widest text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md"
         >precomputed</span
       >
-      <span class="ml-auto text-[11px] text-slate-400">every route checked in {{ (answer.ms / 1000).toFixed(1) }} s</span>
+      <span class="ml-auto text-[11px] text-slate-400">{{ answer.found.checked.toLocaleString() }} routes checked in {{ (answer.ms / 1000).toFixed(1) }} s</span>
     </div>
 
     <div v-if="filterNote" class="mb-4 text-[11px] text-slate-500">{{ filterNote }}</div>
@@ -63,7 +63,6 @@
             <th class="py-2 pr-2">Reaches {{ answer.final }}</th>
             <th class="py-2 pr-2">Behind</th>
           </template>
-          <th class="py-2 pr-2">First step</th>
           <th class="py-2">Route</th>
         </tr>
       </thead>
@@ -90,22 +89,22 @@
               </td>
               <td class="py-2 pr-2 text-slate-600">{{ route === lead ? 'fastest' : `+${days(route.end - lead!.end)}` }}</td>
             </template>
-            <td class="py-2 pr-2">
-              <span
-                class="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded"
-                :class="route.legs[0].continued ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-600'"
-                >{{ route.legs[0].continued ? `Continue to ${route.legs[0].to}` : answer.hypothetical || route.legs[0].held ? 'Prestige' : 'Prestige now' }}</span
-              >
-            </td>
-            <td class="py-2 text-slate-800">{{ route.chain.join(' ') }}</td>
+            <td class="py-2 text-slate-800">{{ chainText(route) }}</td>
           </tr>
           <tr v-if="open.has(k)">
-            <td colspan="5" class="pb-3">
+            <td colspan="4" class="pb-3">
               <ol class="ml-5 rounded-lg bg-slate-50 p-3 space-y-1 text-[11px] text-slate-600">
+                <li v-if="endsInProgress(route)">
+                  <span class="font-bold text-slate-800">{{ answer.inProgress!.claimedTE }} → {{ route.legs[0].from }}</span>:
+                  end your current ascension
+                  {{ route.legs[0].held ? 'once your blocked dates or hours are past' : 'now' }}, claiming
+                  {{ route.legs[0].from - answer.inProgress!.claimedTE }} pending TE ({{ show(route.legs[0].start) }})
+                </li>
                 <li v-for="(leg, i) in route.legs" :key="i">
-                  <span class="font-bold text-slate-800">{{ leg.from }} → {{ leg.to }}</span>
+                  <span class="font-bold text-slate-800">{{ legFrom(leg, i) }} → {{ leg.to }}</span>
                   <span v-if="leg.endTE > leg.to"> (ends at {{ leg.endTE }})</span>:
                   <template v-if="leg.continued">continue your current ascension, </template>
+                  <template v-else-if="i === 0 && endsInProgress(route)">the fresh build, </template>
                   <template v-else-if="leg.held">prestige waited for your blocked dates or hours (the eggs laid meanwhile count), </template>
                   <template v-else-if="i === 0">{{ answer.hypothetical ? 'prestige' : 'prestige now' }}, </template>
                   {{ show(leg.start) }} to {{ show(leg.end) }} · {{ days(leg.end - leg.start) }}<template
@@ -170,7 +169,13 @@ function toggle(k: number) {
   else open.add(k);
 }
 
-const count = (r: Route) => r.legs.length;
+/** Prestiging now ends the ascension in progress: that is an ascension of its own (routeFinder.ts). */
+const endsInProgress = (r: Route) => !!props.answer.inProgress && !r.legs[0].continued;
+/** Ascensions, the one in progress counted (continuing it, or ending it now). */
+const count = (r: Route) => r.legs.length + (endsInProgress(r) ? 1 : 0);
+/** A continued first leg runs from the TE already claimed. */
+const legFrom = (leg: Route['legs'][number], i: number) =>
+  i === 0 && leg.continued && props.answer.inProgress ? props.answer.inProgress.claimedTE : leg.from;
 const spare = (r: Route) => props.answer.deadline! - r.end;
 const tight = (r: Route) => spare(r) < TIGHT_SECONDS;
 const spareClass = (r: Route) => (tight(r) ? 'text-amber-700' : 'text-emerald-700');
@@ -182,7 +187,16 @@ function firstStepText(r: Route): string {
     ? `continue your current ascension to ${l.to} TE (${show(l.end)})${r.legs.length > 1 ? ', then prestige' : ''}.`
     : `${props.answer.hypothetical ? 'prestige' : 'prestige now'} (the build starts ${show(l.start)}).`;
 }
-const chainText = (r: Route) => [props.answer.startTE, ...r.chain].join(' → ');
+/**
+ * The route as TEs. With an ascension in progress it starts at the TE claimed: straight to the first
+ * stop when continuing (201 → 225 → 250), or through the TE that prestiging now claims (201 → 207 →
+ * 225 → 250). Otherwise from the start TE.
+ */
+function chainText(r: Route): string {
+  const ip = props.answer.inProgress;
+  const head = ip ? [ip.claimedTE, ...(endsInProgress(r) ? [r.legs[0].from] : [])] : [props.answer.startTE];
+  return [...head, ...r.chain].join(' → ');
+}
 const days = (seconds: number) => `${(seconds / 86400).toFixed(2)} days`;
 
 /** In the time zone the search was run with (the picker's). */

@@ -11,7 +11,7 @@ import { runContinueCurrent } from '@/auto/ascension';
 import { maxedBaseState, maxedContext } from '@/buildTable/maxedAccount';
 import { startStateAt } from '@/buildTable/cell';
 import { canonicalDelivered, EGG_ORDER, tailTo, type BuildParams } from './precomputedLeg';
-import { findRoutes, holdArrival, lastTE, mergeBlocked, nextAllowed, polishFound, type Blocked, type Route } from './routeFinder';
+import { CONTINUE_MAX_SECONDS, findRoutes, firstLegOptions, holdArrival, lastTE, mergeBlocked, nextAllowed, polishFound, type Blocked, type Route } from './routeFinder';
 import { hoursBlocked, nextDate } from './blockedTime';
 import { readTable } from './table';
 
@@ -33,9 +33,13 @@ function inProgress(te: number, scale: number, extra: number): BuildParams {
   return { sales: 0, tier13: false, waitStart: 0, saleEnd: 0, peakELR, delivered };
 }
 
-/** Every count's first step: C continues, P prestiges. */
+/** Every count's first step from 1 ascension up: C continues, P prestiges, - no route. With an ascension
+ *  in progress it counts as one: a prestige-first route is one more ascension than its legs. */
 const firstSteps = (routes: ({ legs: { continued?: boolean }[] } | null)[]) =>
-  routes.flatMap(r => (r ? [r.legs[0].continued ? 'C' : 'P'] : [])).join('');
+  routes
+    .slice(1)
+    .map(r => (r ? (r.legs[0].continued ? 'C' : 'P') : '-'))
+    .join('');
 
 describe('instant search', () => {
   it('finds the fastest route to a target TE', () => {
@@ -57,8 +61,12 @@ describe('instant search', () => {
     const found = search({ startTE: 300, start, final: 490, maxAscensions: 12, startDelivered: cont.delivered, cont });
     expect(found.best?.chain).toEqual([321, 332, 490]);
     expect(found.best!.legs[0]).toMatchObject({ continued: true, start, from: 300, to: 321 });
-    // Straight to 490 is a prestige; every longer route continues first.
-    expect(firstSteps(found.byAscensions)).toBe('PCCCCCCCCCCC');
+    // 1 ascension: continue straight to 490. Every count from 2 continues first too (prestiging now and
+    // going straight to 490 would also be 2, and is slower).
+    expect(firstSteps(found.byAscensions)).toBe('CCCCCCCCCCCC');
+    // A prestige-first route counts the ascension it ends: one more than its legs.
+    for (const [k, r] of found.byAscensions.entries())
+      if (r) expect(r.legs.length + (r.legs[0].continued ? 0 : 1)).toBe(k);
   });
 
   it('prestiges now when the farm in progress is slow', () => {
@@ -69,7 +77,12 @@ describe('instant search', () => {
     expect(found.best!.legs[0].continued).toBeUndefined();
     // A prestige starts on the next whole hour.
     expect(found.best!.legs[0].start).toBe(Math.ceil(start / 3600) * 3600);
-    expect(firstSteps(found.byAscensions)).toBe('PPPPPPPPPPPP');
+    // 1 ascension is still there: continuing all the way, however long (CONTINUE_MAX_SECONDS is only
+    // for stops on the way).
+    expect(firstSteps(found.byAscensions)).toBe('CPPPPPPPPPPP');
+    const one = found.byAscensions[1]!;
+    expect(one.chain).toEqual([490]);
+    expect(one.seconds).toBeGreaterThan(CONTINUE_MAX_SECONDS);
   });
 
   it('continues by a date too', () => {
@@ -166,6 +179,7 @@ describe('instant search', () => {
         startTE: 300, start: s, final: 490, maxAscensions: 6, startDelivered: cont.delivered, cont, contEgg: 2, avoid,
       });
       const routes = found.byAscensions.filter((r): r is Route => r !== null);
+      // Counts 1-6 (1: continuing straight to 490).
       expect(routes.length).toBe(6);
       let gained = 0;
       for (const r of routes) {
@@ -180,8 +194,16 @@ describe('instant search', () => {
         });
       }
       expect(gained).toBeGreaterThan(0);
-      // The first prestige waits too, and the farm in progress lays on meanwhile.
-      expect(found.byAscensions[1]!.legs[0].from).toBeGreaterThan(300);
+      // Prestiging now waits too, and the farm in progress lays on meanwhile: the fresh build starts higher.
+      const firsts = firstLegOptions(table.lookup, {
+        startTE: 300, start: s, final: 490, maxAscensions: 6, startDelivered: cont.delivered, cont, contEgg: 2, avoid,
+      });
+      const prestiges = firsts.filter(f => !f.continued);
+      expect(prestiges.length).toBeGreaterThan(0);
+      for (const f of prestiges) {
+        expect(f.held).toBe(true);
+        expect(f.from).toBeGreaterThan(300);
+      }
     });
 
     it('holds prestiges out of nightly sleep hours, every night', () => {

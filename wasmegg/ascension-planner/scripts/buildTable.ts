@@ -56,6 +56,9 @@ function writeMeta(out: string, from: number, to: number): void {
   const version = simVersion();
   if (before && before.simVersion !== version && !has('allow-sim-change'))
     throw new Error(`${out} was built by ${before.simVersion}, this is ${version}. Use a new --out or --allow-sim-change.`);
+  // Dirs from before this field existed were all built with the doubler off.
+  if (before && (before.doubleEarnings ?? false) !== context.assumeDoubleEarnings)
+    throw new Error(`${out} was built with doubleEarnings ${before.doubleEarnings ?? false}. Use a new --out.`);
   if (!existsSync(`${out}/k3.json`)) writeFileSync(`${out}/k3.json`, JSON.stringify(k3Record(context), null, 1));
   writeFileSync(
     `${out}/meta.json`,
@@ -65,6 +68,7 @@ function writeMeta(out: string, from: number, to: number): void {
         referenceWeek: REFERENCE_WEEK,
         reference: true,
         cteBonus: cteBonusOf(context),
+        doubleEarnings: context.assumeDoubleEarnings,
         deliveryScore: null,
         delivery: context.loadoutInputs!.delivery,
         earnings: socketEarningsStones(context.loadoutInputs!.earnings, context.loadoutInputs!.stones),
@@ -272,6 +276,7 @@ function pack(): void {
       version: 1,
       referenceWeek: meta.referenceWeek,
       cteBonus: meta.cteBonus,
+      doubleEarnings: meta.doubleEarnings ?? false,
       deliveryScore: meta.deliveryScore?.score ?? 1,
       from,
       to,

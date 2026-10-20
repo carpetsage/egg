@@ -38,7 +38,7 @@ export function maxedContext(delivery: string[] = MAXED_DELIVERY): SimulationCon
     colleggtibleModifiers: modifiersFromColleggtibleTiers(Object.fromEntries(colleggtibleDefs.map(d => [d.id, 3]))),
     ascensionStartTime: 0,
     planStartOffset: 0,
-    assumeDoubleEarnings: false,
+    assumeDoubleEarnings: true,
     deferForEarningsMode: false,
     loadoutInputs: maxedLoadoutInputs(delivery),
   };
