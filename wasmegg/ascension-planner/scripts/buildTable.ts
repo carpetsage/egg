@@ -23,6 +23,7 @@ import { EGG_ORDER, REFERENCE_WEEK, WEEK_HOURS, type BuildParams } from '@/build
 import { checkPacked, packTable, type Cell } from '@/buildTable/pack';
 import { cteBonusOf, k3Record, runTask, type Task, type TaskResult } from '@/buildTable/task';
 import { maxedContext } from '@/buildTable/maxedAccount';
+import { tableGear } from '@/buildTable/header';
 import { socketEarningsStones } from '@/auto/loadout';
 import { allHours, prefixSourceFor, SEED_HOURS, type EventClass, type PrefixSource } from '@/buildTable/prefixReuse';
 import { simVersion } from './simVersion';
@@ -261,6 +262,10 @@ function pack(): void {
     .map(m => Number(m[1]))
     .sort((a, b) => a - b);
   if (!tes.length) throw new Error(`nothing generated yet in ${dir}`);
+  // --generate always simulates maxedContext(); a dir whose meta says otherwise came from elsewhere.
+  const gear = tableGear(maxedContext());
+  if (meta.delivery && JSON.stringify(meta.delivery.artifactIds) !== JSON.stringify(gear.delivery))
+    throw new Error(`${dir} was built with delivery ${meta.delivery.artifactIds}, not ${gear.delivery}`);
   // A route climbs through every TE, so only a contiguous run is useful: the longest one ending at the top.
   let from = tes[tes.length - 1];
   while (tes.includes(from - 1)) from--;
@@ -277,6 +282,7 @@ function pack(): void {
       referenceWeek: meta.referenceWeek,
       cteBonus: meta.cteBonus,
       doubleEarnings: meta.doubleEarnings ?? false,
+      ...gear,
       deliveryScore: meta.deliveryScore?.score ?? 1,
       from,
       to,

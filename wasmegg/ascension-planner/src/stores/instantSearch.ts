@@ -19,6 +19,7 @@ import {
 import { chainGaps, type SpaceFilter } from '@/lib/instantSearch/chainSpace';
 import { avoidBlocked, hoursBlocked } from '@/lib/instantSearch/blockedTime';
 import type { TableHeader } from '@/lib/instantSearch/table';
+import { tableHeaderWarnings } from '@/buildTable/header';
 import { readCurrentAscension, type CurrentAscension } from '@/lib/instantSearch/currentAscension';
 import { parseVirtueProgress } from '@/lib/backupVirtue';
 import { fetchPlayerBackup } from '@/lib/modes/fetchBackup';
@@ -196,6 +197,10 @@ export const useInstantSearchStore = defineStore('instantSearch', () => {
   const waitsChanged = computed(() => !!answer.value && answer.value.waitForEggs !== waitForEggs.value);
 
   const header = shallowRef<TableHeader | null>(null);
+  /** What's missing or unexpected in the loaded table's header (buildTable/header.ts). */
+  const headerWarnings = computed(() =>
+    header.value ? tableHeaderWarnings(header.value as unknown as Record<string, unknown>) : []
+  );
   const tableSource = ref('');
   const tableStatus = ref<'idle' | 'loading' | 'ready' | 'error'>('idle');
   const status = ref<'idle' | 'running' | 'done' | 'error'>('idle');
@@ -560,6 +565,7 @@ export const useInstantSearchStore = defineStore('instantSearch', () => {
     waitForEggs,
     waitsChanged,
     header,
+    headerWarnings,
     tableSource,
     tableStatus,
     status,

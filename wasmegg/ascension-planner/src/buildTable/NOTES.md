@@ -47,6 +47,10 @@ node dist-scripts/buildTable.js --generate --out out/verify --tes 120,250,339 --
   since 2026-10-20; tables built before that, e.g. `31b596bb`, had it off), defer-for-earnings off. Recorded as
   `doubleEarnings` in `meta.json` and the packed header.
 - `simVersion` stamp = short commit hash; `-dirty` if simulator paths (or `src/buildTable`) are uncommitted.
+- Header gear (2026-10-20, `header.ts` `tableGear`): `earnings`, `delivery` (artifact ids), `deliveryKey` (FNV-1a
+  of the sorted delivery ids, for file names / CloudFront paths), `stones` (`quantum-stone-4: 12`, …), and
+  `deferForEarnings: true` only in silo mode (absent otherwise). Chain Finder warns on missing keys, unknown keys,
+  doubler off, non-maxed earnings or stones, a bad `deliveryKey`, or a `-dirty` stamp (`tableHeaderWarnings`).
 
 ## C1–R1 prefix reuse across hours
 

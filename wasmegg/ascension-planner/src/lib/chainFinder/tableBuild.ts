@@ -7,6 +7,7 @@
  * Nothing is kept between runs: a closed tab or a cancel loses the build.
  */
 import { REFERENCE_WEEK, WEEK_HOURS } from '@/buildTable/cell';
+import { tableGear } from '@/buildTable/header';
 import { maxedContext } from '@/buildTable/maxedAccount';
 import { checkPacked, packTable, type Cell } from '@/buildTable/pack';
 import { allHours, prefixSourceFor, SEED_HOURS, type EventClass } from '@/buildTable/prefixReuse';
@@ -213,7 +214,7 @@ function pack(
       referenceWeek: REFERENCE_WEEK,
       cteBonus: cteBonusOf(context),
       doubleEarnings: context.assumeDoubleEarnings,
-      deferForEarnings: context.deferForEarningsMode,
+      ...tableGear(context),
       deliveryScore: 1,
       from,
       to,

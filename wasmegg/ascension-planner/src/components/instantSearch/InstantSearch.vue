@@ -135,11 +135,24 @@
       <template v-else-if="store.header">
         Table: {{ store.tableSource }} · start TE {{ store.header.from }}–{{ store.header.to }} · simulator
         {{ store.header.simVersion ?? 'unstamped' }}
+        <template v-if="store.header.builtAt">· built {{ showTime(Date.parse(store.header.builtAt) / 1000) }}</template>
+        <template v-if="store.header.delivery">· delivery {{ labels(store.header.delivery) }}</template>
+        <template v-if="store.header.deferForEarnings">· silo mode</template>
       </template>
       <label class="cursor-pointer font-bold text-emerald-700 hover:underline">
         Load a table file…
         <input type="file" accept=".bin,.gz" class="hidden" @change="onFile" />
       </label>
+    </div>
+
+    <div
+      v-if="store.tableStatus === 'ready' && store.headerWarnings.length"
+      class="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800"
+    >
+      <div class="font-bold">This table's header isn't what this page expects:</div>
+      <ul class="mt-1 list-disc pl-5 space-y-0.5">
+        <li v-for="w in store.headerWarnings" :key="w">{{ w }}</li>
+      </ul>
     </div>
 
     <p v-if="store.error" class="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700">
@@ -173,6 +186,7 @@ import {
 } from '@/stores/instantSearch';
 import { useInitialStateStore } from '@/stores/initialState';
 import { formatDuration, formatNumber } from '@/lib/format';
+import { labels } from '@/buildTable/header';
 import { VIRTUE_EGG_NAMES } from '@/types';
 
 const store = useInstantSearchStore();

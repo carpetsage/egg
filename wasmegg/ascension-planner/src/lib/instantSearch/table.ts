@@ -22,8 +22,17 @@ export interface TableHeader {
   builtAt: string;
   /** The simulator commit the cells came from (scripts/simVersion.ts). */
   simVersion?: string;
-  /** Built in silo mode (the auto-planner's defer for earnings); absent in tables from before it. */
+  /** Built in silo mode (the auto-planner's defer for earnings). Only silo tables have it now;
+   *  older ones may say `false`. */
   deferForEarnings?: boolean;
+  /** Whether cells assume the video doubler; absent in tables from before it (built with it off). */
+  doubleEarnings?: boolean;
+  /** The gear the cells were simulated with (src/buildTable/header.ts `tableGear`); absent in tables
+   *  from before it. */
+  earnings?: string[];
+  delivery?: string[];
+  deliveryKey?: string;
+  stones?: Record<string, number>;
 }
 
 export interface Table {
