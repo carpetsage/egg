@@ -6,7 +6,8 @@
  * float64s: for each start TE `from..to`, each of the 168 Pacific hours, `slots` builds of nine
  * numbers: [sales + 8 if tier 13 (0 = empty), waitStart, saleEnd, peakELR, delivered x 5].
  */
-import { EGG_ORDER, WEEK_HOURS, type BuildParams } from './precomputedLeg';
+import { canonicalDelivered, EGG_ORDER, rebase, WEEK_HOURS, type BuildParams } from './precomputedLeg';
+import type { BuildLookup } from './routeFinder';
 
 const FIELDS = 9;
 
@@ -110,6 +111,30 @@ export function readTable(buffer: ArrayBuffer): Table {
       return builds;
     },
   };
+}
+
+/**
+ * The table as read for a player whose earnings artifacts are `shift` Clothed TE below the table's: TE `te`
+ * reads the row at `te - shift`, rounded down so a route never promises more than the artifacts earn.
+ * Each build is restated from `te`'s canonical counts, the eggs it delivers itself carried over (they
+ * come from earnings, not from the TE it started at), so `rebase`, the stops and every TE shown stay
+ * the player's real TE. `shift` 0 is the table itself.
+ */
+export function shiftedLookup(table: Table, shift: number): BuildLookup {
+  if (!(shift > 0)) return table.lookup;
+  const cache = new LruCache<number, BuildParams[] | null>(DECODED_CELLS);
+  const lookup: BuildLookup = (te, hour) => {
+    const key = te * WEEK_HOURS + hour;
+    const hit = cache.get(key);
+    if (hit !== undefined) return hit;
+    const row = Math.floor(te - shift);
+    const raw = table.lookup(row, hour);
+    const builds = raw && raw.map(b => rebase(b, row, canonicalDelivered(te)));
+    cache.set(key, builds);
+    return builds;
+  };
+  lookup.shift = shift;
+  return lookup;
 }
 
 /** The bytes of a table, gzipped or not (gzip's magic number decides), as an ArrayBuffer. */

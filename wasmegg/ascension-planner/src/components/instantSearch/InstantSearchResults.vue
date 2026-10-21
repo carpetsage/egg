@@ -22,6 +22,7 @@
     <template v-if="!store.answerCollapsed">
 
     <div v-if="filterNote" class="mb-4 text-[11px] text-slate-500">{{ filterNote }}</div>
+    <div v-if="shiftNote" class="mb-4 text-[11px] text-slate-500">{{ shiftNote }}</div>
     <div
       v-if="store.avoidChanged"
       class="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-800"
@@ -34,6 +35,13 @@
     >
       Waiting for eggs was turned {{ store.waitForEggs ? 'on' : 'off' }} since this answer: press Find routes again to
       use it.
+    </div>
+
+    <div
+      v-if="store.artifactsChanged"
+      class="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-800"
+    >
+      Your earnings artifacts or stones have changed since this answer: press Find routes again to use them.
     </div>
 
     <div v-if="!lead" class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
@@ -224,6 +232,18 @@ const filterNote = computed(() => {
   if (h) bits.push(`none in your ${h} blocked hour${h === 1 ? '' : 's'} a week`);
   const text = bits.join('; ');
   return text ? `${text[0].toUpperCase()}${text.slice(1)}.` : '';
+});
+
+/** Once per answer: how the table was read for weaker earnings artifacts (store `earningsShift`). */
+const shiftNote = computed(() => {
+  const shift = props.answer.earningsShift;
+  if (!(shift > 0)) return '';
+  const te = props.answer.startTE;
+  return (
+    `Searched as TE ${Math.floor(te - shift)} for your ${te}: your earnings artifacts are ${shift.toFixed(2)} CTE below the ` +
+    "table's, and every lookup rounds down to a whole TE so routes never promise more than your artifacts earn. " +
+    'The TEs shown are your real ones.'
+  );
 });
 
 const open = reactive(new Set<number>());

@@ -14,7 +14,7 @@ const answer = (extra: Partial<InstantAnswer> = {}): InstantAnswer => ({
   found: {} as InstantAnswer['found'], ms: 0, mode: 'te', startTE: 200, start: 1000 * H, final: 300,
   timezone: 'America/Chicago', hypothetical: true, inProgress: null,
   blocks: { dates: [], hours: [], timezone: 'America/Chicago' }, waitForEggs: true,
-  startDelivered: [0, 0, 0, 0, 0], siloMode: false,
+  startDelivered: [0, 0, 0, 0, 0], siloMode: false, earningsShift: 0,
   options: { startTE: 200, start: 1000 * H, final: 300, maxAscensions: 12 }, ...extra,
 });
 

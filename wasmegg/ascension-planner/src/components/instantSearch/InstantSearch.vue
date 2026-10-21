@@ -15,7 +15,8 @@
       Every ascension a maxed account can make was simulated ahead of time, from every TE at every hour of the week, so
       finding a route is arithmetic: it tries every stop at every TE, with up to {{ MAX_ASCENSIONS }} ascensions. Every
       prestige is a fresh build on the next whole hour (or later, when waiting for eggs gets you there sooner), on
-      maxed gear (not adjusted for yours).
+      maxed artifacts. Weaker earnings artifacts are allowed for (the table is read lower by the Clothed TE they
+      give up); delivery artifacts are not.
     </p>
 
     <fieldset :disabled="store.status === 'running'" class="space-y-6 disabled:opacity-50">
@@ -110,7 +111,44 @@
         </div>
       </section>
 
+      <!-- What the search assumes for artifacts: the save's, or edited to try others. -->
+      <section class="rounded-xl border border-slate-200">
+        <button
+          type="button"
+          class="flex w-full items-center gap-2 px-4 py-3 text-left"
+          :aria-expanded="artifactsOpen"
+          @click="artifactsOpen = !artifactsOpen"
+        >
+          <span class="inline-block w-3 text-slate-400">{{ artifactsOpen ? '⌄' : '›' }}</span>
+          <h3 class="text-sm font-bold text-slate-800">Artifacts &amp; stones</h3>
+          <span
+            v-if="store.header && store.earningsShift > 0"
+            class="rounded-md bg-amber-100 px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-amber-700"
+            >−{{ store.earningsShift.toFixed(2) }} CTE</span
+          >
+          <span class="ml-auto truncate text-[11px] text-slate-400">{{ artifactsSummary }}</span>
+        </button>
+        <div v-if="artifactsOpen" class="space-y-2 border-t border-slate-200 px-4 py-4">
+          <p class="text-[11px] text-slate-500">
+            Your artifacts and stones, as your save has them. Change them to see routes with higher or lower ones. The
+            earnings set and lunar and shell stones move the search: the table is read lower by the Clothed TE they
+            give up, rounded down.
+          </p>
+          <p v-if="!store.deliveryMatches && store.header?.delivery" class="text-[11px] text-amber-700">
+            Your delivery set isn't this table's ({{ labels(store.header.delivery) }}). The search still assumes the
+            table's: a different delivery set needs a table of its own (Table Builder).
+          </p>
+          <AutoLoadoutEditor
+            v-model="store.loadout"
+            :default-value="store.defaultLoadout"
+            :reset-label="store.backup ? 'Reset to inventory' : 'Reset to maxed'"
+            :default-label="store.backup ? 'Inventory' : 'Maxed'"
+          />
+        </div>
+      </section>
+
       <InstantSearchFilters />
+
     </fieldset>
 
     <div class="mt-6 flex flex-wrap items-center gap-3">
@@ -174,6 +212,8 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import InstantSearchResults from './InstantSearchResults.vue';
 import ChainComparison from './ChainComparison.vue';
 import InstantSearchFilters from './InstantSearchFilters.vue';
+import AutoLoadoutEditor from '@/components/auto/AutoLoadoutEditor.vue';
+import { loadoutInputsEqual } from '@/auto/loadout';
 import RefreshBackupButton from './RefreshBackupButton.vue';
 import SegmentedToggle from './SegmentedToggle.vue';
 import DateTimeZonePicker from '@/components/DateTimeZonePicker.vue';
@@ -201,6 +241,17 @@ watch(
 );
 
 /** Ticks once a minute so "last sync … ago" stays current. */
+/** Artifacts & stones, folded away until asked for. */
+const artifactsOpen = ref(false);
+const artifactsSummary = computed(() => {
+  const from = !loadoutInputsEqual(store.loadout, store.defaultLoadout)
+    ? 'Edited'
+    : store.backup
+      ? 'From your save'
+      : 'Maxed';
+  return store.deliveryMatches ? from : `${from} · delivery differs from the table`;
+});
+
 const now = ref(Date.now() / 1000);
 const timer = setInterval(() => (now.value = Date.now() / 1000), 60_000);
 onUnmounted(() => clearInterval(timer));

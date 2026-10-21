@@ -21,6 +21,13 @@ import { avoidBlocked, hoursBlocked } from '@/lib/instantSearch/blockedTime';
 import type { TableHeader } from '@/lib/instantSearch/table';
 import { tableHeaderWarnings } from '@/buildTable/header';
 import { readCurrentAscension, type CurrentAscension } from '@/lib/instantSearch/currentAscension';
+import {
+  chainFinderLoadoutFromBackup,
+  deliveryMatchesTable,
+  earningsShift as earningsShiftOf,
+} from '@/lib/instantSearch/earningsShift';
+import { cloneLoadoutInputs, type AutoLoadoutInputs } from '@/auto/loadout';
+import { maxedLoadoutInputs } from '@/buildTable/maxedAccount';
 import { parseVirtueProgress } from '@/lib/backupVirtue';
 import { fetchPlayerBackup } from '@/lib/modes/fetchBackup';
 import { resolveFetchablePlayerId } from '@/lib/modes/utils';
@@ -71,6 +78,9 @@ export interface InstantAnswer {
   startDelivered: number[];
   /** The table was built in silo mode (its header's `deferForEarnings`). */
   siloMode: boolean;
+  /** Clothed TE the save's earnings artifacts are below the table's: the table was read that much lower,
+   *  rounded down (lib/instantSearch/earningsShift.ts). Every TE in the routes is the real one. */
+  earningsShift: number;
   /** What the worker was asked, for Chain comparison to price other plans the same way. */
   options: Omit<FindOptions, 'onProgress'>;
 }
@@ -263,6 +273,32 @@ export const useInstantSearchStore = defineStore('instantSearch', () => {
   const saveTE = computed(() =>
     saveDelivered.value ? saveDelivered.value.reduce((n, d) => n + countTEThresholdsPassed(d), 0) : null
   );
+  /** The save's artifacts and stones (lib/instantSearch/earningsShift.ts), or the maxed ones with no
+   *  save: what Reset returns `loadout` to. */
+  const defaultLoadout = computed<AutoLoadoutInputs>(() => {
+    if (backup.value) {
+      try {
+        return chainFinderLoadoutFromBackup(backup.value);
+      } catch (err) {
+        console.error("Chain Finder: could not read the save's artifacts", err);
+      }
+    }
+    return maxedLoadoutInputs();
+  });
+  /** The artifacts and stones searched with: the save's until edited, to try higher or lower ones.
+   *  Another save replaces any edits. */
+  const loadout = ref<AutoLoadoutInputs>(cloneLoadoutInputs(defaultLoadout.value));
+  watch(defaultLoadout, d => (loadout.value = cloneLoadoutInputs(d)));
+  /** Clothed TE `loadout`'s earnings artifacts are below the loaded table's (0 with no table). */
+  const earningsShift = computed(() => (header.value ? earningsShiftOf(loadout.value, header.value) : 0));
+  /** `loadout`'s delivery set is the loaded table's, which is what the search assumes either way. */
+  const deliveryMatches = computed(() => !header.value || deliveryMatchesTable(loadout.value, header.value));
+  /** The earnings artifacts were changed since the shown answer. */
+  const artifactsChanged = computed(() => !!answer.value && answer.value.earningsShift !== earningsShift.value);
+  /** The table row a start TE reads: lower by the earnings shift, rounded down (table.ts
+   *  `shiftedLookup`). */
+  const rowFor = (te: number) => Math.floor(te - earningsShift.value);
+
   /** Starting from the save right now (needs a save): then the ascension in progress can continue.
    *  Otherwise the start is hypothetical. */
   const fromSave = computed(() => startMode.value === 'now' && saveTE.value !== null);
@@ -337,8 +373,11 @@ export const useInstantSearchStore = defineStore('instantSearch', () => {
     if (!h) return '';
     // Continuing needs no table row at the start TE; a prestige does.
     const canContinue = fromSave.value && !!current.value;
-    if (!Number.isInteger(te) || (!canContinue && (te < h.from || te > h.to)))
-      return `The table covers start TEs ${h.from}–${h.to}; you start at ${te}.`;
+    const row = rowFor(te);
+    if (!Number.isInteger(te) || (!canContinue && (row < h.from || row > h.to)))
+      return row === te
+        ? `The table covers start TEs ${h.from}–${h.to}; you start at ${te}.`
+        : `The table covers start TEs ${h.from}–${h.to}; you start at ${te}, which your earnings artifacts search as ${row}.`;
     if (mode.value === 'te' && !(Number.isInteger(targetTE.value) && targetTE.value > te && targetTE.value <= MAX_TE))
       return `Pick a target TE above ${te}, up to ${MAX_TE}.`;
     if (mode.value === 'date' && !(deadline.value > startAt(Date.now() / 1000)))
@@ -371,6 +410,7 @@ export const useInstantSearchStore = defineStore('instantSearch', () => {
       waitForEggs: waitForEggs.value,
       startDelivered: [...(delivered ?? canonicalDelivered(te))],
       siloMode: !!header.value?.deferForEarnings,
+      earningsShift: earningsShift.value,
     };
     const avoid = anyBlocks(asked.blocks) ? blockedSpans(asked.blocks, asked.start) : [];
     const options: InstantAnswer['options'] = {
@@ -384,6 +424,7 @@ export const useInstantSearchStore = defineStore('instantSearch', () => {
       ...(avoid.length ? { avoid } : {}),
       ...(cont && current.value ? { contEgg: EGG_ORDER.indexOf(current.value.egg) } : {}),
       ...(asked.waitForEggs ? { waitForEggs: true } : {}),
+      ...(asked.earningsShift > 0 ? { earningsShift: asked.earningsShift } : {}),
     };
     const requestId = nextRequestId++;
     status.value = 'running';
@@ -585,6 +626,11 @@ export const useInstantSearchStore = defineStore('instantSearch', () => {
     fromSave,
     saveTE,
     startTE,
+    earningsShift,
+    loadout,
+    defaultLoadout,
+    deliveryMatches,
+    artifactsChanged,
     deadline,
     problem,
     loadDefaultTable,

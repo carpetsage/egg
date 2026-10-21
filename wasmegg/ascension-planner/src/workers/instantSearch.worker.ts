@@ -4,7 +4,14 @@
  * comparison it also keeps the table's quickest legs (worked out in the background once a table
  * loads) and the last chain space found, which the page filters by message.
  */
-import { chainPricer, findRoutes, polishFound, type ChainPricer, type FindOptions } from '@/lib/instantSearch/routeFinder';
+import {
+  chainPricer,
+  findRoutes,
+  polishFound,
+  type BuildLookup,
+  type ChainPricer,
+  type FindOptions,
+} from '@/lib/instantSearch/routeFinder';
 import {
   createLegHours,
   enumerateChains,
@@ -13,7 +20,7 @@ import {
   type ChainSpace,
   type LegHours,
 } from '@/lib/instantSearch/chainSpace';
-import { readTable, unpackTableBytes, type Table } from '@/lib/instantSearch/table';
+import { readTable, shiftedLookup, unpackTableBytes, type Table } from '@/lib/instantSearch/table';
 import type { InstantSearchRequest, InstantSearchResponse } from './instantSearch.protocol';
 
 // `Worker`, not `DedicatedWorkerGlobalScope`: see researchCalc.worker.ts (dom and webworker libs clash).
@@ -25,8 +32,12 @@ const TOP_TE = 490;
 const WAIT_BUDGET_MS = 3000;
 
 let table: Table | null = null;
-/** The table's quickest legs, filled a few TEs at a time between other messages. */
+/** The table read with the last earnings shift asked for (`shiftedLookup`). */
+let shifted: { shift: number; lookup: BuildLookup } | null = null;
+/** The table's quickest legs for one earnings shift, filled a few TEs at a time between other
+ *  messages, from the first search with that shift. */
 let legHours: LegHours | null = null;
+let legHoursShift = 0;
 let legHoursReady: Promise<void> | null = null;
 /** Told how far the quickest legs have got, while a 'space' request waits for them. */
 let onLegHours: ((done: number, of: number) => void) | null = null;
@@ -44,14 +55,24 @@ function post(message: InstantSearchResponse): void {
 
 const breathe = () => new Promise<void>(resolve => setTimeout(resolve, 0));
 
-/** Fill the quickest legs for `t`, yielding often so searches run meanwhile. */
-function startLegHours(t: Table): Promise<void> {
-  const lh = createLegHours(t.header.from, t.header.to, TOP_TE);
+/** `t` read for `shift` (FindOptions `earningsShift`), the same lookup while the shift stays. */
+function lookupFor(t: Table, shift = 0): BuildLookup {
+  if (!shifted || shifted.shift !== shift) shifted = { shift, lookup: shiftedLookup(t, shift) };
+  return shifted.lookup;
+}
+
+/** Start filling the quickest legs for `t` read with `shift`, unless they are for it already;
+ *  yielding often so searches run meanwhile. A shifted table's rows serve TEs up to `shift` higher. */
+function ensureLegHours(t: Table, shift = 0): void {
+  if (legHours && legHoursShift === shift) return;
+  const lookup = lookupFor(t, shift);
+  const lh = createLegHours(t.header.from, Math.min(TOP_TE - 1, t.header.to + Math.ceil(shift)), TOP_TE);
   legHours = lh;
-  const of = t.header.to - t.header.from + 1;
-  return (async () => {
-    while (legHours === lh && fillLegHours(lh, t.lookup)) {
-      onLegHours?.(t.header.to + 1 - lh.filledDownTo, of);
+  legHoursShift = shift;
+  const of = lh.to - lh.from + 1;
+  legHoursReady = (async () => {
+    while (legHours === lh && fillLegHours(lh, lookup)) {
+      onLegHours?.(lh.to + 1 - lh.filledDownTo, of);
       await breathe();
     }
   })();
@@ -63,7 +84,8 @@ ctx.onmessage = async (event: MessageEvent<InstantSearchRequest>) => {
     if (msg.kind === 'load') {
       table = readTable(await unpackTableBytes(msg.bytes));
       space = null;
-      legHoursReady = startLegHours(table);
+      shifted = null;
+      legHours = null;
       post({ type: 'loaded', requestId: msg.requestId, header: table.header });
       return;
     }
@@ -72,14 +94,17 @@ ctx.onmessage = async (event: MessageEvent<InstantSearchRequest>) => {
 
     if (msg.kind === 'space') {
       const t = table;
+      const shift = msg.options.earningsShift;
+      ensureLegHours(t, shift);
       onLegHours = (done, of) => post({ type: 'progress', requestId: msg.requestId, done, of, stage: 'bound' });
       await legHoursReady;
       onLegHours = null;
-      if (t !== table || !legHours) throw new Error('the table changed');
-      const pricer = chainPricer(t.lookup, msg.options, msg.route.legs[0]?.continued === true);
+      if (t !== table || !legHours || legHoursShift !== (shift ?? 0)) throw new Error('the table changed');
+      const lookup = lookupFor(t, shift);
+      const pricer = chainPricer(lookup, msg.options, msg.route.legs[0]?.continued === true);
       const base = pricer.price(msg.route.chain);
       const f = msg.filter;
-      const chains = enumerateChains(t.lookup, legHours, msg.options, msg.route, f.limit, {
+      const chains = enumerateChains(lookup, legHours, msg.options, msg.route, f.limit, {
         minGap: f.minGap,
         maxGap: f.maxGap,
         windows: f.windows,
@@ -128,7 +153,10 @@ ctx.onmessage = async (event: MessageEvent<InstantSearchRequest>) => {
       ...msg.options,
       onProgress: (done: number, of: number) => post({ type: 'progress', requestId: msg.requestId, done, of }),
     };
-    const found = polishFound(table.lookup, msg.options, findRoutes(table.lookup, options), (done, of) =>
+    const lookup = lookupFor(table, msg.options.earningsShift);
+    // Chain comparison needs them next; they fill between this search's messages.
+    ensureLegHours(table, msg.options.earningsShift);
+    const found = polishFound(lookup, msg.options, findRoutes(lookup, options), (done, of) =>
       msg.options.waitForEggs ? post({ type: 'progress', requestId: msg.requestId, done, of, stage: 'waits' }) : undefined
     );
     post({ type: 'result', requestId: msg.requestId, found, ms: performance.now() - t0 });
