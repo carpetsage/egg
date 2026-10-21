@@ -954,15 +954,23 @@ async function handleRefreshReconcile() {
   }
 }
 
+/** Opening a tab collapses the header, unless there's no EID or no backup loaded yet: the header is
+ *  where the player enters one (a tab opened straight from its URL can arrive without either). */
+function collapseHeaderIfPlayerLoaded() {
+  if (playerId.value && initialStateStore.rawBackup) isHeaderCollapsed.value = true;
+}
+
 async function handleAutoPlannerTabClick() {
   plannerTab.value = 'automatic';
-  isHeaderCollapsed.value = true;
+  collapseHeaderIfPlayerLoaded();
 
   if (playerId.value && !loading.value) {
     loading.value = true;
     try {
       // Fetch fresh backup and initialize for "Plan Future" mode (zeroed farm)
       await initPlanFuture(playerId.value);
+      // Collapse the header now if it stayed open for want of a backup.
+      if (plannerTab.value === 'automatic') collapseHeaderIfPlayerLoaded();
     } catch (e) {
       console.error('Failed to auto-init Auto Planner:', e);
       error.value = 'Failed to load fresh backup for Auto Planner.';
@@ -976,14 +984,21 @@ async function handleAutoPlannerTabClick() {
  *  only: the rest of the page keeps the save it loaded). */
 function handleChainFinderTabClick() {
   plannerTab.value = 'chainFinder';
-  isHeaderCollapsed.value = true;
-  chainFinderStore.refreshBackup();
+  collapseHeaderIfChainFinderReady();
+  chainFinderStore.refreshBackup().then(() => {
+    if (plannerTab.value === 'chainFinder') collapseHeaderIfChainFinderReady();
+  });
+}
+
+/** The Chain Finder can run on the backup it fetched for itself, so that counts as loaded here too. */
+function collapseHeaderIfChainFinderReady() {
+  if (playerId.value && chainFinderStore.backup) isHeaderCollapsed.value = true;
 }
 
 /** The Table Builder doesn't use the player's plan or backup, so switching to it loads nothing either. */
 function handleTableBuilderTabClick() {
   plannerTab.value = 'tableBuilder';
-  isHeaderCollapsed.value = true;
+  collapseHeaderIfPlayerLoaded();
 }
 
 /** Open a tab the way clicking it does (the Auto Planner sets itself up on the way in). */
