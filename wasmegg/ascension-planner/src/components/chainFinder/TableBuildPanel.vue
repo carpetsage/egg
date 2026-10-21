@@ -25,7 +25,6 @@
           type="number"
           min="1"
           :max="maxWorkers"
-          :disabled="store.status === 'running'"
           class="w-16 px-2 py-1 rounded-lg border border-slate-200 text-xs disabled:bg-slate-50"
           @keydown="handleWorkersKeydown"
         />
@@ -45,6 +44,15 @@
 
       <span class="text-xs text-slate-500">Start TEs {{ CHAIN_FINDER_TE_FROM }}–{{ CHAIN_FINDER_TE_TO }}</span>
     </div>
+
+    <p v-if="store.status === 'running'" class="text-xs text-slate-500">
+      {{
+        store.keepingAwake
+          ? 'Keeping the screen awake while this tab is visible.'
+          : "Can't keep the screen awake: keep this tab visible, or turn off sleep while the build runs."
+      }}
+      Lowering workers takes effect as each one finishes its current cell.
+    </p>
 
     <div v-if="progress" class="space-y-3">
       <div>

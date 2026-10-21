@@ -3,7 +3,7 @@
  * the manual and auto planners', so a build keeps running when the user switches tabs.
  */
 import { defineStore } from 'pinia';
-import { ref, shallowRef } from 'vue';
+import { ref, shallowRef, watch } from 'vue';
 import {
   chainFinderDeliveryIds,
   defaultDeliverySelection,
@@ -15,6 +15,7 @@ import {
   type TableBuildProgress,
   type TableBuildResult,
 } from '@/lib/chainFinder/tableBuild';
+import { holdWakeLock } from '@/lib/chainFinder/wakeLock';
 
 /** Every start TE the CLI covers with `--to 489` (490 is the last target, not a start). */
 export const CHAIN_FINDER_TE_FROM = 120;
@@ -40,7 +41,15 @@ export const useChainFinderStore = defineStore('chainFinder', () => {
   const progress = shallowRef<TableBuildProgress | null>(null);
   const result = shallowRef<(TableBuildResult & { fileName: string }) | null>(null);
   const error = ref('');
+  /** Whether the screen wake lock is held (false if the browser lacks or refused it). */
+  const keepingAwake = ref(false);
   let controller: AbortController | null = null;
+  let setWorkers: ((workers: number) => void) | null = null;
+
+  // The workers input can change mid-build; an empty or partial entry is ignored until it's a count.
+  watch(workerCount, n => {
+    if (Number.isInteger(n) && n >= 1) setWorkers?.(n);
+  });
 
   async function startBuild() {
     if (status.value === 'running') return;
@@ -51,12 +60,14 @@ export const useChainFinderStore = defineStore('chainFinder', () => {
     progress.value = null;
     result.value = null;
     error.value = '';
+    const releaseWakeLock = holdWakeLock(held => (keepingAwake.value = held));
     try {
       const built = await buildChainFinderTable({
         deliveryIds: chainFinderDeliveryIds(selection),
         deferForEarnings: silo,
         tes: CHAIN_FINDER_TES,
         workers: workerCount.value,
+        onResizable: fn => (setWorkers = fn),
         onProgress: p => (progress.value = p),
         signal: controller.signal,
       });
@@ -73,6 +84,8 @@ export const useChainFinderStore = defineStore('chainFinder', () => {
       }
     } finally {
       controller = null;
+      setWorkers = null;
+      releaseWakeLock();
     }
   }
 
@@ -99,6 +112,7 @@ export const useChainFinderStore = defineStore('chainFinder', () => {
     progress,
     result,
     error,
+    keepingAwake,
     startBuild,
     cancelBuild,
     downloadResult,

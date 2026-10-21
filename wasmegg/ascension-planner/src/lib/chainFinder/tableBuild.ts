@@ -22,6 +22,8 @@ export interface TableBuildOptions {
   /** Start TEs to build. The file spans their min..max; TEs in between are left empty. */
   tes: number[];
   workers: number;
+  /** Receives a function that changes the worker count while the build runs. */
+  onResizable?: (setWorkers: (workers: number) => void) => void;
   onProgress?: (progress: TableBuildProgress) => void;
   signal?: AbortSignal;
 }
@@ -179,6 +181,11 @@ export function buildChainFinderTable(options: TableBuildOptions): Promise<Table
       if (pending.length) startTE(pending.shift()!);
     };
     pool.start();
+    options.onResizable?.(workers => {
+      if (settled) return;
+      pool.resize(workers);
+      report();
+    });
     report();
   });
 }
