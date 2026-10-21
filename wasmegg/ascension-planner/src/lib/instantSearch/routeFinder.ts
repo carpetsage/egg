@@ -30,8 +30,9 @@ import {
   type TailSweep,
 } from './precomputedLeg';
 
-/** The table as the finder reads it: the builds for a start TE at a Pacific hour of the week. */
-export type BuildLookup = (te: number, hour: number) => BuildParams[] | null;
+/** The table as the finder reads it: the builds for a start TE at a Pacific hour of the week.
+ *  `shift`: the Clothed TE its rows sit below the TEs asked for (table.ts `shiftedLookup`). */
+export type BuildLookup = ((te: number, hour: number) => BuildParams[] | null) & { shift?: number };
 
 export interface RouteLeg {
   /** TE the ascension starts at, and the stop it ascends at. */
@@ -100,6 +101,9 @@ export interface FindOptions {
   /** Let prestiges wait whole hours when the eggs the farm lays meanwhile (or a better start hour)
    *  make the route end sooner (`waitForEggs` in `polishFound`). */
   waitForEggs?: boolean;
+  /** Clothed TE the player's earnings artifacts are below the table's (lib/instantSearch/earningsShift.ts).
+   *  The finder doesn't read it: the worker hands it a lookup shifted by it (table.ts `shiftedLookup`). */
+  earningsShift?: number;
   /** Told after each number of ascensions is done, for a progress line. */
   onProgress?: (done: number, of: number) => void;
 }
@@ -347,9 +351,14 @@ const KEEP = 6;
  * The highest stop worth ascending at on the way to a later target. Past about TE 340 a build already
  * reaches the full laying rate, so another ascension there only adds a prestige and a rebuild
  * (AutoAutoAP measured no fastest route with a stop above 338 over 650 routes). A route can still END
- * above it.
+ * above it. For maxed earnings artifacts: weaker artifacts reach that rate its shift later (`usefulStopMax`).
  */
 export const USEFUL_STOP_MAX = 360;
+
+/** `USEFUL_STOP_MAX` for a table read with weaker earnings artifacts (`BuildLookup.shift`). */
+export function usefulStopMax(table: BuildLookup): number {
+  return USEFUL_STOP_MAX + Math.ceil(table.shift ?? 0);
+}
 
 type Kept<T> = T & { time: number; delivered: number[] };
 
@@ -431,7 +440,7 @@ export interface LegOffer {
 /**
  * Every stop above an arrival, one ascension on: from the table's builds for its TE and start hour
  * moved onto its egg counts (or at once inside the sale, whichever ends sooner), each told to `visit`.
- * `keepHighEnds`: offer stops above USEFUL_STOP_MAX that are not `top` too. `highest`: offer no stop
+ * `keepHighEnds`: offer stops above `usefulStopMax` that are not `top` too. `highest`: offer no stop
  * above it (the sweeps stop there too, which is most of the work).
  */
 export function legsFrom(
@@ -454,7 +463,8 @@ export function legsFrom(
     return sw;
   };
   const scratch = [0, 0, 0, 0, 0];
-  if (item.stop !== undefined && item.stop > USEFUL_STOP_MAX) return;
+  const stopMax = usefulStopMax(table);
+  if (item.stop !== undefined && item.stop > stopMax) return;
   const te = item.te;
   const startAt = prestigeAt(item.time, avoid);
   // Held here only at the plan start; later holds were settled on arrival (`settleArrival`).
@@ -478,7 +488,7 @@ export function legsFrom(
   const lateSweeps = lateBuilds.map((b, j) => sweepOf(b, lateKey + j, late!.lateBy, te + 1));
   for (let target = te + 1; target <= reach; target++) {
     // A stop above the cap that is not the target leads nowhere (it is never continued from).
-    if (target > USEFUL_STOP_MAX && target < top && !keepHighEnds) continue;
+    if (target > stopMax && target < top && !keepHighEnds) continue;
     const onHour = fastest(sweeps, builds, target);
     const early = late ? fastest(lateSweeps, lateBuilds, target) : null;
     const takeEarly =
