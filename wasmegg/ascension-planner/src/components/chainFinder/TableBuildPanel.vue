@@ -25,7 +25,6 @@
           type="number"
           min="1"
           :max="maxWorkers"
-          :disabled="store.status === 'running'"
           class="w-16 px-2 py-1 rounded-lg border border-slate-200 text-xs disabled:bg-slate-50"
           @keydown="handleWorkersKeydown"
         />
@@ -45,6 +44,15 @@
 
       <span class="text-xs text-slate-500">Start TEs {{ CHAIN_FINDER_TE_FROM }}–{{ CHAIN_FINDER_TE_TO }}</span>
     </div>
+
+    <p v-if="store.status === 'running'" class="text-xs text-slate-500">
+      {{
+        store.keepingAwake
+          ? 'Keeping the screen awake while this tab is visible.'
+          : "Can't keep the screen awake: keep this tab visible, or turn off sleep while the build runs."
+      }}
+      Lowering workers takes effect as each one finishes its current cell.
+    </p>
 
     <div v-if="progress" class="space-y-3">
       <div>
@@ -151,9 +159,12 @@ function handleWorkersKeydown(e: KeyboardEvent) {
 const progress = computed(() => store.progress);
 const maxWorkers = navigator.hardwareConcurrency || 2;
 
-const percent = computed(() =>
-  progress.value ? Math.floor((100 * progress.value.cellsDone) / progress.value.cellsTotal) : 0
-);
+/** By estimated time, not cells: the high start TEs built first are the cheap ones. */
+const percent = computed(() => {
+  const p = progress.value;
+  if (!p) return 0;
+  return p.cellsDone === p.cellsTotal ? 100 : Math.min(99, Math.floor(100 * p.fractionDone));
+});
 
 function formatBytes(n: number): string {
   return n >= 1e6 ? `${(n / 1e6).toFixed(1)} MB` : `${Math.ceil(n / 1e3)} KB`;

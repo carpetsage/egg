@@ -63,7 +63,7 @@
         <div class="mb-2 flex flex-wrap items-baseline gap-2">
           <h4 class="text-xs font-bold text-slate-700">Dates to avoid</h4>
           <span class="text-[11px] text-slate-400">
-            No prestige starts on these days (birthdays, holidays, a vacation): one that would waits until the day is
+            No prestige starts on these days (birthdays, holidays, a vacation): one that would is forced to wait until the day is
             over, and the eggs your farm lays meanwhile carry into the next ascension. Continuing your current
             ascension isn't affected.
           </span>
@@ -75,7 +75,7 @@
         <div class="mb-2 flex flex-wrap items-baseline gap-2">
           <h4 class="text-xs font-bold text-slate-700">Hours to avoid</h4>
           <span class="text-[11px] text-slate-400">
-            No prestige starts in these hours each week (sleep, work): one that would waits until they're over, and the
+            No prestige starts in these hours each week (sleep, work): one that would is forced to wait until they're over, and the
             eggs your farm lays meanwhile carry into the next ascension.
           </span>
         </div>
