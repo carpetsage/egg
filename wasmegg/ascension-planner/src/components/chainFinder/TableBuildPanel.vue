@@ -159,9 +159,12 @@ function handleWorkersKeydown(e: KeyboardEvent) {
 const progress = computed(() => store.progress);
 const maxWorkers = navigator.hardwareConcurrency || 2;
 
-const percent = computed(() =>
-  progress.value ? Math.floor((100 * progress.value.cellsDone) / progress.value.cellsTotal) : 0
-);
+/** By estimated time, not cells: the high start TEs built first are the cheap ones. */
+const percent = computed(() => {
+  const p = progress.value;
+  if (!p) return 0;
+  return p.cellsDone === p.cellsTotal ? 100 : Math.min(99, Math.floor(100 * p.fractionDone));
+});
 
 function formatBytes(n: number): string {
   return n >= 1e6 ? `${(n / 1e6).toFixed(1)} MB` : `${Math.ceil(n / 1e3)} KB`;

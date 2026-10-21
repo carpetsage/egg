@@ -12,6 +12,7 @@ import { checkPacked, packTable, type Cell } from '@/buildTable/pack';
 import { allHours, prefixSourceFor, SEED_HOURS, type EventClass } from '@/buildTable/prefixReuse';
 import { cteBonusOf, type K3Record, type TaskResult } from '@/buildTable/task';
 import type { SimulationContext } from '@/auto/types';
+import { BuildEta } from './eta';
 import { ChainFinderWorkerPool } from './workerPool';
 
 export interface TableBuildOptions {
@@ -38,9 +39,11 @@ export interface TeProgress {
 export interface TableBuildProgress {
   cellsDone: number;
   cellsTotal: number;
+  /** Share of the build's estimated time that's done, 0-1 (cells weighted by start TE; see eta.ts). */
+  fractionDone: number;
   k3Done: boolean;
   elapsedMs: number;
-  /** Rough: assumes the remaining cells cost what the finished ones did on average. */
+  /** Rough: weights cells by start TE (low TEs cost more) at the recent rate; see eta.ts. */
   etaMs: number | null;
   workers: number;
   busyWorkers: number;
@@ -85,6 +88,7 @@ export function buildChainFinderTable(options: TableBuildOptions): Promise<Table
     const active = new Set<TeJob>();
     const cellsTotal = tes.length * WEEK_HOURS;
     let cellsDone = 0;
+    const eta = new BuildEta(tes, WEEK_HOURS, t0);
     let k3: K3Record | null = null;
     let settled = false;
 
@@ -101,13 +105,15 @@ export function buildChainFinderTable(options: TableBuildOptions): Promise<Table
     });
 
     const report = () => {
-      const elapsedMs = performance.now() - t0;
+      const now = performance.now();
+      const elapsedMs = now - t0;
       options.onProgress?.({
         cellsDone,
         cellsTotal,
+        fractionDone: eta.fractionDone,
         k3Done: !!k3,
         elapsedMs,
-        etaMs: cellsDone ? (elapsedMs / cellsDone) * (cellsTotal - cellsDone) : null,
+        etaMs: eta.remainingMs(now),
         workers: pool.size,
         busyWorkers: pool.busyCount,
         tesDone: jobs.length - active.size,
@@ -137,6 +143,7 @@ export function buildChainFinderTable(options: TableBuildOptions): Promise<Table
       if (reused) job.reused++;
       else job.fresh++;
       cellsDone++;
+      eta.cellDone(job.te, performance.now());
       if (job.cells.size === WEEK_HOURS) active.delete(job);
       report();
       finishIfDone();
