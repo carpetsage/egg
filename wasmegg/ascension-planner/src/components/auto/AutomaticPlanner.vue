@@ -271,7 +271,7 @@ import ValidationDialog from './ValidationDialog.vue';
 import LoadoutOverrideScopeDialog from './LoadoutOverrideScopeDialog.vue';
 import ConfirmationDialog from '@/components/ConfirmationDialog.vue';
 import type { AutoLoadoutInputs } from '@/auto/loadout';
-import { setAutoStartingTE } from '@/auto/startingTE';
+import { applyAutoStartingTE } from '@/auto/startingTE';
 import { formatUnixToDateInput, formatUnixToTimeInput } from '@/lib/format';
 import type { VirtueEgg } from '@/types';
 
@@ -279,7 +279,8 @@ const autoPlannerStore = useAutoPlannerStore();
 const virtueStore = useVirtueStore();
 const truthEggsStore = useTruthEggsStore();
 
-const { ascensionChain, timezone, startDate, startTime, targetTE, deferForEarningsMode } = storeToRefs(autoPlannerStore);
+const { ascensionChain, timezone, startDate, startTime, startTimeOverride, targetTE, deferForEarningsMode } =
+  storeToRefs(autoPlannerStore);
 
 // The forced-490 ascension is a silent bonus card — don't count it in the "A1 of N" denominator.
 const visibleTotal = computed(() => {
@@ -293,14 +294,19 @@ const showLowClothedTEWarning = computed(() => earningsClothedTe.value !== null 
 const targetInput = ref<HTMLInputElement | null>(null);
 const isCollapsed = ref(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
 
-// Restore a cached form (start date/time/timezone, target TE) from a previous visit, if any,
-// so a page reload doesn't wipe out what the user had entered. This runs before the defaulting
-// logic below, which only fills in fields that are still empty.
+// Restore a cached form (start-time override, target TE) from a previous visit, if any, so a page
+// reload doesn't wipe out what the user had entered. The start date/time/timezone only come back
+// with an override — otherwise the plan starts now. This runs before the defaulting logic below,
+// which only fills in fields that are still empty. Skipped when a plan is already loaded (setPlan
+// set its own start).
 const cachedSchedule = loadAutoPlannerSchedule();
 if (cachedSchedule) {
-  if (cachedSchedule.timezone) timezone.value = cachedSchedule.timezone;
-  if (cachedSchedule.startDate) startDate.value = cachedSchedule.startDate;
-  if (cachedSchedule.startTime) startTime.value = cachedSchedule.startTime;
+  if (cachedSchedule.startTimeOverride && !startTimeOverride.value) {
+    startTimeOverride.value = true;
+    if (cachedSchedule.timezone) timezone.value = cachedSchedule.timezone;
+    if (cachedSchedule.startDate) startDate.value = cachedSchedule.startDate;
+    if (cachedSchedule.startTime) startTime.value = cachedSchedule.startTime;
+  }
   if (cachedSchedule.targetTE) targetTE.value = cachedSchedule.targetTE;
   if (cachedSchedule.deferForEarningsMode && isTestingEnvironment) deferForEarningsMode.value = true;
 }
@@ -337,12 +343,13 @@ watch(
   { immediate: true }
 );
 
-// Persist the form (start date/time/timezone, target TE, defer for earnings mode) so it survives a page reload.
-watch([timezone, startDate, startTime, targetTE, deferForEarningsMode], () => {
+// Persist the form (start-time override, target TE, defer for earnings mode) so it survives a page reload.
+watch([timezone, startDate, startTime, startTimeOverride, targetTE, deferForEarningsMode], () => {
   saveAutoPlannerSchedule({
     timezone: timezone.value,
     startDate: startDate.value,
     startTime: startTime.value,
+    startTimeOverride: startTimeOverride.value,
     targetTE: targetTE.value,
     deferForEarningsMode: deferForEarningsMode.value,
   });
@@ -428,14 +435,14 @@ onMounted(async () => {
   const chain = autoPlannerStore.pendingChain;
   if (!chain) return;
   autoPlannerStore.pendingChain = null;
+  startTimeOverride.value = true;
   timezone.value = chain.timezone;
   startDate.value = formatUnixToDateInput(chain.start, chain.timezone);
   startTime.value = formatUnixToTimeInput(chain.start, chain.timezone);
   targetTE.value = chain.targets.join(' ');
   deferForEarningsMode.value = chain.siloMode;
-  for (const [egg, te] of Object.entries(chain.teEarned) as [VirtueEgg, number][]) {
-    if (truthEggsStore.teEarned[egg] !== te) await setAutoStartingTE(egg, te);
-  }
+  autoPlannerStore.teOverride = { ...truthEggsStore.teEarned, ...chain.teEarned };
+  await applyAutoStartingTE();
   autoPlannerStore.ascensionChain = [];
   autoPlannerStore.planVariantOverrides = { ...chain.variantOverrides };
   autoPlannerStore.endTimeOverrides = { ...chain.endTimeOverrides };
