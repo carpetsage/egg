@@ -4,13 +4,14 @@ import { useInitialStateStore } from '@/stores/initialState';
 import { useActionsStore } from '@/stores/actions';
 import { useTruthEggsStore } from '@/stores/truthEggs';
 import { useAutoPlannerStore } from '@/stores/autoPlanner';
-import { formatNumber } from '@/lib/format';
+import { formatNumber, formatUnixToDateInput, formatUnixToTimeInput } from '@/lib/format';
 import { getSimulationContext, createBaseEngineState } from '@/engine/adapter';
 import { computeSnapshot } from '@/engine/compute';
 import { getLocalTimestampInTimezone } from '@/lib/events';
 import { runUntilShift, deriveNextStartState, runContinueCurrent, runAscensionFromC3Variant } from '@/auto/ascension';
 import { runC3Variants } from '@/auto/shifts/c3';
 import { rollUpPendingTE } from '@/lib/modes';
+import { addEggsSinceLastSync, applyAutoStartingTE } from '@/auto/startingTE';
 import { getOptimalEarningsSet } from '@/lib/artifacts';
 import { makeContinueState, VIRTUE_EGGS_MAP } from '@/auto/continueState';
 import { triggerPlanExport, type ExportedPlan } from '@/auto/export';
@@ -236,6 +237,9 @@ export function useAscensionGenerator() {
       const forced490 = targets[targets.length - 1] !== 490 && targets[targets.length - 1] < 490;
       const effectiveTargets = forced490 ? [...targets, 490] : targets;
 
+      // Starting TE from whichever source the form shows: the backup, or the user's override.
+      await applyAutoStartingTE({ refreshSnapshot: false });
+
       const teEarned = truthEggsStore.teEarned;
       const currentTotal = Object.values(teEarned).reduce((a, b) => a + b, 0);
 
@@ -260,6 +264,12 @@ export function useAscensionGenerator() {
         throw new Error('validation_error');
       }
 
+      const absStartTime = getLocalTimestampInTimezone(startDate.value, startTime.value, timezone.value);
+
+      // A backup start also counts the eggs shipped since the last sync, on the egg the player is on —
+      // the game credits them when they prestige. Before the roll-up, so any TE they pass is claimed.
+      if (!autoPlannerStore.teOverride) addEggsSinceLastSync(absStartTime);
+
       rollUpPendingTE();
 
       const context = getSimulationContext();
@@ -268,8 +278,6 @@ export function useAscensionGenerator() {
       // Pass silent:true so this snapshot update doesn't trigger the manual-mode
       // RecalculationOverlay — the auto planner uses its own progress indicator.
       actionsStore.setInitialSnapshot(initialSnapshot, { silent: true });
-
-      const absStartTime = getLocalTimestampInTimezone(startDate.value, startTime.value, timezone.value);
 
       const initialParamsToSave = {
         startDate: startDate.value,
@@ -425,6 +433,11 @@ export function useAscensionGenerator() {
               initialStateStore.rawBackup,
               optimalEarnings
             );
+
+            // No catch-up here: the base state's eggs delivered already include the eggs shipped since
+            // the last sync (or, under a TE override, deliberately leave them out), and
+            // `runContinueCurrent` only catches up from a real (epoch) lastStepTime.
+            continueState.lastStepTime = 0;
 
             const continueContext = getSimulationContext();
             continueContext.ascensionStartTime = currentStartTime;
@@ -679,6 +692,13 @@ export function useAscensionGenerator() {
     autoPlannerStore.planVariantOverrides = {};
     autoPlannerStore.endTimeOverrides = {};
     if (opts.clearLoadoutOverrides ?? true) autoPlannerStore.loadoutOverrides = {};
+    // Without a start-time override the plan starts now. Resampled only here, on a fresh generate:
+    // the per-ascension handlers regenerate surgically and must keep the start the chain was built on.
+    if (!autoPlannerStore.startTimeOverride) {
+      const nowUnix = Date.now() / 1000;
+      startDate.value = formatUnixToDateInput(nowUnix, timezone.value);
+      startTime.value = formatUnixToTimeInput(nowUnix, timezone.value);
+    }
     generate(onComplete);
   };
 

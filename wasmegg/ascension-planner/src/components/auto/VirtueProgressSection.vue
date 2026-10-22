@@ -10,9 +10,9 @@
         <div>
           <h2 class="text-xs font-black text-slate-800 uppercase tracking-wider leading-none">Virtue Progress</h2>
           <div class="flex items-center gap-2 mt-1">
-            <span class="text-[10px] font-black text-indigo-500 uppercase">{{ currentTE }} TE Total</span>
-            <span v-if="truthEggsStore.totalPendingTE > 0" class="text-[10px] font-black text-emerald-500 uppercase">
-              +{{ truthEggsStore.totalPendingTE }} Pending
+            <span class="text-[10px] font-black text-indigo-500 uppercase">{{ claimedTotal }} TE Total</span>
+            <span v-if="pendingTotal > 0" class="text-[10px] font-black text-emerald-500 uppercase">
+              +{{ pendingTotal }} Pending
             </span>
             <span v-if="earningsClothedTe !== null" class="w-1 h-1 bg-slate-200 rounded-full"></span>
             <span v-if="earningsClothedTe !== null" class="text-[10px] font-black text-indigo-500 uppercase"
@@ -23,65 +23,84 @@
           </div>
         </div>
       </div>
-      <div class="flex items-center gap-2">
+      <div v-if="backupProgress" class="flex items-center gap-2">
         <button
-          v-if="teInputsDifferFromDefault"
-          @click="resetTEInputsToDefault"
-          title="Reset starting TE back to what your backup showed when you loaded the page today"
-          class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all border border-slate-200 flex items-center gap-2 active:scale-95"
+          v-if="teOverride"
+          @click="removeOverride"
+          class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all border border-slate-200 active:scale-95"
         >
-          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-          Reset to Today's Defaults
+          Remove Override
         </button>
         <button
-          v-if="truthEggsStore.hasPendingTE"
-          @click="rollUpPendingTE()"
-          class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest rounded-lg transition-all shadow-md shadow-emerald-100 flex items-center gap-2 active:scale-95"
+          v-else
+          @click="addOverride"
+          class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all border border-slate-200 active:scale-95"
         >
-          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-          </svg>
-          Roll Up Pending
+          Override
         </button>
       </div>
     </div>
 
-    <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
-      <div v-for="egg in VIRTUE_TE_ORDER" :key="egg" class="relative group">
-        <div class="bg-slate-50 border border-slate-100 rounded-xl p-3 group-hover:border-indigo-100 group-hover:bg-slate-50/80 transition-all duration-300">
-          <div class="flex items-center justify-between mb-2">
-            <div class="flex items-center gap-2">
+    <!-- Default: the backup's virtue progress, read-only -->
+    <template v-if="backupProgress && !teOverride">
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <div
+          v-for="egg in VIRTUE_TE_ORDER"
+          :key="egg"
+          class="bg-slate-50 border rounded-xl p-3"
+          :class="egg === currentEgg ? 'border-indigo-200' : 'border-slate-100'"
+        >
+          <div class="flex items-center gap-2 mb-2">
+            <img :src="iconURL(`egginc/egg_${egg}.png`, 64)" class="w-4 h-4 object-contain" />
+            <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest">{{ VIRTUE_EGG_NAMES[egg] }}</span>
+          </div>
+          <div class="flex items-baseline gap-1">
+            <span class="text-lg font-mono-premium font-black text-slate-900 leading-none">{{ backupProgress.teEarned[egg] }}</span>
+            <span class="text-[8px] font-black text-slate-400 uppercase">Claimed</span>
+          </div>
+          <div class="mt-1 text-[9px] font-black uppercase" :class="backupProgress.tePending[egg] > 0 ? 'text-emerald-600' : 'text-slate-300'">
+            +{{ backupProgress.tePending[egg] }} Pending
+          </div>
+        </div>
+      </div>
+      <p v-if="sinceSync" class="text-[11px] font-bold text-slate-600 px-1 tabular-nums">
+        <span class="font-black text-indigo-600">+{{ formatNumber(sinceSync.eggs, 3) }}</span>
+        {{ VIRTUE_EGG_NAMES[sinceSync.egg] }} eggs since your last sync {{ formatDuration(sinceSync.seconds) }} ago
+        <span v-if="sinceSync.te > 0" class="font-black text-emerald-600">(+{{ sinceSync.te }} TE)</span>
+      </p>
+    </template>
+
+    <!-- Override (or no backup to default to): claimed TE per egg, editable -->
+    <template v-else>
+      <p
+        v-if="teOverride"
+        class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-[11px] font-bold text-amber-800 leading-relaxed"
+      >
+        The plan starts from exactly the claimed TE entered below. Pending (unclaimed) TE, partial progress toward
+        your next TE, and eggs shipped since your last sync are not counted.
+      </p>
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <div v-for="egg in VIRTUE_TE_ORDER" :key="egg" class="relative group">
+          <div class="bg-slate-50 border border-slate-100 rounded-xl p-3 group-hover:border-indigo-100 group-hover:bg-slate-50/80 transition-all duration-300">
+            <div class="flex items-center gap-2 mb-2">
               <img :src="iconURL(`egginc/egg_${egg}.png`, 64)" class="w-4 h-4 object-contain grayscale group-hover:grayscale-0 transition-all" />
               <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest group-hover:text-indigo-400 transition-colors">
                 {{ VIRTUE_EGG_NAMES[egg] }}
               </span>
             </div>
-          </div>
-          <div class="flex items-center gap-2">
-            <div class="relative flex-grow">
-              <input
-                type="number"
-                :value="truthEggsStore.teEarned[egg]"
-                min="0"
-                max="98"
-                class="w-full bg-white border border-slate-100 rounded-lg px-3 py-1.5 text-[11px] font-mono-premium font-black text-slate-900 outline-none focus:border-indigo-500/50 focus:bg-white transition-all"
-                @change="handleTEEarnedChange(egg, ($event.target as HTMLInputElement).value)"
-                @keydown.enter="($event.target as HTMLInputElement).blur()"
-              />
-            </div>
-            <div
-              v-if="truthEggsStore.pendingTEForEgg(egg) > 0"
-              class="flex flex-col items-center justify-center bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100 min-w-[44px]"
-            >
-              <span class="text-[9px] font-black text-emerald-600">+{{ truthEggsStore.pendingTEForEgg(egg) }}</span>
-              <span class="text-[5px] font-black text-emerald-400 uppercase leading-none">Pending</span>
-            </div>
+            <input
+              type="number"
+              :value="teOverride ? teOverride[egg] : truthEggsStore.teEarned[egg]"
+              min="0"
+              max="98"
+              class="w-full bg-white border border-slate-100 rounded-lg px-3 py-1.5 text-[11px] font-mono-premium font-black text-slate-900 outline-none focus:border-indigo-500/50 focus:bg-white transition-all"
+              @change="handleTEEarnedChange(egg, ($event.target as HTMLInputElement).value)"
+              @keydown.enter="($event.target as HTMLInputElement).blur()"
+            />
           </div>
         </div>
       </div>
-    </div>
+    </template>
 
     <!-- Artifacts & Stones: what C1/C3/H1 use in place of the backup's inventory -->
     <div v-if="autoPlannerStore.loadoutInputs" class="bg-slate-50 border border-slate-100 rounded-xl">
@@ -122,9 +141,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { iconURL } from 'lib';
-import { formatNumber } from '@/lib/format';
+import { formatDuration, formatNumber } from '@/lib/format';
+import { countTEThresholdsPassed } from '@/lib/truthEggs';
+import { parseVirtueFarm, parseVirtueProgress } from '@/lib/backupVirtue';
 import { useTruthEggsStore, VIRTUE_TE_ORDER } from '@/stores/truthEggs';
 import { VIRTUE_EGG_NAMES } from '@/types';
 import { useActionsStore } from '@/stores/actions';
@@ -136,9 +157,8 @@ import { getSimulationContext } from '@/engine/adapter';
 import { getArtifactLoadoutFromBackup, getOptimalEarningsSet } from '@/lib/artifacts';
 import { useEarningsClothedTE } from '@/composables/useEarningsClothedTE';
 import { computeSnapshot } from '@/engine/compute';
-import { rollUpPendingTE } from '@/lib/modes';
 import { consumeAutoPlannerTEInputs, saveAutoPlannerTEInputs } from '@/lib/autoPlannerFormCache';
-import { setAutoStartingTE } from '@/auto/startingTE';
+import { applyAutoStartingTE, eggsSinceLastSync } from '@/auto/startingTE';
 import type { VirtueEgg } from '@/types';
 import { useAutoPlannerStore } from '@/stores/autoPlanner';
 import { calculateClothedTEForSet } from '@/lib/artifacts/virtue';
@@ -172,11 +192,6 @@ const virtueStore = useVirtueStore();
 const fuelTankStore = useFuelTankStore();
 const silosStore = useSilosStore();
 const autoPlannerStore = useAutoPlannerStore();
-
-// Snapshot "today's" starting TE — whatever the fresh backup fetch put into the store before this
-// component mounted — so the Reset button below has something to reset back to, independent of
-// whatever gets restored from (or later saved to) the local form cache.
-const defaultTeEarned: Partial<Record<VirtueEgg, number>> = { ...truthEggsStore.teEarned };
 
 const currentTE = computed(() => {
   const snapshot = actionsStore.effectiveSnapshot;
@@ -242,57 +257,89 @@ const currentELR = computed(() => {
   return computeSnapshot(continueState, getSimulationContext(), { skipGrowth: true }).elr;
 });
 
+// --- Starting TE: the backup's virtue progress by default, or the user's override ---
+
+const teOverride = computed(() => autoPlannerStore.teOverride);
+
+// The save as it is — not the stores, which the generator rolls pending TE into.
+const backupProgress = computed(() =>
+  initialStateStore.rawBackup ? parseVirtueProgress(initialStateStore.rawBackup) : null
+);
+const backupFarm = computed(() => (initialStateStore.rawBackup ? parseVirtueFarm(initialStateStore.rawBackup) : null));
+const currentEgg = computed<VirtueEgg | null>(() =>
+  backupFarm.value ? VIRTUE_EGGS_MAP[backupFarm.value.eggType] ?? null : null
+);
+
+const claimedTotal = computed(() => {
+  const source = teOverride.value ?? backupProgress.value?.teEarned;
+  return source ? VIRTUE_TE_ORDER.reduce((sum, egg) => sum + (source[egg] ?? 0), 0) : currentTE.value;
+});
+const pendingTotal = computed(() =>
+  !teOverride.value && backupProgress.value
+    ? VIRTUE_TE_ORDER.reduce((sum, egg) => sum + backupProgress.value!.tePending[egg], 0)
+    : 0
+);
+
+// Eggs shipped on the current egg since the backup's last sync — the same catch-up the generator
+// adds to every variant's starting eggs up to the plan start. Ticks every second.
+const nowMs = ref(Date.now());
+const clock = setInterval(() => (nowMs.value = Date.now()), 1000);
+onBeforeUnmount(() => clearInterval(clock));
+
+const sinceSync = computed(() => {
+  const nowSecs = nowMs.value / 1000;
+  const catchUp = backupProgress.value ? eggsSinceLastSync(nowSecs) : null;
+  if (!catchUp) return null;
+  const delivered = backupProgress.value!.eggsDelivered[catchUp.egg];
+  const te = countTEThresholdsPassed(delivered + catchUp.eggs) - countTEThresholdsPassed(delivered);
+  return { egg: catchUp.egg, eggs: catchUp.eggs, seconds: Math.max(0, nowSecs - catchUp.lastSyncTime), te };
+});
+
+function cacheTEOverride() {
+  const override = autoPlannerStore.teOverride;
+  saveAutoPlannerTEInputs(initialStateStore.playerId, override ? { teEarned: { ...override } } : null);
+}
+
+function addOverride() {
+  autoPlannerStore.teOverride = { ...(backupProgress.value?.teEarned ?? truthEggsStore.teEarned) };
+  applyAutoStartingTE();
+  cacheTEOverride();
+}
+
+function removeOverride() {
+  autoPlannerStore.teOverride = null;
+  applyAutoStartingTE();
+  cacheTEOverride();
+}
+
 const handleTEEarnedChange = (egg: VirtueEgg, value: string) => {
   const count = parseInt(value);
   if (isNaN(count)) return;
 
-  setAutoStartingTE(egg, count);
-  cacheTEInputs();
+  const base = autoPlannerStore.teOverride ?? backupProgress.value?.teEarned ?? truthEggsStore.teEarned;
+  autoPlannerStore.teOverride = { ...base, [egg]: Math.max(0, Math.min(98, count)) };
+  applyAutoStartingTE();
+  cacheTEOverride();
 };
 
-// Restore cached starting TE inputs from a previous visit, if any, so a page reload doesn't wipe
-// out edits the user made to these fields. Applied on top of the fresh backup default captured
-// above as `defaultTeEarned`. `consumeAutoPlannerTEInputs` only returns a value the first time
-// it's called per player per page load, so switching Auto/Manual back and forth (which remounts
-// this component) won't keep reapplying a stale cache on top of fresher state from a backup
-// refresh, plan import, or Manual-mode edit.
+// Restore a TE override from a previous visit, if any, so a page reload keeps it.
+// `consumeAutoPlannerTEInputs` only returns a value the first time it's called per player per page
+// load, so switching Auto/Manual back and forth (which remounts this component) won't reapply it
+// over a plan import or a removed override. A plan or Chain Finder route that already set its own
+// override wins.
 const cachedTEInputs = consumeAutoPlannerTEInputs(initialStateStore.playerId);
-if (cachedTEInputs?.teEarned) {
-  for (const egg of VIRTUE_TE_ORDER) {
-    const cachedValue = cachedTEInputs.teEarned[egg];
-    if (cachedValue !== undefined && cachedValue !== truthEggsStore.teEarned[egg]) {
-      setAutoStartingTE(egg, cachedValue);
-    }
+if (cachedTEInputs?.teEarned && !autoPlannerStore.teOverride) {
+  autoPlannerStore.teOverride = { ...cachedTEInputs.teEarned };
+  applyAutoStartingTE();
+}
+
+// A backup refresh rewrites the stores from the save; put an override back on top of it.
+watch(
+  () => initialStateStore.rawBackup,
+  () => {
+    if (autoPlannerStore.teOverride) applyAutoStartingTE();
   }
-}
-
-// Persist starting TE inputs so they survive a page reload. Called explicitly from the actual
-// user-driven entry points below (editing a field, resetting to defaults) rather than from a
-// blanket store watcher, so values that change for other reasons (backup refresh, plan import,
-// Manual-mode sync, rolling up pending TE) don't get cached as if the user had typed them.
-function cacheTEInputs() {
-  saveAutoPlannerTEInputs(initialStateStore.playerId, { teEarned: { ...truthEggsStore.teEarned } });
-}
-
-// Whether any starting TE input has drifted from what the backup showed on load — governs
-// whether the Reset button is shown at all.
-const teInputsDifferFromDefault = computed(() =>
-  VIRTUE_TE_ORDER.some(egg => truthEggsStore.teEarned[egg] !== defaultTeEarned[egg])
 );
-
-/**
- * Reset all starting TE inputs back to the values the backup showed when the page loaded today,
- * discarding any manual edits (and the cached copy of them).
- */
-function resetTEInputsToDefault() {
-  for (const egg of VIRTUE_TE_ORDER) {
-    const value = defaultTeEarned[egg];
-    if (value !== undefined) {
-      setAutoStartingTE(egg, value);
-    }
-  }
-  cacheTEInputs();
-}
 
 // --- Artifacts & Stones ---
 
